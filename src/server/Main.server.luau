@@ -6,7 +6,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
+local Backpack = require(Shared:WaitForChild("Backpack"))
 local DigRoll = require(Shared:WaitForChild("DigRoll"))
+local Selling = require(Shared:WaitForChild("Selling"))
 local Config = Shared:WaitForChild("Config")
 local Dig = require(Config:WaitForChild("Dig"))
 
@@ -22,9 +24,14 @@ local digConfig: DigRoll.Config = {
 
 local log = Log.new("Main")
 
-local ok, reason = DigRoll.validateConfig(digConfig)
-if not ok then
-	log.error("dig config is invalid", { reason = reason })
-else
-	log.info("dig config is valid", { layers = #digConfig.layers, rarities = #digConfig.rarities })
+local function check(name: string, ok: boolean, reason: string?)
+	if ok then
+		log.info(name .. " is valid")
+	else
+		log.error(name .. " is invalid", { reason = reason })
+	end
 end
+
+check("dig config", DigRoll.validateConfig(digConfig))
+check("ore prices", Selling.validateOreValues(digConfig.layers, require(Config:WaitForChild("Ores"))))
+check("backpack levels", Backpack.validateLevels(require(Config:WaitForChild("Backpack")).levels))

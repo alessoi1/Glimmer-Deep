@@ -1,11 +1,7 @@
 --!strict
 local Framework = require("../Framework")
 local DigRoll = require("../../src/shared/DigRoll")
-local Dig = require("../../src/shared/Config/Dig")
-local Layers = require("../../src/shared/Config/Layers")
-local Mutations = require("../../src/shared/Config/Mutations")
-local Rarities = require("../../src/shared/Config/Rarities")
-
+local TestConfig = require("../TestConfig")
 local test = Framework.test
 local assertTrue = Framework.assertTrue
 local assertEquals = Framework.assertEquals
@@ -13,15 +9,7 @@ local assertNear = Framework.assertNear
 local assertErrors = Framework.assertErrors
 local scriptedRng = Framework.scriptedRng
 
-local config: DigRoll.Config = {
-	rareFindChance = Dig.rareFindChance,
-	mutationChance = Dig.mutationChance,
-	maxLuck = Dig.maxLuck,
-	maxRareFindBonus = Dig.maxRareFindBonus,
-	rarities = Rarities,
-	mutations = Mutations,
-	layers = Layers,
-}
+local config: DigRoll.Config = TestConfig
 
 local function copyConfig(): DigRoll.Config
 	local copy = table.clone(config)
