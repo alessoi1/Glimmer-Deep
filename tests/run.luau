@@ -9,6 +9,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/DigRoll.spec")
 	end,
+	function()
+		require("./specs/Log.spec")
+	end,
 }
 
 local passed = 0
