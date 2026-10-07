@@ -9,6 +9,8 @@ local Log = require(Shared:WaitForChild("Log"))
 local Backpack = require(Shared:WaitForChild("Backpack"))
 local DigRoll = require(Shared:WaitForChild("DigRoll"))
 local Selling = require(Shared:WaitForChild("Selling"))
+local Shovel = require(Shared:WaitForChild("Shovel"))
+local Upgrades = require(Shared:WaitForChild("Upgrades"))
 local Config = Shared:WaitForChild("Config")
 local Dig = require(Config:WaitForChild("Dig"))
 
@@ -34,4 +36,14 @@ end
 
 check("dig config", DigRoll.validateConfig(digConfig))
 check("ore prices", Selling.validateOreValues(digConfig.layers, require(Config:WaitForChild("Ores"))))
-check("backpack levels", Backpack.validateLevels(require(Config:WaitForChild("Backpack")).levels))
+local shovelConfig = require(Config:WaitForChild("Shovel"))
+local backpackConfig = require(Config:WaitForChild("Backpack"))
+check("backpack levels", Backpack.validateLevels(backpackConfig.levels))
+check("shovel levels", Shovel.validateConfig(shovelConfig))
+check(
+	"upgrade tracks",
+	Upgrades.validateTracks({
+		shovel = { levels = shovelConfig.levels },
+		backpack = { levels = backpackConfig.levels },
+	})
+)
