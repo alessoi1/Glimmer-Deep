@@ -11,7 +11,7 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 
 ## Technik
 
-- [ ] **Plots in Studio prüfen:** `PlotService` (8 Platzhalter-Grundstücke, Zuweisung nach Profil-Laden, Respawn auf dem Grundstück) ist nur in Lune (Logik) getestet. In Studio prüfen: Spawn auf Plot 1, Respawn nach dem Tod, Freigabe beim Verlassen (Test mit mehreren Spielern: Test-Tab, Start mit 2+ Spielern). Mehr als 8 Spieler werden gekickt; Max Players in den Game Settings auf 8 stellen. Bewusst nicht gebaut: Schacht-Länge nach gespeicherter Tiefe (kommt mit Dig), Streaming, echte Modelle.
+- [ ] **Plots: Mehrspieler prüfen:** In Studio mit einem Spieler geprüft (7. Oktober 2026): 8 Grundstücke sichtbar, Spawn auf Plot 1, Respawn funktioniert. Noch offen: Test mit 2+ Spielern (Zuweisung, Freigabe beim Verlassen) und Max Players = 8. Bewusst nicht gebaut: Schacht-Länge nach gespeicherter Tiefe (kommt mit Dig), Streaming, echte Modelle. Roblox kennt keinen Fallschaden; ein Sturz in den Schacht tötet nicht.
 - [ ] **DataService: Rest prüfen:** Laden, Speichern und erneutes Laden funktionieren in Studio mit API-Zugriff (7. Oktober 2026: erster Start `status=new`, zweiter `status=loaded`). Noch offen: Verhalten bei Ladefehler (Kick mit Meldung) und die CI-Schritte `wally install` (ungeprüft, bis der erste Lauf grün ist).
 - [ ] **Studio:** `rojo build` und die Rojo-Version laufen in der CI. Skripte in Roblox Studio sind noch nie ausgeführt worden; Anleitung und erwartete Startmeldungen in `docs/SETUP.md`.
 - [ ] **Typprüfung:** Kein `luau-analyze` in der Entwicklungsumgebung gelaufen. Lokal prüfen (zum Beispiel mit luau-lsp), besonders die strukturellen Typen in `Backpack.luau` und `Selling.luau`.
