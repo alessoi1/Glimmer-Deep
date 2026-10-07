@@ -48,8 +48,20 @@ Vor jedem Commit: `stylua --check`, `selene`, Tests. Schlägt etwas fehl, erst b
 - Jede Datei beginnt mit `--!strict`. Typen für Funktionen und Daten angeben.
 - Keine globalen Variablen. Keine veralteten Funktionen: `task.wait`, `task.spawn`, `task.delay` statt `wait`, `spawn`, `delay`.
 - Alle Spielwerte (Preise, Chancen, Multiplikatoren, Limits) liegen in `src/shared/Config/`. Keine magischen Zahlen im Code.
-- Dienste sind Module mit klarer Schnittstelle. Kleine Funktionen, früh zurückkehren, Fehler abfangen und loggen (`warn`), nicht verschlucken.
+- Dienste sind Module mit klarer Schnittstelle. Kleine Funktionen, früh zurückkehren, Fehler abfangen und loggen (siehe Abschnitt Logging), nicht verschlucken.
 - Reine Logik (Würfe, Berechnungen) so schreiben, dass sie ohne Studio testbar ist (keine Roblox-Dienste direkt darin).
+
+## Logging und Debugging
+
+Alles wird mit Logs versehen, damit Fehler leicht nachvollziehbar sind.
+- Geloggt wird nur über `src/shared/Log.luau` (`local log = Log.new("Dienstname")`). Kein loses `print` oder `warn` im Spielcode.
+- Level: `debug` (hochfrequent, standardmäßig aus), `info` (normale Ereignisse), `warn` (abgelehnte Eingaben, unerwartete aber behandelte Fälle), `error` (Fehler, die eine Aktion abbrechen).
+- Jeder Dienst loggt Start, Spieler laden/speichern, Käufe und Belege, Münz- und Tiefenänderungen durch Systeme, seltene Funde (ab Episch) und jeden abgefangenen Fehler.
+- Jeder Remote-Handler loggt abgelehnte Aufrufe (Remote, Spieler, Grund) auf `warn`.
+- Kontext als Tabelle mitgeben (`log.warn("save failed", { userId = id, attempt = n })`), nicht in den Text bauen. Spieler nur über `UserId` identifizieren.
+- Reine Logik (zum Beispiel `DigRoll`) loggt nicht selbst; der aufrufende Dienst loggt das Ergebnis und Fehler.
+- Keine Schlüssel, Tokens oder persönliche Daten in Logs. Hochfrequente Ereignisse (zum Beispiel jeder gegrabene Block) nur auf `debug`.
+- Jeder `pcall` loggt den Fehler mit Kontext, bevor er behandelt wird.
 
 ## Server-Autorität und Sicherheit (harte Regeln)
 
