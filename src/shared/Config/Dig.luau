@@ -11,4 +11,12 @@ return {
 	maxLuck = 10,
 	-- Upper bound for the multiplier on the rare find chance (skill "Erzspürer").
 	maxRareFindBonus = 5,
+	-- Meters of depth gained per dug block (about 2,500 blocks for the first layer).
+	metersPerBlock = 0.02,
+	-- How close (studs, horizontal) a player must be to the shaft of their own plot to dig.
+	digRange = 12,
+	-- Rare finds from this rarity upwards are written to the log as events.
+	logFromRarity = "epic",
+	-- Seconds between two logged warnings of the same kind per player (rejected dig calls).
+	warnInterval = 5,
 }

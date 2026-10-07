@@ -23,6 +23,8 @@ local ProfileRules = require(script.Parent:WaitForChild("ProfileRules"))
 
 local log = Log.new("Data")
 
+export type Profile = ProfileData.Profile
+
 type LoadedListener = (player: Player, data: ProfileData.Profile) -> ()
 
 local DataService = {}

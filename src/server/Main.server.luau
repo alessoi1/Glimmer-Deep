@@ -7,6 +7,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
+local DigRules = require(script.Parent:WaitForChild("DigRules"))
+local DigService = require(script.Parent:WaitForChild("DigService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
 local ProfileRules = require(script.Parent:WaitForChild("ProfileRules"))
@@ -16,17 +18,8 @@ local Selling = require(Shared:WaitForChild("Selling"))
 local Shovel = require(Shared:WaitForChild("Shovel"))
 local Upgrades = require(Shared:WaitForChild("Upgrades"))
 local Config = Shared:WaitForChild("Config")
-local Dig = require(Config:WaitForChild("Dig"))
 
-local digConfig: DigRoll.Config = {
-	rareFindChance = Dig.rareFindChance,
-	mutationChance = Dig.mutationChance,
-	maxLuck = Dig.maxLuck,
-	maxRareFindBonus = Dig.maxRareFindBonus,
-	rarities = require(Config:WaitForChild("Rarities")),
-	mutations = require(Config:WaitForChild("Mutations")),
-	layers = require(Config:WaitForChild("Layers")),
-}
+local digConfig = DigRules.build()
 
 local log = Log.new("Main")
 
@@ -61,3 +54,4 @@ check("new profile", ProfileData.validate(testProfile, profileRules))
 
 DataService.start()
 PlotService.start()
+DigService.start()
