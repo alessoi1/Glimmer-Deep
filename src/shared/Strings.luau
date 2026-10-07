@@ -58,4 +58,16 @@ return {
 	plot = {
 		serverFull = "Dieser Server ist voll. Bitte versuche es in einem anderen Server.",
 	},
+	dig = {
+		button = "Graben",
+		depthLabel = "Tiefe",
+		layerLabel = "Schicht",
+		backpackLabel = "Rucksack",
+		foundOre = "+1 %s",
+		foundRare = "Seltener Fund: %s (%s)",
+		foundRareMutated = "Seltener Fund: %s %s (%s)",
+		backpackFull = "Rucksack voll",
+		tooFar = "Geh näher an deinen Schacht",
+		unknown = "Das hat nicht geklappt",
+	},
 }

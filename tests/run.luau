@@ -36,6 +36,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/DigAction.spec")
 	end,
+	function()
+		require("./specs/DigMessages.spec")
+	end,
 }
 
 local passed = 0

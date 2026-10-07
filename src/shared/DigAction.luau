@@ -45,6 +45,22 @@ export type Result = {
 	capacity: number,
 }
 
+export type SnapshotParams = {
+	profile: DiggerProfile,
+	digConfig: DigRoll.Config,
+	shovelLevels: { Shovel.LevelDef },
+	backpackLevels: { Backpack.LevelDef },
+}
+
+-- What the client needs to show: it never computes game values itself.
+export type State = {
+	depth: number,
+	layerId: string,
+	used: number,
+	capacity: number,
+	digCooldown: number, -- seconds between digs with the current shovel
+}
+
 local SHOVEL_UPGRADE = "shovel"
 local BACKPACK_UPGRADE = "backpack"
 
@@ -88,6 +104,23 @@ function DigAction.perform(params: Params): Result
 	profile.depth += params.metersPerBlock
 
 	return result(true, nil, block)
+end
+
+-- Read-only view of the digger's current state.
+function DigAction.snapshot(params: SnapshotParams): State
+	local profile = params.profile
+	local backpack: Backpack.Backpack = {
+		capacity = Backpack.capacityForLevel(params.backpackLevels, profile.upgradeLevels[BACKPACK_UPGRADE]),
+		ores = profile.backpack.ores,
+		finds = profile.backpack.finds,
+	}
+	return {
+		depth = profile.depth,
+		layerId = DigRoll.getLayer(params.digConfig, profile.depth).id,
+		used = Backpack.getUsed(backpack),
+		capacity = backpack.capacity,
+		digCooldown = Shovel.getDigCooldown(params.shovelLevels, profile.upgradeLevels[SHOVEL_UPGRADE]),
+	}
 end
 
 return DigAction

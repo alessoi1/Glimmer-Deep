@@ -151,3 +151,35 @@ test("digging until the backpack is full keeps the profile valid", function()
 	local ok, reason = ProfileData.validate(profile, rules)
 	assertTrue(ok, reason)
 end)
+
+-- Snapshot ---------------------------------------------------------------------
+
+local function snapshotParams(profile: ProfileData.Profile): DigAction.SnapshotParams
+	return {
+		profile = profile,
+		digConfig = TestConfig,
+		shovelLevels = ShovelConfig.levels,
+		backpackLevels = BackpackConfig.levels,
+	}
+end
+
+test("snapshot describes depth, layer, backpack and dig cooldown", function()
+	local profile = freshProfile()
+	profile.depth = 60.5
+	profile.upgradeLevels.shovel = 2
+	profile.backpack.ores.iron = 3
+	table.insert(profile.backpack.finds, { findId = "fossil", layerId = "rock", rarityId = "rare", value = 50 })
+	local state = DigAction.snapshot(snapshotParams(profile))
+	assertEquals(state.depth, 60.5)
+	assertEquals(state.layerId, "rock")
+	assertEquals(state.used, 4)
+	assertEquals(state.capacity, BackpackConfig.levels[1].capacity)
+	assertEquals(state.digCooldown, ShovelConfig.levels[2].digCooldown)
+end)
+
+test("snapshot does not change the profile", function()
+	local profile = freshProfile()
+	DigAction.snapshot(snapshotParams(profile))
+	assertEquals(profile.depth, 0)
+	assertEquals(next(profile.backpack.ores), nil)
+end)
