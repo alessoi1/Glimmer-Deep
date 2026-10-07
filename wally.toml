@@ -6,6 +6,5 @@ realm = "shared"
 private = true
 
 [server-dependencies]
-# Package name and version not verified against the registry (no access from the
-# sandbox where this was written). Run `wally install` and adjust if it fails.
+# Package and version checked against the Wally registry (realm: server).
 ProfileStore = "lm-loleris/profilestore@1.0.3"

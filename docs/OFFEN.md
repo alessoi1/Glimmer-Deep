@@ -11,11 +11,11 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 
 ## Technik
 
-- [ ] **DataService mit ProfileStore:** Wartet darauf, dass `rokit install` und `wally install` lokal bestätigt sind. Paketname und Version in `wally.toml` sind ungeprüft. Danach `ServerPackages` in `default.project.json` eintragen.
-- [ ] **Rojo und Studio:** `rojo build` und alle Skripte in Studio sind noch nie ausgeführt worden (nur Lune-Tests). Rojo-Version in `rokit.toml` ungeprüft.
+- [ ] **DataService mit ProfileStore:** Paketname und Version sind bestätigt (`lm-loleris/profilestore@1.0.3` existiert in der Wally-Registry, Realm `server`, geprüft am 7. Oktober 2026 über die Wally-API). Offen: DataService schreiben und `ServerPackages` in `default.project.json` eintragen, sobald `wally install` lokal oder in der Cloud lief.
+- [ ] **Studio:** `rojo build` und die Rojo-Version laufen in der CI. Skripte in Roblox Studio sind noch nie ausgeführt worden; Anleitung und erwartete Startmeldungen in `docs/SETUP.md`.
 - [ ] **Typprüfung:** Kein `luau-analyze` in der Entwicklungsumgebung gelaufen. Lokal prüfen (zum Beispiel mit luau-lsp), besonders die strukturellen Typen in `Backpack.luau` und `Selling.luau`.
-- [ ] **Selene:** Roblox-Standardbibliothek konnte in der Cloud-Umgebung nicht erzeugt werden. Lokal `selene src tests` laufen lassen.
-- [ ] **CI:** Workflow `.github/workflows/ci.yml` läuft bei Pull Requests und auf `main` (StyLua, Selene, Lune-Tests, Rojo-Build auf Linux, Windows und macOS). Aktionsversion `CompeyDev/setup-rokit@v0.1.2` ist ungeprüft; nach dem ersten Lauf bestätigen. Danach in den Repo-Einstellungen die Checks für `main` verpflichtend machen.
+- [x] **Selene:** Läuft in der CI mit der echten Roblox-Standardbibliothek.
+- [x] **CI:** Workflow `.github/workflows/ci.yml` (StyLua, Selene, Lune-Tests, Rojo-Build auf Linux, Windows und macOS) ist aktiv, Branch-Schutz für `main` ist eingerichtet.
 
 ## Vor Launch und vor Update 1
 
