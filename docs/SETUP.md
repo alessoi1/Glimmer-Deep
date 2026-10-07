@@ -74,13 +74,18 @@ Das sind dieselben Prüfungen wie in der CI (`.github/workflows/ci.yml`).
 ### Erwartete Startmeldungen im Output
 
 ```
-[GlimmerDeep][Main] dig config is valid layers=3 rarities=5
+[GlimmerDeep][Main] dig config is valid
 [GlimmerDeep][Main] ore prices is valid
 [GlimmerDeep][Main] backpack levels is valid
 [GlimmerDeep][Main] shovel levels is valid
 [GlimmerDeep][Main] upgrade tracks is valid
 [GlimmerDeep][Main] new profile is valid
+[GlimmerDeep][Data] started profileVersion=1 store=PlayerProfiles_v1
+[GlimmerDeep][Data] loading profile userId=...
+[GlimmerDeep][Data] profile loaded status=new userId=... version=1
 ```
+
+In Studio ohne Zugriff auf API-Dienste nutzt ProfileStore automatisch einen Zwischenspeicher: Alles funktioniert, aber der Spielstand überlebt das Beenden von Play nicht. Zum echten Speichern im Studio unter Game Settings, Security, **Enable Studio Access to API Services** aktivieren (das Place muss dafür veröffentlicht sein).
 
 Eine Zeile mit `... is invalid reason=...` (rot oder gelb) bedeutet einen Fehler in der Config oder im Profilformat; bitte die ganze Zeile an Claude schicken.
 

@@ -51,4 +51,8 @@ return {
 		shovel = "Schaufel",
 		backpack = "Rucksack",
 	},
+	data = {
+		loadFailed = "Dein Spielstand konnte nicht geladen werden. Bitte komm in ein paar Minuten wieder. Dein Fortschritt ist sicher.",
+		sessionEnded = "Deine Sitzung wurde beendet. Bitte betritt das Spiel erneut.",
+	},
 }
