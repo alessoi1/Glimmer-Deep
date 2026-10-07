@@ -11,7 +11,7 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 
 ## Technik
 
-- [ ] **DataService mit ProfileStore:** Paketname und Version sind bestätigt (`lm-loleris/profilestore@1.0.3` existiert in der Wally-Registry, Realm `server`, geprüft am 7. Oktober 2026 über die Wally-API). Offen: DataService schreiben und `ServerPackages` in `default.project.json` eintragen, sobald `wally install` lokal oder in der Cloud lief.
+- [ ] **DataService: Rest prüfen:** Laden, Speichern und erneutes Laden funktionieren in Studio mit API-Zugriff (7. Oktober 2026: erster Start `status=new`, zweiter `status=loaded`). Noch offen: Verhalten bei Ladefehler (Kick mit Meldung) und die CI-Schritte `wally install` (ungeprüft, bis der erste Lauf grün ist).
 - [ ] **Studio:** `rojo build` und die Rojo-Version laufen in der CI. Skripte in Roblox Studio sind noch nie ausgeführt worden; Anleitung und erwartete Startmeldungen in `docs/SETUP.md`.
 - [ ] **Typprüfung:** Kein `luau-analyze` in der Entwicklungsumgebung gelaufen. Lokal prüfen (zum Beispiel mit luau-lsp), besonders die strukturellen Typen in `Backpack.luau` und `Selling.luau`.
 - [x] **Selene:** Läuft in der CI mit der echten Roblox-Standardbibliothek.
