@@ -11,7 +11,7 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 
 ## Technik
 
-- [ ] **DataService in Studio prüfen:** Code steht auf `feature/data-service` (DataService, DataLogic, ProfileRules). Logik ist getestet (Lune), Laden/Speichern/Kick nur in Studio prüfbar. Auch prüfen: relative `require("./ProfileData")` in `DataLogic.luau` funktioniert in Studio; falls nicht, auf `script.Parent:WaitForChild(...)` umstellen. Die CI-Schritte `wally install` sind ungeprüft, bis der erste Lauf grün ist.
+- [ ] **DataService: Speichern prüfen:** Laden in Studio funktioniert (7. Oktober 2026, neues Profil, relative `require` ok). Noch offen: Speichern und erneutes Laden mit aktiviertem „Studio Access to API Services“ (bisher nur Zwischenspeicher), Verhalten bei Ladefehler (Kick) und die CI-Schritte `wally install` (ungeprüft, bis der erste Lauf grün ist).
 - [ ] **Studio:** `rojo build` und die Rojo-Version laufen in der CI. Skripte in Roblox Studio sind noch nie ausgeführt worden; Anleitung und erwartete Startmeldungen in `docs/SETUP.md`.
 - [ ] **Typprüfung:** Kein `luau-analyze` in der Entwicklungsumgebung gelaufen. Lokal prüfen (zum Beispiel mit luau-lsp), besonders die strukturellen Typen in `Backpack.luau` und `Selling.luau`.
 - [x] **Selene:** Läuft in der CI mit der echten Roblox-Standardbibliothek.
