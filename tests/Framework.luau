@@ -47,6 +47,36 @@ function Framework.assertNear(actual: number, expected: number, tolerance: numbe
 	end
 end
 
+local function deepEqual(a: any, b: any): boolean
+	if type(a) ~= type(b) then
+		return false
+	end
+	if type(a) ~= "table" then
+		return a == b or (a ~= a and b ~= b)
+	end
+	for key, value in a do
+		if not deepEqual(value, b[key]) then
+			return false
+		end
+	end
+	for key in b do
+		if a[key] == nil then
+			return false
+		end
+	end
+	return true
+end
+
+function Framework.deepEqual(a: any, b: any): boolean
+	return deepEqual(a, b)
+end
+
+function Framework.assertDeepEquals(actual: any, expected: any, message: string?)
+	if not deepEqual(actual, expected) then
+		error(message or "tables differ", 2)
+	end
+end
+
 -- Asserts that `fn` raises an error whose message contains `fragment`.
 function Framework.assertErrors(fn: () -> (), fragment: string)
 	local ok, err = pcall(fn)

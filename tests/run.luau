@@ -24,6 +24,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/Upgrades.spec")
 	end,
+	function()
+		require("./specs/ProfileData.spec")
+	end,
 }
 
 local passed = 0

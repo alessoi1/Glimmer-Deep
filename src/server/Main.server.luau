@@ -6,6 +6,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
+local Migrations = require(script.Parent:WaitForChild("Migrations"))
+local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
 local Backpack = require(Shared:WaitForChild("Backpack"))
 local DigRoll = require(Shared:WaitForChild("DigRoll"))
 local Selling = require(Shared:WaitForChild("Selling"))
@@ -47,3 +49,21 @@ check(
 		backpack = { levels = backpackConfig.levels },
 	})
 )
+
+local layerIds = {}
+for _, layer in digConfig.layers do
+	table.insert(layerIds, layer.id)
+end
+local profileConfig = require(Config:WaitForChild("Profile"))
+local profileRules: ProfileData.Rules = {
+	version = ProfileData.currentVersion(Migrations),
+	startCoins = profileConfig.startCoins,
+	startDepth = profileConfig.startDepth,
+	levelCounts = { shovel = #shovelConfig.levels, backpack = #backpackConfig.levels },
+	layerIds = layerIds,
+}
+local random = Random.new()
+local testProfile = ProfileData.new(profileRules, function()
+	return random:NextNumber()
+end, os.time())
+check("new profile", ProfileData.validate(testProfile, profileRules))
