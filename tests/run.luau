@@ -27,6 +27,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/ProfileData.spec")
 	end,
+	function()
+		require("./specs/DataLogic.spec")
+	end,
 }
 
 local passed = 0
