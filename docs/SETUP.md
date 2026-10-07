@@ -83,7 +83,12 @@ Das sind dieselben Prüfungen wie in der CI (`.github/workflows/ci.yml`).
 [GlimmerDeep][Data] started profileVersion=1 store=PlayerProfiles_v1
 [GlimmerDeep][Data] loading profile userId=...
 [GlimmerDeep][Data] profile loaded status=new userId=... version=1
+[GlimmerDeep][Plot] plot assigned userId=... plot=1 free=7
 ```
+
+**Plots ansehen:** Die 8 Platzhalter-Grundstücke liegen weit weg von der Baseplate (Config `Plot.origin`, Start bei X = 1000). Dein Charakter erscheint auf Plot 1 neben dem Schacht. Im Workspace liegt der Ordner `Plots`.
+
+**Max Players:** Es gibt nur 8 Grundstücke. Unter Game Settings, Players, **Max Players** auf 8 stellen, sonst wird der 9. Spieler mit einer Meldung gekickt (das ist gewollt, aber der Server sollte gar nicht erst so viele annehmen).
 
 In Studio ohne Zugriff auf API-Dienste nutzt ProfileStore automatisch einen Zwischenspeicher: Alles funktioniert, aber der Spielstand überlebt das Beenden von Play nicht. Zum echten Speichern im Studio unter Game Settings, Security, **Enable Studio Access to API Services** aktivieren (das Place muss dafür veröffentlicht sein).
 
