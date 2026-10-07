@@ -12,6 +12,12 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/Log.spec")
 	end,
+	function()
+		require("./specs/Backpack.spec")
+	end,
+	function()
+		require("./specs/Selling.spec")
+	end,
 }
 
 local passed = 0
