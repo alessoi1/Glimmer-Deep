@@ -30,6 +30,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/DataLogic.spec")
 	end,
+	function()
+		require("./specs/PlotLogic.spec")
+	end,
 }
 
 local passed = 0
