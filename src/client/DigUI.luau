@@ -23,6 +23,9 @@ local BUTTON_SIZE = 120 -- px, large enough for thumbs on phones
 local BUTTON_MARGIN = 24
 local PANEL_WIDTH = 240
 local PANEL_MARGIN = 12
+-- On touch devices the left thumb uses the movement stick in the bottom-left
+-- corner, so the panel sits above it.
+local PANEL_BOTTOM_TOUCH = 170
 local TEXT_SIZE = 20
 local MESSAGE_SECONDS = 2.5
 local STATE_RETRY_SECONDS = 0.5
@@ -82,7 +85,9 @@ function DigUI.start()
 	panel.BackgroundColor3 = COLOR_PANEL
 	panel.BackgroundTransparency = 0.25
 	panel.Size = UDim2.fromOffset(PANEL_WIDTH, 16 + 3 * (TEXT_SIZE + 6))
-	panel.Position = UDim2.fromOffset(PANEL_MARGIN, PANEL_MARGIN)
+	panel.AnchorPoint = Vector2.new(0, 1)
+	local panelBottom = if UserInputService.TouchEnabled then PANEL_BOTTOM_TOUCH else PANEL_MARGIN
+	panel.Position = UDim2.new(0, PANEL_MARGIN, 1, -panelBottom)
 	panel.Parent = gui
 	local corner = Instance.new("UICorner")
 	corner.Parent = panel
