@@ -86,7 +86,7 @@ Das sind dieselben Prüfungen wie in der CI (`.github/workflows/ci.yml`).
 [GlimmerDeep][Plot] plot assigned userId=... plot=1 free=7
 ```
 
-**Plots ansehen:** Die 8 Platzhalter-Grundstücke liegen weit weg von der Baseplate (Config `Plot.origin`, Start bei X = 1000). Dein Charakter erscheint auf Plot 1 neben dem Schacht. Im Workspace liegt der Ordner `Plots`.
+**Plots ansehen:** Die 8 Platzhalter-Grundstücke liegen weit weg von der Baseplate (Config `Plot.origin`, Start bei X = 3000, die Template-Baseplate ist 2048 Studs breit). Dein Charakter erscheint auf Plot 1 neben dem Schacht. Im Workspace liegt der Ordner `Plots`.
 
 **Max Players:** Es gibt nur 8 Grundstücke. Unter Game Settings, Players, **Max Players** auf 8 stellen, sonst wird der 9. Spieler mit einer Meldung gekickt (das ist gewollt, aber der Server sollte gar nicht erst so viele annehmen).
 
