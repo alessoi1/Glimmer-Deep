@@ -15,7 +15,7 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 - [ ] **Rojo und Studio:** `rojo build` und alle Skripte in Studio sind noch nie ausgeführt worden (nur Lune-Tests). Rojo-Version in `rokit.toml` ungeprüft.
 - [ ] **Typprüfung:** Kein `luau-analyze` in der Entwicklungsumgebung gelaufen. Lokal prüfen (zum Beispiel mit luau-lsp), besonders die strukturellen Typen in `Backpack.luau` und `Selling.luau`.
 - [ ] **Selene:** Roblox-Standardbibliothek konnte in der Cloud-Umgebung nicht erzeugt werden. Lokal `selene src tests` laufen lassen.
-- [ ] **CI:** Es gibt noch keinen CI-Workflow (StyLua, Selene, Lune-Tests bei jedem Pull Request).
+- [ ] **CI:** Workflow `.github/workflows/ci.yml` läuft bei Pull Requests und auf `main` (StyLua, Selene, Lune-Tests, Rojo-Build auf Linux, Windows und macOS). Aktionsversion `CompeyDev/setup-rokit@v0.1.2` ist ungeprüft; nach dem ersten Lauf bestätigen. Danach in den Repo-Einstellungen die Checks für `main` verpflichtend machen.
 
 ## Vor Launch und vor Update 1
 
