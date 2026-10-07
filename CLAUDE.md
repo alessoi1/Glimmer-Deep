@@ -26,6 +26,7 @@ Das Projekt wird auf Mac und Windows bearbeitet. Deshalb:
 rokit install                    # Werkzeuge aus rokit.toml installieren
 wally install                    # Pakete installieren (Ordner Packages/ ist nicht im Git)
 rojo serve                       # Live-Sync nach Studio (im Rojo-Plugin "Connect")
+mkdir build                      # einmalig (Rojo legt den Ordner nicht an, er ist nicht im Git)
 rojo build -o build/GlimmerDeep.rbxl
 stylua src tests                 # formatieren (Prüfung: stylua --check src tests)
 selene src tests                 # Lint

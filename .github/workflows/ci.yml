@@ -39,5 +39,9 @@ jobs:
       - name: Tests (Lune)
         run: lune run tests/run
 
+      # Rojo does not create the output folder, and build/ is not in Git.
+      - name: Create build folder
+        run: mkdir build
+
       - name: Build place file (Rojo)
         run: rojo build -o build/GlimmerDeep.rbxl
