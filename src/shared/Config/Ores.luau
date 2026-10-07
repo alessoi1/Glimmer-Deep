@@ -1,7 +1,8 @@
 --!strict
 -- NPC sell price per ore in coins. Placeholder starting values, to be balanced:
--- a full starting backpack (50 slots) in layer 1 should pay roughly the price
--- of the first shovel upgrade (about 100 coins). Deeper layers pay more per ore.
+-- a full starting backpack (50 slots) in layer 1 pays about 75 to 85 coins, so
+-- the first shovel upgrade (100 coins) is afforded with the golden onboarding
+-- find or a second trip. Deeper layers pay more per ore.
 
 return {
 	-- Layer 1: Sand und Lehm
