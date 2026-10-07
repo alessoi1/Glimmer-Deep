@@ -20,6 +20,7 @@ local PlotService = {}
 
 local allocator: PlotLogic.Allocator = PlotLogic.newAllocator(PlotConfig.count)
 local spawns: { [number]: SpawnLocation } = {}
+local shaftCenters: { [number]: Vector3 } = {} -- plot index -> shaft center at ground height
 local started = false
 
 local function color(rgb: { r: number, g: number, b: number }): Color3
@@ -43,6 +44,7 @@ local function buildPlot(slot: PlotLogic.Slot, parent: Instance)
 
 	local model = Instance.new("Model")
 	model.Name = "Plot_" .. slot.index
+	shaftCenters[slot.index] = center
 
 	for _, box in PlotLogic.groundBoxes(PlotConfig) do
 		local part = newPart(box, center, "Part")
@@ -106,6 +108,16 @@ local function releasePlot(player: Player)
 	if slot ~= nil then
 		log.info("plot released", { userId = player.UserId, plot = slot, free = allocator.freeCount() })
 	end
+end
+
+-- Shaft center (at ground height) of the plot owned by the player, or nil
+-- when the player has no plot.
+function PlotService.getShaftPosition(player: Player): Vector3?
+	local slot = allocator.slotOf(player.UserId)
+	if slot == nil then
+		return nil
+	end
+	return shaftCenters[slot]
 end
 
 function PlotService.start()

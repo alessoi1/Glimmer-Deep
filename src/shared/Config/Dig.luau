@@ -15,4 +15,8 @@ return {
 	metersPerBlock = 0.02,
 	-- How close (studs, horizontal) a player must be to the shaft of their own plot to dig.
 	digRange = 12,
+	-- Rare finds from this rarity upwards are written to the log as events.
+	logFromRarity = "epic",
+	-- Seconds between two logged warnings of the same kind per player (rejected dig calls).
+	warnInterval = 5,
 }

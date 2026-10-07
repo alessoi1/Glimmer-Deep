@@ -84,7 +84,10 @@ Das sind dieselben Prüfungen wie in der CI (`.github/workflows/ci.yml`).
 [GlimmerDeep][Data] loading profile userId=...
 [GlimmerDeep][Data] profile loaded status=new userId=... version=1
 [GlimmerDeep][Plot] plot assigned userId=... plot=1 free=7
+[GlimmerDeep][Dig] started metersPerBlock=0.02 digRange=12
 ```
+
+**Graben testen:** Auf dem Grundstück an den Schacht gehen (maximal 12 Studs entfernt). Dann den Button „Graben“ unten rechts antippen oder halten, am PC geht auch die Taste **E**. Oben links stehen Tiefe, Schicht und Rucksack, darunter erscheint der letzte Fund. Pro Block wächst die Tiefe um 0,02 m, nach 50 Blöcken kommt „Rucksack voll“ (Verkauf gibt es noch nicht). Zu weit weg zeigt „Geh näher an deinen Schacht“. Seltene Funde ab Episch stehen als `rare find` im Output; abgelehnte Aufrufe als `dig rejected` (höchstens alle 5 Sekunden pro Grund).
 
 **Plots ansehen:** Die 8 Platzhalter-Grundstücke liegen weit weg von der Baseplate (Config `Plot.origin`, Start bei X = 3000, die Template-Baseplate ist 2048 Studs breit). Dein Charakter erscheint auf Plot 1 neben dem Schacht. Im Workspace liegt der Ordner `Plots`.
 
