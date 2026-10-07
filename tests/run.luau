@@ -18,6 +18,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/Selling.spec")
 	end,
+	function()
+		require("./specs/Shovel.spec")
+	end,
 }
 
 local passed = 0

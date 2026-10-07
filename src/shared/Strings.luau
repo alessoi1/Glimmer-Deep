@@ -35,4 +35,20 @@ return {
 		amber = "Bernstein",
 		gemstone = "Edelstein",
 	},
+	shovel = {
+		wood = "Holzschaufel",
+		stone = "Steinschaufel",
+		copper = "Kupferschaufel",
+		iron = "Eisenschaufel",
+		steel = "Stahlschaufel",
+		silver = "Silberschaufel",
+		gold = "Goldschaufel",
+		obsidian = "Obsidianschaufel",
+		amethyst = "Amethystschaufel",
+		crystal = "Kristallschaufel",
+	},
+	upgrade = {
+		shovel = "Schaufel",
+		backpack = "Rucksack",
+	},
 }
