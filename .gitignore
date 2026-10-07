@@ -16,3 +16,7 @@ roblox.yml
 # OS files
 .DS_Store
 Thumbs.db
+
+# Stray package downloads
+*.whl
+*.tar.gz
