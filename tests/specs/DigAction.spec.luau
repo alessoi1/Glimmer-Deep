@@ -228,6 +228,7 @@ test("snapshot describes depth, layer, backpack, coins and dig cooldown", functi
 	assertEquals(state.layerId, "rock")
 	assertEquals(state.coins, 321)
 	assertEquals(state.onboardingStep, 1)
+	assertEquals(state.depotUsed, 0)
 	assertEquals(state.used, 4)
 	assertEquals(state.capacity, BackpackConfig.levels[1].capacity)
 	assertEquals(state.digCooldown, ShovelConfig.levels[2].digCooldown)
@@ -296,4 +297,15 @@ test("the snapshot shows the boosted capacity and cooldown", function()
 	local state = DigAction.snapshot(snapshot)
 	assertEquals(state.capacity, BackpackConfig.levels[1].capacity * 2)
 	assertNear(state.digCooldown, ShovelConfig.levels[1].digCooldown / 2, 1e-9)
+end)
+
+test("the snapshot counts the items in the depot", function()
+	local profile = freshProfile()
+	profile.depot.ores.coal = 7
+	table.insert(
+		profile.depot.finds,
+		{ id = 1, findId = "shard", layerId = "sand_clay", rarityId = "common", value = 10 }
+	)
+	profile.nextFindId = 2
+	assertEquals(DigAction.snapshot(snapshotParams(profile)).depotUsed, 8)
 end)

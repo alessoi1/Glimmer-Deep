@@ -4,31 +4,33 @@
 
 local SellMessages = require("./SellMessages")
 
+export type Texts = {
+	find: string,
+	findMutated: string,
+	setProgress: string,
+	setComplete: string,
+	incomeReady: string,
+	displayed: string,
+	removed: string,
+	collected: string,
+	admired: string,
+	admiredBy: string,
+	nothingToCollect: string,
+	backpackFull: string,
+	slotTaken: string,
+	noSuchFind: string,
+	alreadyAdmired: string,
+	emptyMuseum: string,
+	tooFar: string,
+	unknown: string,
+}
+
 export type Strings = {
 	find: { [string]: string },
 	rarity: { [string]: string },
 	mutation: { [string]: string },
 	layer: { [string]: string },
-	museum: {
-		find: string,
-		findMutated: string,
-		setProgress: string,
-		setComplete: string,
-		incomeReady: string,
-		displayed: string,
-		removed: string,
-		collected: string,
-		admired: string,
-		admiredBy: string,
-		nothingToCollect: string,
-		backpackFull: string,
-		slotTaken: string,
-		noSuchFind: string,
-		alreadyAdmired: string,
-		emptyMuseum: string,
-		tooFar: string,
-		unknown: string,
-	},
+	museum: Texts,
 }
 
 -- Structural subsets of MuseumLogic.Find and MuseumLogic.SetProgress.

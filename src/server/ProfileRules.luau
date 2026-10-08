@@ -20,6 +20,7 @@ function ProfileRules.build(): ProfileData.Rules
 		levelCounts = {
 			shovel = #require(Config:WaitForChild("Shovel")).levels,
 			backpack = #require(Config:WaitForChild("Backpack")).levels,
+			digger = #require(Config:WaitForChild("Digger")).levels,
 		},
 		startCoins = profileConfig.startCoins,
 		startDepth = profileConfig.startDepth,

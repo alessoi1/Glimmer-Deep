@@ -13,6 +13,11 @@ export type Find = {
 	value: number,
 }
 
+export type Stash = {
+	ores: { [string]: number },
+	finds: { Find },
+}
+
 export type Display = { slot: number, find: Find }
 
 export type Museum = {
@@ -36,6 +41,8 @@ export type Profile = {
 	onboarding: Onboarding,
 	house: { level: number },
 	museum: Museum,
+	depot: Stash, -- offline yield, sold together with the backpack
+	digger: { leftAt: number? }, -- server time the player left; nil while playing
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -106,14 +113,15 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		layerSeeds = layerSeeds,
 		onboarding = { step = 1, firstFindGiven = false },
 		house = { level = 1 },
+		depot = { ores = {}, finds = {} },
+		digger = {},
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
 	}
 end
 
-local function validateFind(find: any, index: number, labelOverride: string?): (boolean, string?)
-	local label = labelOverride or string.format("backpack.finds[%d]", index)
+local function validateFind(find: any, label: string): (boolean, string?)
 	if type(find) ~= "table" then
 		return false, label .. " must be a table"
 	end
@@ -128,6 +136,45 @@ local function validateFind(find: any, index: number, labelOverride: string?): (
 	end
 	if not isNonNegativeInteger(find.value) then
 		return false, label .. " needs a non-negative integer value"
+	end
+	return true, nil
+end
+
+-- Checks a container of ore counts and finds (backpack, depot). `seenIds` and
+-- `nextFindId` are shared over all containers, so find ids stay unique.
+local function validateStash(
+	stash: any,
+	name: string,
+	seenIds: { [number]: boolean },
+	nextFindId: number
+): (boolean, string?)
+	if type(stash) ~= "table" then
+		return false, name .. " must be a table"
+	end
+	if type(stash.ores) ~= "table" then
+		return false, name .. ".ores must be a table"
+	end
+	for oreId, count in stash.ores do
+		if type(oreId) ~= "string" or not isNonNegativeInteger(count) then
+			return false, string.format("%s.ores.%s must be a non-negative integer", name, tostring(oreId))
+		end
+	end
+	if type(stash.finds) ~= "table" then
+		return false, name .. ".finds must be a table"
+	end
+	for index, find in stash.finds do
+		local label = string.format("%s.finds[%d]", name, index)
+		local ok, reason = validateFind(find, label)
+		if not ok then
+			return false, reason
+		end
+		if seenIds[find.id] then
+			return false, string.format("%s has a duplicate id %d", label, find.id)
+		end
+		seenIds[find.id] = true
+		if find.id >= nextFindId then
+			return false, "nextFindId must be higher than every find id"
+		end
 	end
 	return true, nil
 end
@@ -185,35 +232,14 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		return false, "stats.blocksDug must be a non-negative integer"
 	end
 
-	if type(profile.backpack) ~= "table" then
-		return false, "backpack must be a table"
-	end
-	if type(profile.backpack.ores) ~= "table" then
-		return false, "backpack.ores must be a table"
-	end
-	for oreId, count in profile.backpack.ores do
-		if type(oreId) ~= "string" or not isNonNegativeInteger(count) then
-			return false, string.format("backpack.ores.%s must be a non-negative integer", tostring(oreId))
-		end
-	end
-	if type(profile.backpack.finds) ~= "table" then
-		return false, "backpack.finds must be a table"
-	end
 	if not isInteger(profile.nextFindId) or profile.nextFindId < 1 then
 		return false, "nextFindId must be a positive integer"
 	end
 	local seenIds: { [number]: boolean } = {}
-	for index, find in profile.backpack.finds do
-		local ok, reason = validateFind(find, index)
+	for _, name in { "backpack", "depot" } do
+		local ok, reason = validateStash(profile[name], name, seenIds, profile.nextFindId)
 		if not ok then
 			return false, reason
-		end
-		if seenIds[find.id] then
-			return false, string.format("backpack.finds[%d] has a duplicate id %d", index, find.id)
-		end
-		seenIds[find.id] = true
-		if find.id >= profile.nextFindId then
-			return false, "nextFindId must be higher than every find id"
 		end
 	end
 
@@ -249,7 +275,7 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 			return false, string.format("museum.displays[%d] reuses slot %d", index, display.slot)
 		end
 		seenSlots[display.slot] = true
-		local ok, reason = validateFind(display.find, index, string.format("museum.displays[%d].find", index))
+		local ok, reason = validateFind(display.find, string.format("museum.displays[%d].find", index))
 		if not ok then
 			return false, reason
 		end
@@ -260,6 +286,11 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		if display.find.id >= profile.nextFindId then
 			return false, "nextFindId must be higher than every find id"
 		end
+	end
+
+	local digger = profile.digger
+	if type(digger) ~= "table" or (digger.leftAt ~= nil and not isNonNegativeInteger(digger.leftAt)) then
+		return false, "digger.leftAt must be a non-negative integer when set"
 	end
 
 	return true, nil

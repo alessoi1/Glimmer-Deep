@@ -26,6 +26,7 @@ export type Museum = {
 export type MuseumProfile = {
 	coins: number,
 	backpack: { ores: { [string]: number }, finds: { Find } },
+	depot: { ores: { [string]: number }, finds: { Find } },
 	museum: Museum,
 	onboarding: Onboarding.State,
 }
@@ -155,14 +156,22 @@ function MuseumLogic.display(profile: MuseumProfile, findId: any, slot: any, con
 		return { ok = false, reason = "bad_slot" }
 	end
 
-	local backpackIndex: number? = nil
-	for index, find in profile.backpack.finds do
-		if find.id == findId then
-			backpackIndex = index
+	-- The find is in the backpack or in the depot (offline yield).
+	local source: { Find }? = nil
+	local sourceIndex: number? = nil
+	for _, finds in { profile.backpack.finds, profile.depot.finds } do
+		for index, find in finds do
+			if find.id == findId then
+				source = finds
+				sourceIndex = index
+				break
+			end
+		end
+		if source ~= nil then
 			break
 		end
 	end
-	if backpackIndex == nil then
+	if source == nil or sourceIndex == nil then
 		return { ok = false, reason = "no_such_find" }
 	end
 	if findDisplayIndex(profile.museum, slot) ~= nil then
@@ -170,7 +179,7 @@ function MuseumLogic.display(profile: MuseumProfile, findId: any, slot: any, con
 	end
 
 	settle(profile, context)
-	local find = table.remove(profile.backpack.finds, backpackIndex) :: Find
+	local find = table.remove(source, sourceIndex) :: Find
 	table.insert(profile.museum.displays, { slot = slot, find = copyFind(find) })
 	Onboarding.advance(profile.onboarding, "displayed")
 	return { ok = true, reason = nil }
@@ -311,6 +320,9 @@ function MuseumLogic.view(profile: MuseumProfile, layers: { LayerDef }, context:
 	end)
 	local backpackFinds: { Find } = {}
 	for _, find in profile.backpack.finds do
+		table.insert(backpackFinds, copyFind(find))
+	end
+	for _, find in profile.depot.finds do
 		table.insert(backpackFinds, copyFind(find))
 	end
 	return {

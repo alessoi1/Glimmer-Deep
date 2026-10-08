@@ -21,6 +21,7 @@ local function profile(): MuseumLogic.MuseumProfile
 	return {
 		coins = 0,
 		backpack = { ores = {}, finds = {} },
+		depot = { ores = {}, finds = {} },
 		museum = { displays = {}, incomeSince = NOW, admires = 0, week = 0, weekAdmires = 0 },
 		onboarding = Onboarding.new(),
 	}
@@ -300,4 +301,23 @@ test("the board ranks museums by weekly admirations and skips empty ones", funct
 	assertEquals(board[1].name, "Bob")
 	assertEquals(board[2].name, "Amy")
 	assertEquals(board[3].name, "Zed")
+end)
+
+test("a find from the depot can be displayed too", function()
+	local p = profile()
+	table.insert(p.depot.finds, find(5, "fossil", "rock", 300))
+	local result = MuseumLogic.display(p, 5, 1, context())
+	assertTrue(result.ok, tostring(result.reason))
+	assertEquals(#p.depot.finds, 0)
+	assertEquals(p.museum.displays[1].find.id, 5)
+end)
+
+test("the view lists the finds of the backpack and of the depot", function()
+	local p = profile()
+	table.insert(p.backpack.finds, find(1, "shard", "sand_clay", 10))
+	table.insert(p.depot.finds, find(2, "fossil", "rock", 300))
+	local view = MuseumLogic.view(p, Layers, context(), 10)
+	assertEquals(#view.backpackFinds, 2)
+	assertEquals(view.backpackFinds[1].id, 1)
+	assertEquals(view.backpackFinds[2].id, 2)
 end)

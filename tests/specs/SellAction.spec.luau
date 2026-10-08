@@ -9,7 +9,12 @@ local assertTrue = Framework.assertTrue
 local assertEquals = Framework.assertEquals
 
 local function profile(): SellAction.SellerProfile
-	return { coins = 10, backpack = { ores = {}, finds = {} }, onboarding = Onboarding.new() }
+	return {
+		coins = 10,
+		backpack = { ores = {}, finds = {} },
+		depot = { ores = {}, finds = {} },
+		onboarding = Onboarding.new(),
+	}
 end
 
 test("selling ore adds its price to the coins and empties the ore", function()
@@ -86,4 +91,39 @@ test("a sale moves the onboarding to the upgrade step, a failed sale does not", 
 	p.backpack.ores.coal = 1
 	SellAction.perform(p, OreConfig, nil)
 	assertEquals(p.onboarding.step, 4)
+end)
+
+test("the depot is sold together with the backpack", function()
+	local p = profile()
+	p.backpack.ores.coal = 2
+	p.depot.ores.coal = 3
+	p.depot.ores.copper = 1
+	table.insert(p.depot.finds, { value = 100 })
+	table.insert(p.backpack.finds, { value = 40 })
+	local result = SellAction.perform(p, OreConfig, nil)
+	assertTrue(result.ok)
+	assertEquals(result.coinsEarned, 5 * OreConfig.coal + OreConfig.copper + 140)
+	assertEquals(result.oreCount, 6)
+	assertEquals(result.findCount, 2)
+	assertEquals(next(p.depot.ores), nil)
+	assertEquals(#p.depot.finds, 0)
+	assertEquals(next(p.backpack.ores), nil)
+	assertEquals(#p.backpack.finds, 0)
+end)
+
+test("a depot alone is enough to sell", function()
+	local p = profile()
+	p.depot.ores.coal = 4
+	local result = SellAction.perform(p, OreConfig, nil)
+	assertTrue(result.ok)
+	assertEquals(p.coins, 10 + 4 * OreConfig.coal)
+end)
+
+test("unpriced ore in the depot stays there and is reported", function()
+	local p = profile()
+	p.backpack.ores.coal = 1
+	p.depot.ores.mystery = 3
+	local result = SellAction.perform(p, OreConfig, nil)
+	assertEquals(p.depot.ores.mystery, 3)
+	assertEquals(result.unknownOres.mystery, 3)
 end)

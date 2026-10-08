@@ -10,6 +10,7 @@ local Selling = require("./Selling")
 export type SellerProfile = {
 	coins: number,
 	backpack: Selling.Sellable,
+	depot: Selling.Sellable,
 	onboarding: Onboarding.State,
 }
 
@@ -30,27 +31,36 @@ local SellAction = {}
 
 -- Sells everything with a known price. oreMultiplier applies to ore only.
 function SellAction.perform(profile: SellerProfile, oreValues: Selling.OreValues, oreMultiplier: number?): Result
-	local sale = Selling.sellAll(profile.backpack, oreValues, oreMultiplier)
-	if sale.oreCount == 0 and sale.findCount == 0 then
+	local fromBackpack = Selling.sellAll(profile.backpack, oreValues, oreMultiplier)
+	local fromDepot = Selling.sellAll(profile.depot, oreValues, oreMultiplier)
+	local oreCount = fromBackpack.oreCount + fromDepot.oreCount
+	local findCount = fromBackpack.findCount + fromDepot.findCount
+	local unknownOres = fromBackpack.unknownOres
+	for oreId, count in fromDepot.unknownOres do
+		unknownOres[oreId] = (unknownOres[oreId] or 0) + count
+	end
+
+	if oreCount == 0 and findCount == 0 then
 		return {
 			ok = false,
 			reason = "empty",
 			coinsEarned = 0,
 			oreCount = 0,
 			findCount = 0,
-			unknownOres = sale.unknownOres,
+			unknownOres = unknownOres,
 		}
 	end
 
-	profile.coins += sale.coins
+	local coins = fromBackpack.coins + fromDepot.coins
+	profile.coins += coins
 	Onboarding.advance(profile.onboarding, "sold")
 	return {
 		ok = true,
 		reason = nil,
-		coinsEarned = sale.coins,
-		oreCount = sale.oreCount,
-		findCount = sale.findCount,
-		unknownOres = sale.unknownOres,
+		coinsEarned = coins,
+		oreCount = oreCount,
+		findCount = findCount,
+		unknownOres = unknownOres,
 	}
 end
 

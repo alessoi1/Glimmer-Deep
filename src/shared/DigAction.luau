@@ -18,6 +18,7 @@ export type DiggerProfile = {
 	nextFindId: number,
 	onboarding: Onboarding.State,
 	stats: { blocksDug: number },
+	depot: { ores: { [string]: number }, finds: { Backpack.Find } },
 	upgradeLevels: { [string]: number },
 	backpack: {
 		ores: { [string]: number },
@@ -82,6 +83,7 @@ export type State = {
 	capacity: number,
 	digCooldown: number, -- seconds between digs with the current shovel
 	onboardingStep: number,
+	depotUsed: number, -- items in the depot (offline yield)
 }
 
 local SHOVEL_UPGRADE = "shovel"
@@ -163,6 +165,10 @@ end
 function DigAction.snapshot(params: SnapshotParams): State
 	local profile = params.profile
 	local bonus = params.modifiers
+	local depotUsed = #profile.depot.finds
+	for _, count in profile.depot.ores do
+		depotUsed += count
+	end
 	local backpack: Backpack.Backpack = {
 		capacity = Backpack.capacityForLevel(
 			params.backpackLevels,
@@ -184,6 +190,7 @@ function DigAction.snapshot(params: SnapshotParams): State
 			if bonus then bonus.speedMultiplier else nil
 		),
 		onboardingStep = profile.onboarding.step,
+		depotUsed = depotUsed,
 	}
 end
 

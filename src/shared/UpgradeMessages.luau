@@ -12,6 +12,7 @@ export type Strings = {
 		offer: string,
 		maxed: string,
 		capacity: string,
+		blocksPerHour: string,
 		level: string,
 		bought: string,
 		notEnoughCoins: string,
@@ -27,6 +28,7 @@ export type Entry = {
 	nextPrice: number?,
 	nextId: string?,
 	nextCapacity: number?,
+	nextBlocksPerHour: number?,
 }
 
 local UpgradeMessages = {}
@@ -41,6 +43,8 @@ local function describeNext(strings: Strings, entry: Entry): string
 		return nameOf(strings.shovel, entry.nextId)
 	elseif entry.nextCapacity ~= nil then
 		return string.format(strings.upgrades.capacity, entry.nextCapacity)
+	elseif entry.nextBlocksPerHour ~= nil then
+		return string.format(strings.upgrades.blocksPerHour, entry.nextBlocksPerHour)
 	end
 	return string.format(strings.upgrades.level, entry.level + 1)
 end

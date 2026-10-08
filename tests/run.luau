@@ -69,6 +69,12 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/MuseumMessages.spec")
 	end,
+	function()
+		require("./specs/OfflineLogic.spec")
+	end,
+	function()
+		require("./specs/OfflineMessages.spec")
+	end,
 }
 
 local passed = 0

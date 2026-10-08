@@ -339,6 +339,64 @@ test("migrating adds the house and an empty museum whose income starts at creati
 	assertTrue(ok, reason)
 end)
 
+test("a new profile has an empty depot, no absence time and digger level 1", function()
+	local profile = fresh()
+	assertEquals(#profile.depot.finds, 0)
+	assertEquals(next(profile.depot.ores), nil)
+	assertEquals(profile.digger.leftAt, nil)
+	assertEquals(profile.upgradeLevels.digger, 1)
+end)
+
+test("validate rejects bad depot and digger values", function()
+	expectInvalid(function(p)
+		p.depot = nil
+	end, "depot")
+	expectInvalid(function(p)
+		p.depot.ores.coal = -1
+	end, "depot")
+	expectInvalid(function(p)
+		table.insert(p.depot.finds, { id = 1, findId = "shard", layerId = "sand_clay" })
+		p.nextFindId = 2
+	end, "depot")
+	expectInvalid(function(p)
+		table.insert(p.depot.finds, display(1, 1).find)
+		table.insert(p.backpack.finds, display(1, 1).find)
+		p.nextFindId = 2
+	end, "duplicate")
+	expectInvalid(function(p)
+		p.digger = nil
+	end, "digger")
+	expectInvalid(function(p)
+		p.digger.leftAt = -5
+	end, "leftAt")
+	expectInvalid(function(p)
+		p.upgradeLevels.digger = nil
+	end, "digger")
+end)
+
+test("validate accepts a stored absence time and depot finds", function()
+	local profile: any = fresh()
+	profile.digger.leftAt = 1700000500
+	table.insert(profile.depot.finds, display(1, 1).find)
+	profile.nextFindId = 2
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+end)
+
+test("migrating adds the depot, the digger and digger level 1", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(#migrated.depot.finds, 0)
+	assertEquals(migrated.digger.leftAt, nil)
+	assertEquals(migrated.upgradeLevels.digger, 1)
+	assertEquals(migrated.upgradeLevels.shovel, 3, "existing levels stay")
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

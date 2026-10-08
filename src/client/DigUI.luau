@@ -22,7 +22,7 @@ local log = Log.new("DigUI")
 -- Layout and timing of the interface (not game values).
 local BUTTON_SIZE = 120 -- px, large enough for thumbs on phones
 local BUTTON_MARGIN = 24
-local PANEL_WIDTH = 240
+local PANEL_WIDTH = 300
 local PANEL_MARGIN = 12
 -- On touch devices the left thumb uses the movement stick in the bottom-left
 -- corner, so the panel sits above it.
@@ -157,6 +157,9 @@ function DigUI.start()
 		layerLabel.Text =
 			string.format("%s: %s", Strings.dig.layerLabel, DigMessages.layerName(Strings, newState.layerId))
 		backpackLabel.Text = string.format("%s: %d / %d", Strings.dig.backpackLabel, newState.used, newState.capacity)
+		if newState.depotUsed > 0 then
+			backpackLabel.Text ..= string.format(" + %s %d", Strings.dig.depotLabel, newState.depotUsed)
+		end
 		local hint = DigMessages.hint(Strings, newState.onboardingStep)
 		hintLabel.Text = hint
 		hintLabel.Visible = hint ~= ""

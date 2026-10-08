@@ -13,6 +13,7 @@ function UpgradeRules.build(): UpgradeAction.Tracks
 	return {
 		shovel = { levels = require(Config:WaitForChild("Shovel")).levels },
 		backpack = { levels = require(Config:WaitForChild("Backpack")).levels },
+		digger = { levels = require(Config:WaitForChild("Digger")).levels },
 	}
 end
 
