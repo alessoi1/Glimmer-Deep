@@ -23,9 +23,11 @@ local function allSpecs(): { ModelSpecs.ModelSpec }
 		ModelSpecs.vitrine(palette, PlotConfig.museum.vitrineSize, PlotConfig.museum.vitrineHeight, true),
 		ModelSpecs.museumFloor(palette, PlotConfig.museum.columns, 3, PlotConfig.museum.spacing),
 		ModelSpecs.scenery(palette, PlotConfig.size, Look.scenery),
+		ModelSpecs.streetLamp(palette),
+		ModelSpecs.tree(palette, 1.5),
 	}
 	for _, id in HouseConfig.order do
-		local decor = ModelSpecs.decor(palette, id)
+		local decor = ModelSpecs.decor(palette, id, PlotConfig.decor.cell)
 		assertTrue(decor ~= nil, "decor spec for " .. id)
 		if decor ~= nil then
 			table.insert(specs, decor)
@@ -35,7 +37,9 @@ local function allSpecs(): { ModelSpecs.ModelSpec }
 end
 
 local function overlaps(a: ModelSpecs.Footprint, b: ModelSpecs.Footprint): boolean
-	return math.abs(a.x - b.x) < a.halfX + b.halfX and math.abs(a.z - b.z) < a.halfZ + b.halfZ
+	-- Parts that only touch (within rounding) do not overlap.
+	local tolerance = 1e-6
+	return math.abs(a.x - b.x) < a.halfX + b.halfX - tolerance and math.abs(a.z - b.z) < a.halfZ + b.halfZ - tolerance
 end
 
 local function boxFootprint(box: PlotLogic.Box): ModelSpecs.Footprint
@@ -98,7 +102,7 @@ test("the kinds are unique names, so an uploaded model can replace each one", fu
 end)
 
 test("an unknown decoration has no spec", function()
-	assertEquals(ModelSpecs.decor(palette, "ghost"), nil)
+	assertEquals(ModelSpecs.decor(palette, "ghost", PlotConfig.decor.cell), nil)
 end)
 
 -- Footprints ---------------------------------------------------------------------------
@@ -199,7 +203,7 @@ end)
 test("every decoration stays inside its cell and below a sensible height", function()
 	local half = PlotConfig.decor.cell / 2
 	for _, id in HouseConfig.order do
-		local spec = ModelSpecs.decor(palette, id)
+		local spec = ModelSpecs.decor(palette, id, PlotConfig.decor.cell)
 		assertTrue(spec ~= nil)
 		if spec ~= nil then
 			for _, p in spec.parts do
@@ -207,7 +211,7 @@ test("every decoration stays inside its cell and below a sensible height", funct
 				assertTrue(math.abs(fp.x) + fp.halfX <= half + 1e-9, id .. "/" .. p.name .. " leaves the cell (x)")
 				assertTrue(math.abs(fp.z) + fp.halfZ <= half + 1e-9, id .. "/" .. p.name .. " leaves the cell (z)")
 				local _, top = ModelSpecs.heightRange(p)
-				assertTrue(top <= 6.5, id .. "/" .. p.name .. " is too high")
+				assertTrue(top <= 6.5 * PlotConfig.decor.cell / 5 + 1e-9, id .. "/" .. p.name .. " is too high")
 			end
 		end
 	end
@@ -268,7 +272,7 @@ test("the fence leaves a gate on the south side and has no solid post", function
 			posts += 1
 			assertEquals(p.collide, false, p.name .. " must not block walking")
 			if string.sub(p.name, 6, 10) == "South" then
-				assertTrue(math.abs(p.x) >= 8, p.name .. " stands in the gate")
+				assertTrue(math.abs(p.x) >= 8 * PlotConfig.size / 64, p.name .. " stands in the gate")
 			end
 		end
 	end

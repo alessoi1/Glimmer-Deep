@@ -106,6 +106,8 @@ ModelSpecs.kinds = {
 	vitrineFilled = "VitrineFilled",
 	museumFloor = "MuseumFloor",
 	scenery = "Scenery",
+	streetLamp = "StreetLamp",
+	tree = "Tree",
 }
 
 local DEFAULT_DECOR_PREFIX = "Decor_"
@@ -144,6 +146,37 @@ local function part(
 		(spec :: any)[key] = value
 	end
 	return spec
+end
+
+-- A copy of a model with every size and position multiplied by `factor`. The
+-- builders below are written for a base size (a shaft of 8 studs, a sell pad of
+-- 6, a sign of 3, a decoration cell of 5) and scaled to the size the config
+-- asks for, so the world can grow without redrawing every model.
+local function scaled(spec: ModelSpec, factor: number): ModelSpec
+	local parts: { PartSpec } = {}
+	for _, source in spec.parts do
+		local copy: PartSpec = table.clone(source)
+		copy.sx = source.sx * factor
+		copy.sy = source.sy * factor
+		copy.sz = source.sz * factor
+		copy.x = source.x * factor
+		copy.y = source.y * factor
+		copy.z = source.z * factor
+		if source.light ~= nil then
+			copy.light = {
+				brightness = source.light.brightness,
+				range = source.light.range * factor,
+				color = source.light.color,
+			}
+		end
+		table.insert(parts, copy)
+	end
+	return {
+		name = spec.name,
+		primary = spec.primary,
+		parts = parts,
+		allowOverride = spec.allowOverride,
+	}
 end
 
 -- Horizontal footprint of a part. A rotation that is not a multiple of 90
@@ -198,7 +231,7 @@ local DRUM_RADIUS = 0.5
 
 -- A stone rim around the shaft opening with a winch, rope and bucket. The
 -- opening stays free: nothing stands inside `shaftSize`.
-function ModelSpecs.shaftRim(palette: Palette, shaftSize: number): ModelSpec
+local function baseShaftRim(palette: Palette, shaftSize: number): ModelSpec
 	local half = shaftSize / 2
 	local full = shaftSize + 2 * RIM_WIDTH
 	local offset = half + RIM_WIDTH / 2
@@ -301,7 +334,7 @@ end
 -- A stall on the green sell pad: counter, roof on four posts, crates and a
 -- coin pile with a lantern. The pad is the primary part and keeps the size of
 -- the old placeholder.
-function ModelSpecs.sellStand(palette: Palette, size: number, height: number): ModelSpec
+local function baseSellStand(palette: Palette, size: number, height: number): ModelSpec
 	local corner = size / 2 - 0.4
 	local postHeight = 3.6
 	local roofY = height + postHeight + 0.2
@@ -396,7 +429,7 @@ end
 
 -- A wooden post with a colored board. The board is the primary part; prompts and
 -- labels attach to it. `size` is the width of the board.
-function ModelSpecs.sign(palette: Palette, size: number, color: Rgb, name: string?): ModelSpec
+local function baseSign(palette: Palette, size: number, color: Rgb, name: string?): ModelSpec
 	local postHeight = 2
 	local boardHeight = size * 0.66
 	local boardY = postHeight + boardHeight / 2
@@ -433,8 +466,8 @@ function ModelSpecs.vitrine(palette: Palette, size: number, height: number, fill
 		part(
 			"Cushion",
 			"Block",
-			{ size * 0.7, 0.15, size * 0.7 },
-			{ 0, baseHeight + 0.07, 0 },
+			{ size * 0.7, size * 0.075, size * 0.7 },
+			{ 0, baseHeight + size * 0.035, 0 },
 			palette.roof,
 			"Fabric",
 			{ collide = false }
@@ -453,10 +486,18 @@ function ModelSpecs.vitrine(palette: Palette, size: number, height: number, fill
 	if filled then
 		table.insert(
 			parts,
-			part("Gem", "Ball", { 0.7, 0.7, 0.7 }, { 0, baseHeight + 0.55, 0 }, palette.gold, "Neon", {
-				collide = false,
-				light = { brightness = 0.8, range = 8, color = palette.gold },
-			})
+			part(
+				"Gem",
+				"Ball",
+				{ size * 0.35, size * 0.35, size * 0.35 },
+				{ 0, baseHeight + size * 0.275, 0 },
+				palette.gold,
+				"Neon",
+				{
+					collide = false,
+					light = { brightness = 0.8, range = size * 4, color = palette.gold },
+				}
+			)
 		)
 	end
 	return {
@@ -608,7 +649,7 @@ local decorBuilders: { [string]: (palette: Palette) -> { PartSpec } } = {
 
 -- The decoration with this id, or nil for an unknown id. The primary part is
 -- the first one, so a label attaches to the base.
-function ModelSpecs.decor(palette: Palette, id: string): ModelSpec?
+local function baseDecor(palette: Palette, id: string): ModelSpec?
 	local builder = decorBuilders[id]
 	if builder == nil then
 		return nil
@@ -619,6 +660,7 @@ end
 
 -- Scenery -----------------------------------------------------------------------------
 
+local BASE_PLOT_SIZE = 64 -- the plot the sizes below were drawn for
 local TREE_TRUNK_HEIGHT = 5
 local TREE_TRUNK_WIDTH = 1.2
 local FENCE_POST_HEIGHT = 1.8
@@ -628,6 +670,7 @@ local ROCK_SQUASH = 0.7
 
 -- Trees, rocks and fence posts for one plot, positions from the plot center.
 function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: SceneryConfig): ModelSpec
+	local u = plotSize / BASE_PLOT_SIZE
 	local parts: { PartSpec } = {}
 	for index, tree in scenery.trees do
 		table.insert(
@@ -635,8 +678,8 @@ function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: Scenery
 			part(
 				"TreeTrunk" .. index,
 				"Block",
-				{ TREE_TRUNK_WIDTH, TREE_TRUNK_HEIGHT, TREE_TRUNK_WIDTH },
-				{ tree.x, TREE_TRUNK_HEIGHT / 2, tree.z },
+				{ TREE_TRUNK_WIDTH * u, TREE_TRUNK_HEIGHT * u, TREE_TRUNK_WIDTH * u },
+				{ tree.x, TREE_TRUNK_HEIGHT * u / 2, tree.z },
 				palette.woodDark,
 				"Wood"
 			)
@@ -646,8 +689,8 @@ function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: Scenery
 			part(
 				"TreeLeavesA" .. index,
 				"Ball",
-				{ 5.4, 5.4, 5.4 },
-				{ tree.x, TREE_TRUNK_HEIGHT + 1.6, tree.z },
+				{ 5.4 * u, 5.4 * u, 5.4 * u },
+				{ tree.x, (TREE_TRUNK_HEIGHT + 1.6) * u, tree.z },
 				palette.leaf,
 				"Grass",
 				{ collide = false }
@@ -658,8 +701,8 @@ function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: Scenery
 			part(
 				"TreeLeavesB" .. index,
 				"Ball",
-				{ 3.6, 3.6, 3.6 },
-				{ tree.x + 0.5, TREE_TRUNK_HEIGHT + 3.8, tree.z - 0.3 },
+				{ 3.6 * u, 3.6 * u, 3.6 * u },
+				{ tree.x + 0.5 * u, (TREE_TRUNK_HEIGHT + 3.8) * u, tree.z - 0.3 * u },
 				palette.leafLight,
 				"Grass",
 				{ collide = false }
@@ -681,7 +724,7 @@ function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: Scenery
 		)
 	end
 	-- Fence posts along the edge, with a gap at the south side (the entrance).
-	local half = plotSize / 2 - FENCE_INSET
+	local half = plotSize / 2 - FENCE_INSET * u
 	local spacing = scenery.fencePostSpacing
 	local steps = math.floor(plotSize / spacing)
 	for step = 0, steps do
@@ -695,15 +738,15 @@ function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: Scenery
 			elseif side == "East" then
 				x, z = half, at
 			end
-			local isGate = side == "South" and math.abs(x) < FENCE_GATE
+			local isGate = side == "South" and math.abs(x) < FENCE_GATE * u
 			if not isGate then
 				table.insert(
 					parts,
 					part(
 						"Fence" .. side .. step,
 						"Block",
-						{ 0.3, FENCE_POST_HEIGHT, 0.3 },
-						{ x, FENCE_POST_HEIGHT / 2, z },
+						{ 0.3 * u, FENCE_POST_HEIGHT * u, 0.3 * u },
+						{ x, FENCE_POST_HEIGHT * u / 2, z },
 						palette.wood,
 						"Wood",
 						{ collide = false }
@@ -713,6 +756,67 @@ function ModelSpecs.scenery(palette: Palette, plotSize: number, scenery: Scenery
 		end
 	end
 	return { name = ModelSpecs.kinds.scenery, primary = parts[1].name, parts = parts }
+end
+
+-- A street lamp for the crossings of the roads: a pole with an arm and a
+-- glowing head. The pole is the primary part.
+function ModelSpecs.streetLamp(palette: Palette): ModelSpec
+	return {
+		name = ModelSpecs.kinds.streetLamp,
+		primary = "Pole",
+		parts = {
+			part("Base", "Block", { 1.4, 0.7, 1.4 }, { 0, 0.35, 0 }, palette.stoneDark, "Concrete"),
+			part("Pole", "Block", { 0.5, 8.4, 0.5 }, { 0, 4.9, 0 }, palette.metal, "Metal"),
+			part("Arm", "Block", { 1.8, 0.3, 0.3 }, { 0.7, 9, 0 }, palette.metal, "Metal", { collide = false }),
+			part("Head", "Ball", { 1.1, 1.1, 1.1 }, { 1.5, 8.6, 0 }, palette.gold, "Neon", {
+				collide = false,
+				light = { brightness = 0.9, range = 32, color = palette.gold },
+			}),
+		},
+	}
+end
+
+-- A tree for the grass belt around the town. `scale` is 1 for a tree of about 9 studs.
+function ModelSpecs.tree(palette: Palette, scale: number): ModelSpec
+	return scaled({
+		name = ModelSpecs.kinds.tree,
+		primary = "Trunk",
+		parts = {
+			part("Trunk", "Block", { 1.4, 5, 1.4 }, { 0, 2.5, 0 }, palette.woodDark, "Wood"),
+			part("LeavesA", "Ball", { 6, 6, 6 }, { 0, 6.6, 0 }, palette.leaf, "Grass", { collide = false }),
+			part("LeavesB", "Ball", { 4, 4, 4 }, { 0.6, 9, -0.3 }, palette.leafLight, "Grass", { collide = false }),
+		},
+	}, scale)
+end
+
+local BASE_SHAFT_SIZE = 8
+local BASE_SELL_SIZE = 6
+local BASE_SIGN_SIZE = 3
+local BASE_DECOR_CELL = 5
+
+-- Shaft rim and winch for a shaft of `shaftSize` studs.
+function ModelSpecs.shaftRim(palette: Palette, shaftSize: number): ModelSpec
+	return scaled(baseShaftRim(palette, BASE_SHAFT_SIZE), shaftSize / BASE_SHAFT_SIZE)
+end
+
+-- Sell stand on a pad of `size` x `height` studs.
+function ModelSpecs.sellStand(palette: Palette, size: number, height: number): ModelSpec
+	local factor = size / BASE_SELL_SIZE
+	return scaled(baseSellStand(palette, BASE_SELL_SIZE, height / factor), factor)
+end
+
+-- Sign whose board is `size` studs wide.
+function ModelSpecs.sign(palette: Palette, size: number, color: Rgb, name: string?): ModelSpec
+	return scaled(baseSign(palette, BASE_SIGN_SIZE, color, name), size / BASE_SIGN_SIZE)
+end
+
+-- The decoration with this id for a cell of `cell` studs, or nil for an unknown id.
+function ModelSpecs.decor(palette: Palette, id: string, cell: number): ModelSpec?
+	local base = baseDecor(palette, id)
+	if base == nil then
+		return nil
+	end
+	return scaled(base, cell / BASE_DECOR_CELL)
 end
 
 return ModelSpecs

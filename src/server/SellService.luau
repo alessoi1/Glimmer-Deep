@@ -1,8 +1,8 @@
 --!strict
--- Handles the "sell" intention of the client. The client sends no data; the
--- server checks profile, plot, distance and cooldown, sells the backpack at the
--- config prices and pays the coins into the profile. Only checkable in Roblox
--- Studio.
+-- Selling at the sell stand of the own plot. Nobody presses a button: while a
+-- player stands at their own sell stand the server sells the backpack and the
+-- depot at the config prices and pays the coins into the profile. The client
+-- sends nothing and only shows the result. Only checkable in Roblox Studio.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,7 +13,6 @@ local Remotes = require(Shared:WaitForChild("Remotes"))
 local Quests = require(Shared:WaitForChild("Quests"))
 local SellAction = require(Shared:WaitForChild("SellAction"))
 local Config = Shared:WaitForChild("Config")
-local DigConfig = require(Config:WaitForChild("Dig"))
 local OreConfig = require(Config:WaitForChild("Ores"))
 local SellConfig = require(Config:WaitForChild("Sell"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
@@ -21,47 +20,29 @@ local DigService = require(script.Parent:WaitForChild("DigService"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local QuestService = require(script.Parent:WaitForChild("QuestService"))
-local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
 local log = Log.new("Sell")
 
 local SellService = {}
 
 local lastSellAt: { [Player]: number } = {}
-local rejects: RejectLimiter.Limiter
 local sellResult: RemoteEvent
 local started = false
 
-local function handleSell(player: Player, ...: any)
-	if select("#", ...) > 0 then
-		rejects.reject(player.UserId, Remotes.names.sell, "unexpected_arguments")
-		return
-	end
-
+-- Sells for one player when they stand at their own sell stand. Does nothing
+-- (and says nothing) when they are elsewhere, on cooldown or have nothing to sell.
+local function sellIfAtStand(player: Player)
 	local profile = DataService.getData(player)
 	if profile == nil then
-		rejects.reject(player.UserId, Remotes.names.sell, "profile_not_loaded")
 		return
 	end
-
 	local distance = PlotService.horizontalDistance(player, PlotService.getSellPosition(player))
-	if distance == nil then
-		rejects.reject(player.UserId, Remotes.names.sell, "no_plot_or_character")
+	if distance == nil or distance > SellConfig.range then
 		return
 	end
-
 	local now = os.clock()
 	local previous = lastSellAt[player]
 	if previous ~= nil and now - previous < SellConfig.cooldown then
-		rejects.reject(player.UserId, Remotes.names.sell, "cooldown")
-		return
-	end
-	lastSellAt[player] = now
-
-	local state = DigService.getState(player)
-	if distance > SellConfig.range then
-		rejects.reject(player.UserId, Remotes.names.sell, "too_far")
-		sellResult:FireClient(player, { ok = false, reason = "too_far", state = state })
 		return
 	end
 
@@ -72,10 +53,11 @@ local function handleSell(player: Player, ...: any)
 		log.warn("ore without price stays in the backpack", { userId = player.UserId, oreId = oreId, count = count })
 	end
 	if not result.ok then
-		log.debug("sell rejected", { userId = player.UserId, reason = result.reason })
-		sellResult:FireClient(player, { ok = false, reason = result.reason, state = state })
+		-- Standing at the stand with nothing to sell is normal; no message, no cooldown.
+		log.debug("nothing sold", { userId = player.UserId, reason = result.reason })
 		return
 	end
+	lastSellAt[player] = now
 
 	log.info("backpack sold", {
 		userId = player.UserId,
@@ -95,14 +77,23 @@ function SellService.start()
 		return
 	end
 	started = true
-	rejects = RejectLimiter.new(log, DigConfig.warnInterval, os.clock)
 
 	sellResult = Remotes.event(Remotes.names.sellResult)
-	Remotes.event(Remotes.names.sell).OnServerEvent:Connect(handleSell)
+
+	task.spawn(function()
+		while true do
+			task.wait(SellConfig.checkInterval)
+			for _, player in Players:GetPlayers() do
+				local ok, err = pcall(sellIfAtStand, player)
+				if not ok then
+					log.error("auto sell failed", { userId = player.UserId, error = tostring(err) })
+				end
+			end
+		end
+	end)
 
 	Players.PlayerRemoving:Connect(function(player: Player)
 		lastSellAt[player] = nil
-		rejects.forget(player.UserId)
 	end)
 
 	log.info("started", { range = SellConfig.range, cooldown = SellConfig.cooldown })

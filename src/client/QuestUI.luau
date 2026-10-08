@@ -21,14 +21,14 @@ local log = Log.new("QuestUI")
 local TOGGLE_WIDTH = 120
 local TOGGLE_HEIGHT = 44
 -- The toggle sits above the upgrades toggle in the button column on the right.
-local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 64 + 12 + 44 + 12
+local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 44 + 12
 local BUTTON_MARGIN = 24
 local PANEL_WIDTH = 300
 local PANEL_MARGIN = 12
 local PADDING = 8
 local ROW_HEIGHT = 56
 local ACTION_WIDTH = 96
-local TEXT_SIZE = 16
+local TEXT_SIZE = 14
 local MESSAGE_SECONDS = 2.5
 local MESSAGE_TOP = 188 -- below the other messages
 local MESSAGE_WIDTH = 320

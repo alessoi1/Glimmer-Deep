@@ -21,13 +21,13 @@ local log = Log.new("PetUI")
 local TOGGLE_WIDTH = 120
 local TOGGLE_HEIGHT = 44
 -- The toggle sits above the shop toggle in the button column on the right.
-local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 64 + 12 + 44 + 12 + 44 + 12 + 44 + 12
+local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 44 + 12 + 44 + 12 + 44 + 12
 local BUTTON_MARGIN = 24
 local BUTTON_GAP = 12
 local PANEL_WIDTH = 300
 local PADDING = 8
 local ACTION_HEIGHT = 36
-local TEXT_SIZE = 16
+local TEXT_SIZE = 14
 local MESSAGE_SECONDS = 3
 local MESSAGE_TOP = 268 -- below the other messages
 local MESSAGE_WIDTH = 320

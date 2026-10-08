@@ -1,8 +1,9 @@
 --!strict
--- Sell button and sale message for the local player. The client only sends the
--- intention to sell and shows what the server reports; it computes no coins.
--- The coin and backpack numbers are updated by the DigUI from the same result.
--- Built in code so Rojo owns it (no GUI edits in Studio).
+-- The sale message for the local player. Selling happens by itself at the sell
+-- stand (the server decides); the client sends nothing and only shows what the
+-- server reports, it computes no coins. The coin and backpack numbers are
+-- updated by the DigUI from the same result. Built in code so Rojo owns it (no
+-- GUI edits in Studio).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,19 +17,11 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local log = Log.new("SellUI")
 
 -- Layout and timing of the interface (not game values).
-local BUTTON_WIDTH = 120
-local BUTTON_HEIGHT = 64
-local DIG_BUTTON_SIZE = 120 -- the sell button sits above the dig button of the DigUI
-local BUTTON_MARGIN = 24
-local BUTTON_GAP = 12
-local TEXT_SIZE = 20
+local TEXT_SIZE = 17
 local MESSAGE_SECONDS = 2.5
 local MESSAGE_TOP = 56 -- below the dig message
 local MESSAGE_WIDTH = 320
-local CLICK_DEBOUNCE_SECONDS = 0.3
 
-local COLOR_BUTTON = Color3.fromRGB(90, 190, 120)
-local COLOR_BUTTON_TEXT = Color3.fromRGB(15, 40, 25)
 local COLOR_TEXT = Color3.fromRGB(245, 245, 245)
 
 type SellResultPayload = {
@@ -48,27 +41,12 @@ function SellUI.start()
 	started = true
 
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-	local sellRemote = Remotes.event(Remotes.names.sell)
 	local sellResult = Remotes.event(Remotes.names.sellResult)
 
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "SellHud"
 	gui.ResetOnSpawn = false
 	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
-
-	local button = Instance.new("TextButton")
-	button.AnchorPoint = Vector2.new(1, 1)
-	button.Position = UDim2.new(1, -BUTTON_MARGIN, 1, -(BUTTON_MARGIN + DIG_BUTTON_SIZE + BUTTON_GAP))
-	button.Size = UDim2.fromOffset(BUTTON_WIDTH, BUTTON_HEIGHT)
-	button.BackgroundColor3 = COLOR_BUTTON
-	button.TextColor3 = COLOR_BUTTON_TEXT
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = TEXT_SIZE
-	button.Text = Strings.sell.button
-	button.AutoButtonColor = true
-	button.Parent = gui
-	local corner = Instance.new("UICorner")
-	corner.Parent = button
 
 	local messageLabel = Instance.new("TextLabel")
 	messageLabel.BackgroundTransparency = 1
@@ -83,7 +61,6 @@ function SellUI.start()
 	messageLabel.Parent = gui
 
 	local messageToken = 0
-	local lastClickAt = 0
 
 	local function showMessage(text: string)
 		messageToken += 1
@@ -95,15 +72,6 @@ function SellUI.start()
 			end
 		end)
 	end
-
-	button.Activated:Connect(function()
-		local now = os.clock()
-		if now - lastClickAt < CLICK_DEBOUNCE_SECONDS then
-			return
-		end
-		lastClickAt = now
-		sellRemote:FireServer()
-	end)
 
 	sellResult.OnClientEvent:Connect(function(payload: SellResultPayload)
 		if type(payload) ~= "table" then

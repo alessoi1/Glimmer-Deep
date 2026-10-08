@@ -138,7 +138,7 @@ local function refreshDecor(slot: number)
 	end
 	for _, entry in House.view(profile, config).placed do
 		local cell = PlotLogic.decorBox(PlotConfig, entry.slot)
-		local spec = ModelSpecs.decor(ModelFactory.palette, entry.id)
+		local spec = ModelSpecs.decor(ModelFactory.palette, entry.id, PlotConfig.decor.cell)
 		if spec ~= nil then
 			local model, primary = ModelFactory.build(spec, center + Vector3.new(cell.x, 0, cell.z), folder)
 			ModelFactory.addLabel(model, primary, Strings.house.item[entry.id] or entry.id, LABEL_LIFT)

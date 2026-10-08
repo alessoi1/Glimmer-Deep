@@ -18,8 +18,8 @@ local log = Log.new("OfflineUI")
 local PANEL_WIDTH = 320
 local PANEL_MAX_HEIGHT = 420
 local PADDING = 12
-local TITLE_SIZE = 22
-local TEXT_SIZE = 17
+local TITLE_SIZE = 19
+local TEXT_SIZE = 15
 local BUTTON_HEIGHT = 52
 local RETRY_SECONDS = 0.5
 

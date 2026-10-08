@@ -24,26 +24,28 @@ Nur eigene oder geprüfte Modelle verwenden, keine Toolbox-Modelle ohne Prüfung
 
 ## Liste der Modelle
 
-Maße in Studs. Wichtig sind die Grundfläche und die Höhe.
+Maße in Studs, für eine Figur von etwa 5 Studs Höhe. Wichtig sind die Grundfläche und die Höhe. Die Maße kommen aus `src/shared/Config/Plot.luau`; ändert sich dort etwas, ändert sich auch diese Tabelle.
 
 | Name des Models | Grundfläche | Höhe | Hauptteil | Hinweise |
 | --- | --- | --- | --- | --- |
-| `ShaftRim` | Rand 10,4 x 10,4, Öffnung 8 x 8 in der Mitte | Rand 0,6; Winde bis etwa 5 | beliebig | Die **Öffnung 8 x 8 muss frei bleiben**. Ursprung in der Mitte des Schachts. |
-| `SellStand` | 6 x 6 (Dach darf 7 x 7 sein) | etwa 6 | `SellPoint` (die grüne Standfläche, 6 x 1 x 6) | Der Spieler steht auf `SellPoint`. |
-| `Sign_Museum` | 3 breit | etwa 4 | `Board` | Schild mit Pfosten. Beschriftung hängt der Code an `Board`. |
-| `Sign_House` | 3 breit | etwa 4 | `Board` | wie oben |
-| `Sign_Guests` | 3 breit | etwa 4 | `Board` | wie oben |
-| `Sign_Rebirth` | 3 breit | etwa 4 | `Board` | wie oben |
-| `Sign_Season` | 3 breit | etwa 4 | `Board` | wie oben |
-| `Vitrine` | 2 x 2 | 3 | `Vitrine` (das Glas) | leere Vitrine |
-| `VitrineFilled` | 2 x 2 | 3 | `Vitrine` (das Glas) | Vitrine mit ausgestelltem Fund (leuchtender Edelstein oder ähnliches). Der Code setzt den Fundnamen als Text darüber. |
-| `Decor_potted_plant` | 5 x 5 | bis 6,5 | beliebig | Topfpflanze |
-| `Decor_lantern` | 5 x 5 | bis 6,5 | beliebig | Laterne (gern mit eigenem PointLight) |
-| `Decor_rug` | 5 x 4 | flach (0,2) | beliebig | Teppich, CanCollide aus |
-| `Decor_banner` | 5 x 5 | bis 6,5 | beliebig | Banner |
-| `Decor_statue` | 5 x 5 | bis 6,5 | beliebig | Statue |
-| `Decor_fountain` | 5 x 5 | bis 6,5 | beliebig | Brunnen |
-| `Scenery` | gesamtes Grundstück 64 x 64, Ursprung in der Mitte | beliebig | beliebig | Bäume, Steine, Zaun. Die Mitte (Schacht, Pads, Schilder, Museum, Deko) muss frei bleiben. Siehe `src/shared/Config/Look.luau` für die bisherigen Plätze. |
+| `ShaftRim` | Rand 15,6 x 15,6, Öffnung 12 x 12 in der Mitte | Rand 0,9; Winde bis etwa 7,5 | beliebig | Die **Öffnung 12 x 12 muss frei bleiben**. Ursprung in der Mitte des Schachts. |
+| `SellStand` | 9 x 9 (Dach darf 10 x 10 sein) | etwa 9 | `SellPoint` (die grüne Standfläche, 9 x 1,5 x 9) | Der Spieler steht auf `SellPoint`; das Betreten verkauft automatisch. |
+| `Sign_Museum` | 4,5 breit | etwa 6 | `Board` | Schild mit Pfosten. Beschriftung hängt der Code an `Board`. |
+| `Sign_House` | 4,5 breit | etwa 6 | `Board` | wie oben |
+| `Sign_Guests` | 4,5 breit | etwa 6 | `Board` | wie oben |
+| `Sign_Rebirth` | 4,5 breit | etwa 6 | `Board` | wie oben |
+| `Sign_Season` | 4,5 breit | etwa 6 | `Board` | wie oben |
+| `Vitrine` | 3 x 3 | 4,5 | `Vitrine` (das Glas) | leere Vitrine |
+| `VitrineFilled` | 3 x 3 | 4,5 | `Vitrine` (das Glas) | Vitrine mit ausgestelltem Fund (leuchtender Edelstein oder ähnliches). Der Code setzt den Fundnamen als Text darüber. |
+| `Decor_potted_plant` | 7,5 x 7,5 | bis 9,75 | beliebig | Topfpflanze |
+| `Decor_lantern` | 7,5 x 7,5 | bis 9,75 | beliebig | Laterne (gern mit eigenem PointLight) |
+| `Decor_rug` | 7,5 x 6 | flach (0,3) | beliebig | Teppich, CanCollide aus |
+| `Decor_banner` | 7,5 x 7,5 | bis 9,75 | beliebig | Banner |
+| `Decor_statue` | 7,5 x 7,5 | bis 9,75 | beliebig | Statue |
+| `Decor_fountain` | 7,5 x 7,5 | bis 9,75 | beliebig | Brunnen |
+| `StreetLamp` | 1,5 x 1,5 | etwa 10 | `Pole` | Laterne an den 15 Kreuzungen der Straßen. Gern mit PointLight. |
+| `Tree` | etwa 9 x 9 | etwa 14 | `Trunk` | Baum im Grasstreifen um die Stadt (etwa 40 Stück). |
+| `Scenery` | gesamtes Grundstück 96 x 96, Ursprung in der Mitte | beliebig | beliebig | Bäume, Steine, Zaun. Die Mitte (Schacht, Pads, Schilder, Museum, Deko) muss frei bleiben. Siehe `src/shared/Config/Look.luau` für die bisherigen Plätze. |
 
 Nicht ersetzbar: der Museumsboden (seine Größe hängt von der Hausstufe ab).
 

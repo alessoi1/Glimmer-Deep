@@ -20,14 +20,14 @@ local log = Log.new("UpgradeUI")
 -- Layout and timing of the interface (not game values).
 local TOGGLE_WIDTH = 120
 local TOGGLE_HEIGHT = 44
--- The toggle sits above the sell button, which sits above the dig button.
-local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 64 + 12
+-- The toggle sits above the dig button.
+local STACK_BELOW_TOGGLE = 24 + 120 + 12
 local BUTTON_MARGIN = 24
 local BUTTON_GAP = 12
 local PANEL_WIDTH = 270
 local PANEL_PADDING = 8
 local ROW_HEIGHT = 72
-local TEXT_SIZE = 18
+local TEXT_SIZE = 15
 local MESSAGE_SECONDS = 2.5
 local MESSAGE_TOP = 100 -- below the dig and sell messages
 local MESSAGE_WIDTH = 320

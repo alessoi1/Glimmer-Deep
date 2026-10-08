@@ -27,7 +27,7 @@ local PANEL_MARGIN = 12
 -- On touch devices the left thumb uses the movement stick in the bottom-left
 -- corner, so the panel sits above it.
 local PANEL_BOTTOM_TOUCH = 170
-local TEXT_SIZE = 20
+local TEXT_SIZE = 17
 local MESSAGE_SECONDS = 2.5
 local HINT_WIDTH = 300
 local HINT_HEIGHT = 56

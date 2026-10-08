@@ -31,8 +31,8 @@ Mit neuem Profil, in dieser Reihenfolge. Der Durchgang dauert etwa 20 bis 30 Min
 
 ### Verkaufen und Upgrades
 
-- [ ] Grüner Verkaufspunkt mit Schild nördlich vom Schacht; „Verkaufen“ klappt nur in der Nähe, sonst „Geh näher an den Verkaufspunkt“.
-- [ ] Leerer Rucksack: „Dein Rucksack ist leer“. Münzen steigen, Münzen bleiben nach Neustart.
+- [ ] Grüner Verkaufsstand nördlich vom Schacht. Einen Schritt auf die grüne Fläche: der Rucksack (und das Lager) wird **von selbst** verkauft, Meldung „Verkauft: +n Münzen“, kein Verkaufsknopf mehr. Mit leerem Rucksack passiert nichts (keine Meldung). Außerhalb des Stands wird nicht verkauft.
+- [ ] Münzen steigen beim Verkauf, Münzen bleiben nach Neustart.
 - [ ] „Upgrades“ öffnet und schließt das Panel; auf dem Handy passt es auf den Bildschirm (Hoch- und Querformat, scrollbar).
 - [ ] Sieben Zeilen: Schaufel, Rucksack, Bagger und vier Fähigkeiten; ausgegraut bei zu wenig Münzen, „Maximal“ auf der letzten Stufe.
 - [ ] Kauf zieht Münzen ab, Graben wird schneller, Rucksack-Kapazität steigt; Stufen bleiben nach Neustart.
@@ -138,6 +138,14 @@ Reihenfolge wie in `docs/OFFEN.md` unter den gleichnamigen Punkten. Vorab ein Pr
 - [ ] Verkaufsstand, Schilder, Vitrinen, Museumsboden und Dekoration sehen aus wie beschrieben; Beschriftungen sind gut lesbar.
 - [ ] Handy-Emulator: gleichmäßige Framerate mit allen 8 Grundstücken, nichts ruckelt.
 - [ ] Eigenes Modell testen (optional): eine `.rbxm` mit dem Namen `Sign_House` in `assets/models/` legen, `rojo serve` neu verbinden, im Output erscheint `using an uploaded model`.
+
+### Stadt (Runde 3c)
+
+- [ ] Die 8 Grundstücke sind durch Straßen verbunden (Asphalt mit gelber Mittellinie), an jeder Kreuzung steht eine Laterne.
+- [ ] Rund um alle Straßen liegt ein Grasstreifen mit Bäumen; am Rand eine niedrige Steinmauer. Man kommt nicht darüber hinaus und fällt nicht ab (auch nicht mit Sprüngen und Schnellreise).
+- [ ] Das eigene Grundstück ist größer (96 statt 64 Studs); Schacht, Verkaufsstand, Schilder, Vitrinen und Dekoration wirken im Verhältnis zur Figur groß genug, die Wege sind nicht zu lang.
+- [ ] Texte in der Oberfläche und die Beschriftungen in der Welt sind klein genug, aber auf dem Handy noch lesbar.
+- [ ] Mit zwei Spielern: der Besucher läuft über die Straße zum fremden Grundstück (Lücke im Zaun an der Südseite) und findet das Gäste-Schild.
 
 ## Danach
 

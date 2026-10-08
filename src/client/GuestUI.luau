@@ -16,7 +16,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local log = Log.new("GuestUI")
 
 -- Layout and timing of the interface (not game values).
-local TEXT_SIZE = 16
+local TEXT_SIZE = 14
 local LINE_TOP = 64 -- below the top bar, above the other messages
 local LINE_WIDTH = 340
 local MESSAGE_SECONDS = 3
