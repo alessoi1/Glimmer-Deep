@@ -268,3 +268,15 @@ test("the owner of a plot can be looked up and ends with the release", function(
 	allocator.release(500)
 	assertEquals(allocator.ownerOf(slot), nil)
 end)
+
+test("the museum floor is centered under the showcases of the house level", function()
+	local museum = config.museum
+	local x, z, rows = PlotLogic.museumFloor(config, 12)
+	assertEquals(rows, math.ceil(12 / museum.columns))
+	assertEquals(x, museum.x + (museum.columns - 1) * museum.spacing / 2)
+	assertEquals(z, museum.z + (rows - 1) * museum.spacing / 2)
+	local _, _, oneRow = PlotLogic.museumFloor(config, 1)
+	assertEquals(oneRow, 1)
+	local _, _, none = PlotLogic.museumFloor(config, 0)
+	assertEquals(none, 1, "at least one row")
+end)

@@ -9,9 +9,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
+local LookConfig = require(Shared:WaitForChild("Config"):WaitForChild("Look"))
+local ModelSpecs = require(Shared:WaitForChild("ModelSpecs"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local PlotConfig = require(Shared:WaitForChild("Config"):WaitForChild("Plot"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
+local ModelFactory = require(script.Parent:WaitForChild("ModelFactory"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 
 local log = Log.new("Plot")
@@ -26,6 +29,11 @@ local releasedListeners: { (userId: number, slot: number) -> () } = {}
 local shaftCenters: { [number]: Vector3 } = {} -- plot index -> shaft center at ground height
 local sellPositions: { [number]: Vector3 } = {} -- plot index -> sell point center
 local started = false
+
+-- A grass layer ends a hair above the ground slabs so the two do not flicker.
+local GRASS_THICKNESS = 0.4
+local GRASS_TOP = 0.02
+local SELL_LABEL_LIFT = 1.5
 
 local function color(rgb: { r: number, g: number, b: number }): Color3
 	return Color3.fromRGB(rgb.r, rgb.g, rgb.b)
@@ -50,13 +58,25 @@ local function buildPlot(slot: PlotLogic.Slot, parent: Instance)
 	model.Name = "Plot_" .. slot.index
 	shaftCenters[slot.index] = center
 
+	local palette = ModelFactory.palette
 	for _, box in PlotLogic.groundBoxes(PlotConfig) do
 		local part = newPart(box, center, "Part")
-		part.Color =
-			color(if box.name == "ShaftBottom" then PlotConfig.colors.shaftBottom else PlotConfig.colors.ground)
+		part.Color = if box.name == "ShaftBottom" then color(PlotConfig.colors.shaftBottom) else color(palette.dirt)
 		part.Material = Enum.Material.Ground
 		part.Parent = model
+		-- A thin grass layer on top of the ground slabs (the walls of the shaft stay dirt).
+		if box.name ~= "ShaftBottom" then
+			local cap = newPart(box, center, "Part")
+			cap.Name = box.name .. "Grass"
+			cap.Size = Vector3.new(box.sizeX, GRASS_THICKNESS, box.sizeZ)
+			cap.Position = center + Vector3.new(box.x, GRASS_TOP - GRASS_THICKNESS / 2, box.z)
+			cap.Color = color(palette.grass)
+			cap.Material = Enum.Material.Grass
+			cap.Parent = model
+		end
 	end
+	ModelFactory.build(ModelSpecs.shaftRim(palette, PlotConfig.shaftSize), center, model)
+	ModelFactory.build(ModelSpecs.scenery(palette, PlotConfig.size, LookConfig.scenery), center, model)
 
 	local spawn = newPart(PlotLogic.spawnBox(PlotConfig), center, "SpawnLocation") :: SpawnLocation
 	spawn.Color = color(PlotConfig.colors.spawn)
@@ -67,25 +87,13 @@ local function buildPlot(slot: PlotLogic.Slot, parent: Instance)
 	spawns[slot.index] = spawn
 
 	local sellBox = PlotLogic.sellBox(PlotConfig)
-	local sell = newPart(sellBox, center, "Part")
-	sell.Color = color(PlotConfig.colors.sell)
-	sell.Material = Enum.Material.SmoothPlastic
-	sell.Parent = model
-	sellPositions[slot.index] = sell.Position
-	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.fromOffset(120, 40)
-	billboard.StudsOffsetWorldSpace = Vector3.new(0, sellBox.sizeY + 3, 0)
-	billboard.AlwaysOnTop = true
-	billboard.Parent = sell
-	local sign = Instance.new("TextLabel")
-	sign.Size = UDim2.fromScale(1, 1)
-	sign.BackgroundTransparency = 1
-	sign.Font = Enum.Font.GothamBold
-	sign.TextScaled = true
-	sign.TextColor3 = Color3.fromRGB(245, 245, 245)
-	sign.TextStrokeTransparency = 0.5
-	sign.Text = Strings.sell.pointLabel
-	sign.Parent = billboard
+	local stand, pad = ModelFactory.build(
+		ModelSpecs.sellStand(palette, PlotConfig.sellSize, PlotConfig.sellHeight),
+		center + Vector3.new(sellBox.x, 0, sellBox.z),
+		model
+	)
+	sellPositions[slot.index] = pad.Position
+	ModelFactory.addLabel(stand, pad, Strings.sell.pointLabel, SELL_LABEL_LIFT)
 
 	models[slot.index] = model
 	model.Parent = parent

@@ -27,6 +27,9 @@
       "$className": "ServerStorage",
       "ServerPackages": {
         "$path": "ServerPackages"
+      },
+      "Models": {
+        "$path": "assets/models"
       }
     }
   }

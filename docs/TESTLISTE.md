@@ -130,6 +130,15 @@ Reihenfolge wie in `docs/OFFEN.md` unter den gleichnamigen Punkten. Vorab ein Pr
 - [ ] Nach dem Kauf des „Entdecker-Pass“ (ID eintragen!) sind Premium-Belohnungen abholbar.
 - [ ] Event-Wirkung: in `Config/Events` testweise nur das Event „Glühwoche“ in `rotation` lassen und viele seltene Funde graben: auffällig viele glühende.
 
+### Optik (Runde 3b)
+
+- [ ] Licht und Atmosphäre wirken stimmig (Nachmittagssonne, leichter Dunst), nichts ist überbelichtet.
+- [ ] Grundstück: Gras oben, Erde an den Schachtwänden, Zaunpfosten ohne Hindernis, Lücke an der Südseite, Bäume und Felsen im Weg stehen nicht.
+- [ ] Schachtrand mit Winde: man kommt zum Graben nah genug heran und kann in den Schacht springen.
+- [ ] Verkaufsstand, Schilder, Vitrinen, Museumsboden und Dekoration sehen aus wie beschrieben; Beschriftungen sind gut lesbar.
+- [ ] Handy-Emulator: gleichmäßige Framerate mit allen 8 Grundstücken, nichts ruckelt.
+- [ ] Eigenes Modell testen (optional): eine `.rbxm` mit dem Namen `Sign_House` in `assets/models/` legen, `rojo serve` neu verbinden, im Output erscheint `using an uploaded model`.
+
 ## Danach
 
 - [ ] Alle gefundenen Fehler als Liste mit Punkt-Nummer sammeln und weitergeben.
