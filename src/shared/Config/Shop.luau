@@ -20,7 +20,7 @@ return {
 		night_shift = { gamePassId = 2021582250, robux = 299, effect = { offlineHoursBonus = 4 } },
 		double_coins = { gamePassId = 2019008458, robux = 399, effect = { oreSaleFactor = 2 } },
 		quick_travel = { gamePassId = 2021462258, robux = 199, perk = "quickTravel" },
-		season_pass = { gamePassId = 0, robux = 399, perk = "seasonPass" },
+		season_pass = { gamePassId = 2021570266, robux = 399, perk = "seasonPass" },
 		backpack_plus = { gamePassId = 2021714253, robux = 249, effect = { capacityBonus = 0.2 } },
 	},
 	-- Seconds between two quick trips.
