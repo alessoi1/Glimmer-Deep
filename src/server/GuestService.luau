@@ -21,6 +21,7 @@ local DigConfig = require(Config:WaitForChild("Dig"))
 local GuestConfig = require(Config:WaitForChild("Guests"))
 local PlotConfig = require(Config:WaitForChild("Plot"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
+local EventService = require(script.Parent:WaitForChild("EventService"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
@@ -103,10 +104,12 @@ function GuestService.rewardHost(guest: Player, hostId: number): number
 	if host == nil or profile == nil then
 		return 0
 	end
-	local coins = registry.creditBlock(hostId, Calendar.dayOf(os.time()))
-	if coins <= 0 then
+	-- The daily cap counts the base coins; an event (friends week) multiplies what is paid.
+	local base = registry.creditBlock(hostId, Calendar.dayOf(os.time()))
+	if base <= 0 then
 		return 0
 	end
+	local coins = base * EventService.hostCoinFactor()
 	profile.coins += coins
 	log.debug("host paid for a guest block", { hostId = hostId, guestId = guest.UserId, coins = coins })
 	return coins

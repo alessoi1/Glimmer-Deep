@@ -106,4 +106,4 @@ Code formatiert, Lint sauber, Tests grün, Regeln oben eingehalten, kurze Notiz,
 
 ## Aktueller Stand
 
-(Von Hand pflegen.) Phase 1: Prototyp. Ziel: Grundstück, Loch, Graben, Rucksack, Verkauf, erste Tools. Noch nicht bauen: Auktionshaus, Haus-Ausbau, Koop-Expedition.
+(Von Hand pflegen.) Launch-Umfang gebaut (Grundstück, Graben, Verkauf, Upgrades, Museum, Bagger, Quests, Shop, Booster, Haustiere, Haus bis Stufe 2, Gäste, Rebirth, Events, Saison). Nächster Schritt: Testphase in Studio (`docs/TESTLISTE.md`). Noch nicht bauen: Auktionshaus (Update 1), Haus-Stufen 3 und 4 (Update 2), Koop-Expedition (Update 3).

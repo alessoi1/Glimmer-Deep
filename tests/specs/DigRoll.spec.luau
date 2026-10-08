@@ -302,3 +302,40 @@ test("higher luck produces more high-rarity finds", function()
 	-- luck 3: weights 60/75/30/12/3 -> mythic 1.67% instead of 1%
 	assertNear(mythicShare(3) / mythicShare(1), 5 / 3, 0.3, "mythic ratio at luck 3")
 end)
+
+test("an event boost makes one mutation more likely and leaves the draw order alone", function()
+	local boost = { id = "glowing", factor = 4 }
+	-- weights 40/30/20/10 become 160/30/20/10: glowing owns 160 of 220
+	local shares = DigRoll.getMutationShares(config, boost)
+	local total = 0
+	for _, share in shares do
+		total += share.percent
+	end
+	assertNear(total, 100, 1e-9)
+	assertNear(shares[1].percent, 160 / 220 * 100, 1e-9)
+	assertNear(shares[4].percent, 10 / 220 * 100, 1e-9)
+
+	-- rare check, rarity, find, mutation check, mutation pick
+	local function mutationWith(pick: number, params: { [string]: any }): string?
+		local block = DigRoll.rollBlock(config, scriptedRng({ 0, 0, 0, 0, pick }), {
+			depth = 0,
+			mutationBoost = params.mutationBoost,
+		})
+		return block.mutationId
+	end
+	-- 0.7 lands on icy without the boost (40 + 30 > 70), on glowing with it (160 of 220).
+	assertEquals(mutationWith(0.45, {}), "icy")
+	assertEquals(mutationWith(0.45, { mutationBoost = boost }), "glowing")
+end)
+
+test("an invalid event boost is ignored", function()
+	local plain = DigRoll.getMutationShares(config, nil)
+	for _, boost in
+		{ { id = "glowing", factor = 0.5 }, { id = "ghost", factor = 5 }, { id = "glowing", factor = 0 / 0 } }
+	do
+		local shares = DigRoll.getMutationShares(config, boost)
+		for index, share in shares do
+			assertNear(share.percent, plain[index].percent, 1e-9)
+		end
+	end
+end)

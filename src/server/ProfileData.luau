@@ -62,6 +62,13 @@ export type PrestigeState = {
 	levels: { [string]: number },
 }
 
+export type SeasonState = {
+	id: number,
+	xp: number,
+	claimedFree: { number },
+	claimedPremium: { number },
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -81,6 +88,7 @@ export type Profile = {
 	boosters: BoosterState,
 	pets: PetState,
 	prestige: PrestigeState,
+	season: SeasonState,
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -160,6 +168,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		boosters = { expires = {}, receipts = {}, freeClaimedAt = 0 },
 		pets = { owned = {}, nextId = 1, equipped = {}, eggs = 0, sinceRare = 0, freeEggAt = 0, receipts = {} },
 		prestige = { points = 0, rebirths = 0, levels = {} },
+		season = { id = 0, xp = 0, claimedFree = {}, claimedPremium = {} },
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
@@ -438,6 +447,24 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	for bonusId, level in prestige.levels do
 		if type(bonusId) ~= "string" or not isNonNegativeInteger(level) then
 			return false, "prestige.levels needs a non-negative integer per bonus id"
+		end
+	end
+
+	local season = profile.season
+	if type(season) ~= "table" or not isNonNegativeInteger(season.id) or not isNonNegativeInteger(season.xp) then
+		return false, "season needs a non-negative integer id and xp"
+	end
+	for _, field in { "claimedFree", "claimedPremium" } do
+		local list = season[field]
+		if type(list) ~= "table" then
+			return false, string.format("season.%s must be a list", field)
+		end
+		local seen: { [number]: boolean } = {}
+		for _, level in list do
+			if not isInteger(level) or level < 1 or seen[level] then
+				return false, string.format("season.%s needs distinct levels from 1", field)
+			end
+			seen[level] = true
 		end
 	end
 

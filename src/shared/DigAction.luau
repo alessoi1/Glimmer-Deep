@@ -48,6 +48,7 @@ export type Params = {
 	metersPerBlock: number,
 	onboarding: OnboardingParams,
 	modifiers: DigModifiers?,
+	mutationBoost: DigRoll.MutationBoost?,
 	lastDigAt: number?, -- server time of the last accepted dig, nil for the first
 	now: number, -- server time in seconds (sub-second precision)
 	rng: Rng,
@@ -140,6 +141,7 @@ function DigAction.perform(params: Params): Result
 		rareFindBonus = if bonus then bonus.rareFindMultiplier else nil,
 		guaranteedRare = if guaranteeFirstFind then true else nil,
 		guaranteedMutation = if guaranteeFirstFind then params.onboarding.firstFindMutation else nil,
+		mutationBoost = params.mutationBoost,
 	})
 	if not Backpack.addBlock(backpack, block, profile.nextFindId) then
 		-- Cannot happen after the isFull check; guard against a logic error.

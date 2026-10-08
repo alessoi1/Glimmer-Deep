@@ -25,12 +25,17 @@ export type Config = {
 	layers: { LayerDef },
 }
 
+-- A weekly event can make one mutation more likely: its weight is multiplied
+-- by `factor` (at least 1) when a find mutates. Draw order stays the same.
+export type MutationBoost = { id: string, factor: number }
+
 export type RollParams = {
 	depth: number,
 	luck: number?, -- multiplier >= 1 on rarity and mutation chances
 	rareFindBonus: number?, -- multiplier >= 1 on the rare find chance
 	guaranteedRare: boolean?,
 	guaranteedMutation: string?, -- mutation id; only used for rare finds
+	mutationBoost: MutationBoost?,
 }
 
 export type BlockResult = {
@@ -77,15 +82,22 @@ local function findMutation(config: Config, mutationId: string): MutationDef?
 	return nil
 end
 
-local function pickMutation(config: Config, roll: number): MutationDef
+local function mutationWeight(mutation: MutationDef, boost: MutationBoost?): number
+	if boost ~= nil and boost.id == mutation.id and boost.factor == boost.factor and boost.factor >= 1 then
+		return mutation.weight * boost.factor
+	end
+	return mutation.weight
+end
+
+local function pickMutation(config: Config, roll: number, boost: MutationBoost?): MutationDef
 	local total = 0
 	for _, mutation in config.mutations do
-		total += mutation.weight
+		total += mutationWeight(mutation, boost)
 	end
 	local target = roll * total
 	local accumulated = 0
 	for _, mutation in config.mutations do
-		accumulated += mutation.weight
+		accumulated += mutationWeight(mutation, boost)
 		if target < accumulated then
 			return mutation
 		end
@@ -145,6 +157,20 @@ function DigRoll.getMutationChance(config: Config, luck: number?): number
 	return math.min(config.mutationChance * clampMultiplier(luck, config.maxLuck), 100)
 end
 
+-- Share of each mutation in percent among mutated finds (sum 100), with an
+-- optional event boost.
+function DigRoll.getMutationShares(config: Config, boost: MutationBoost?): { { mutationId: string, percent: number } }
+	local total = 0
+	for _, mutation in config.mutations do
+		total += mutationWeight(mutation, boost)
+	end
+	local shares = {}
+	for index, mutation in config.mutations do
+		shares[index] = { mutationId = mutation.id, percent = mutationWeight(mutation, boost) / total * 100 }
+	end
+	return shares
+end
+
 -- Rarity chances in percent (sum 100) for the info window.
 function DigRoll.getRarityChances(config: Config, luck: number?): { RarityChance }
 	local effectiveLuck = clampMultiplier(luck, config.maxLuck)
@@ -187,7 +213,7 @@ function DigRoll.rollBlock(config: Config, rng: Rng, params: RollParams): BlockR
 			error("unknown guaranteed mutation: " .. params.guaranteedMutation, 2)
 		end
 	elseif draw(rng) * 100 < DigRoll.getMutationChance(config, luck) then
-		mutation = pickMutation(config, draw(rng))
+		mutation = pickMutation(config, draw(rng), params.mutationBoost)
 	end
 
 	local value = rarity.minValue

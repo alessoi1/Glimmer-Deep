@@ -54,6 +54,10 @@ local Remotes = {
 		rebirthDo = "RebirthDo", -- client -> server event: start a new hole (no arguments)
 		rebirthBuy = "RebirthBuy", -- client -> server event: (bonus id) buy the next level with prestige points
 		rebirthResult = "RebirthResult", -- server -> client event: outcome, new view and state
+		seasonOpen = "SeasonOpen", -- server -> client event: open the season panel with this snapshot
+		getSeason = "GetSeason", -- client -> server function: season snapshot, nil while loading
+		seasonClaim = "SeasonClaim", -- client -> server event: (track "free" | "premium", level number)
+		seasonResult = "SeasonResult", -- server -> client event: outcome, new snapshot, or a level-up notice
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},

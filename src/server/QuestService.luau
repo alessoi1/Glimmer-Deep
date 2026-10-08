@@ -68,6 +68,16 @@ local function snapshotFor(profile: ProfileData.Profile): Snapshot
 	}
 end
 
+type RecordListener = (player: Player, event: string, amount: number) -> ()
+
+local recordListeners: { RecordListener } = {}
+
+-- Registers a callback that runs for every game event that is counted (the
+-- season uses it for its points). A failing listener is logged and skipped.
+function QuestService.onRecord(listener: RecordListener)
+	table.insert(recordListeners, listener)
+end
+
 -- Counts a game event for the player's quests of the day. Called by the
 -- services that know what happened (digging, selling, upgrades, museum).
 function QuestService.record(player: Player, event: string, amount: number)
@@ -80,6 +90,12 @@ function QuestService.record(player: Player, event: string, amount: number)
 	if #reached > 0 then
 		log.info("quests completed", { userId = player.UserId, ids = table.concat(reached, ",") })
 		questDone:FireClient(player, reached)
+	end
+	for _, listener in recordListeners do
+		local ok, err = pcall(listener, player, event, amount)
+		if not ok then
+			log.error("record listener failed", { userId = player.UserId, event = event, error = tostring(err) })
+		end
 	end
 end
 

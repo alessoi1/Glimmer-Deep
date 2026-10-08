@@ -34,6 +34,8 @@ export type GuestSignLayout = { x: number, z: number, size: number }
 
 export type RebirthSignLayout = { x: number, z: number, size: number }
 
+export type SeasonSignLayout = { x: number, z: number, size: number }
+
 export type Config = {
 	count: number,
 	columns: number,
@@ -50,6 +52,7 @@ export type Config = {
 	decor: DecorLayout,
 	guestSign: GuestSignLayout,
 	rebirthSign: RebirthSignLayout,
+	seasonSign: SeasonSignLayout,
 }
 
 -- Offset of a plot center from the first plot center.
@@ -135,6 +138,9 @@ function PlotLogic.validateConfig(config: Config): (boolean, string?)
 	local decor = config.decor
 	if not isPositiveInteger(decor.columns) or not isPositive(decor.cell) then
 		return false, "decor.columns must be a positive integer and decor.cell positive"
+	end
+	if not isPositive(config.seasonSign.size) then
+		return false, "seasonSign.size must be positive"
 	end
 	if not isPositive(config.rebirthSign.size) then
 		return false, "rebirthSign.size must be positive"
@@ -256,6 +262,12 @@ end
 function PlotLogic.rebirthSignBox(config: Config): Box
 	local sign = config.rebirthSign
 	return box("RebirthSign", sign.size, sign.size, sign.size, sign.x, sign.size / 2, sign.z)
+end
+
+-- The sign with the season prompt.
+function PlotLogic.seasonSignBox(config: Config): Box
+	local sign = config.seasonSign
+	return box("SeasonSign", sign.size, sign.size, sign.size, sign.x, sign.size / 2, sign.z)
 end
 
 -- The sign (with the museum prompt) stands in front of the showcases.
