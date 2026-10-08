@@ -9,6 +9,8 @@
 --           nextFindId is the next free id.
 --   2 -> 3: onboarding progress and stats. Players who already played skip the
 --           onboarding (step 7, first find counted as given).
+--   3 -> 4: house (level 1) and museum (no showcases yet; the visitor income
+--           counts from the profile creation, which pays nothing without finds).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -30,6 +32,17 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 			or (type(data.coins) == "number" and data.coins > 0)
 		data.onboarding = if played then { step = 7, firstFindGiven = true } else { step = 1, firstFindGiven = false }
 		data.stats = { blocksDug = 0 }
+		return data
+	end,
+	function(data)
+		data.house = { level = 1 }
+		data.museum = {
+			displays = {},
+			incomeSince = if type(data.createdAt) == "number" then data.createdAt else 0,
+			admires = 0,
+			week = 0,
+			weekAdmires = 0,
+		}
 		return data
 	end,
 }
