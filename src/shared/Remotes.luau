@@ -48,6 +48,7 @@ local Remotes = {
 		housePlace = "HousePlace", -- client -> server event: (decoration id, place number)
 		houseRemove = "HouseRemove", -- client -> server event: (place number) take the decoration back
 		houseResult = "HouseResult", -- server -> client event: outcome, new view and state
+		guestStatus = "GuestStatus", -- server -> client event: guest role, names and the last join problem
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},

@@ -30,6 +30,8 @@ export type DecorLayout = {
 	signSize: number,
 }
 
+export type GuestSignLayout = { x: number, z: number, size: number }
+
 export type Config = {
 	count: number,
 	columns: number,
@@ -44,6 +46,7 @@ export type Config = {
 	sellHeight: number,
 	museum: MuseumLayout,
 	decor: DecorLayout,
+	guestSign: GuestSignLayout,
 }
 
 -- Offset of a plot center from the first plot center.
@@ -129,6 +132,9 @@ function PlotLogic.validateConfig(config: Config): (boolean, string?)
 	local decor = config.decor
 	if not isPositiveInteger(decor.columns) or not isPositive(decor.cell) then
 		return false, "decor.columns must be a positive integer and decor.cell positive"
+	end
+	if not isPositive(config.guestSign.size) then
+		return false, "guestSign.size must be positive"
 	end
 	if not isPositive(decor.signSize) then
 		return false, "decor.signSize must be positive"
@@ -232,6 +238,12 @@ function PlotLogic.houseSignBox(config: Config): Box
 		decor.signSize / 2,
 		decor.signZ
 	)
+end
+
+-- The sign with the guest prompt.
+function PlotLogic.guestSignBox(config: Config): Box
+	local sign = config.guestSign
+	return box("GuestSign", sign.size, sign.size, sign.size, sign.x, sign.size / 2, sign.z)
 end
 
 -- The sign (with the museum prompt) stands in front of the showcases.
