@@ -17,10 +17,10 @@
 return {
 	order = { "night_shift", "double_coins", "quick_travel", "backpack_plus" },
 	passes = {
-		night_shift = { gamePassId = 0, robux = 299, effect = { offlineHoursBonus = 4 } },
-		double_coins = { gamePassId = 0, robux = 399, effect = { oreSaleFactor = 2 } },
-		quick_travel = { gamePassId = 0, robux = 199, perk = "quickTravel" },
-		backpack_plus = { gamePassId = 0, robux = 249, effect = { capacityBonus = 0.2 } },
+		night_shift = { gamePassId = 2021582250, robux = 299, effect = { offlineHoursBonus = 4 } },
+		double_coins = { gamePassId = 2019008458, robux = 399, effect = { oreSaleFactor = 2 } },
+		quick_travel = { gamePassId = 2021462258, robux = 199, perk = "quickTravel" },
+		backpack_plus = { gamePassId = 2021714253, robux = 249, effect = { capacityBonus = 0.2 } },
 	},
 	-- Seconds between two quick trips.
 	quickTravelCooldown = 5,
