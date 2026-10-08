@@ -1,29 +1,16 @@
 --!strict
-local BackpackConfig = require("../../src/shared/Config/Backpack")
 local Framework = require("../Framework")
-local Layers = require("../../src/shared/Config/Layers")
 local Migrations = require("../../src/server/Migrations")
-local ProfileConfig = require("../../src/shared/Config/Profile")
 local ProfileData = require("../../src/server/ProfileData")
-local ShovelConfig = require("../../src/shared/Config/Shovel")
+local TestRules = require("../TestRules")
 
 local test = Framework.test
 local assertTrue = Framework.assertTrue
 local assertEquals = Framework.assertEquals
 local assertDeepEquals = Framework.assertDeepEquals
 
-local layerIds = {}
-for _, layer in Layers do
-	table.insert(layerIds, layer.id)
-end
-
-local rules: ProfileData.Rules = {
-	version = ProfileData.currentVersion(Migrations),
-	startCoins = ProfileConfig.startCoins,
-	startDepth = ProfileConfig.startDepth,
-	levelCounts = { shovel = #ShovelConfig.levels, backpack = #BackpackConfig.levels },
-	layerIds = layerIds,
-}
+local rules = TestRules
+local layerIds = rules.layerIds
 
 local function fresh(): ProfileData.Profile
 	return ProfileData.new(rules, Framework.seededRng(1), 1700000000)
@@ -55,8 +42,8 @@ test("a new profile has the starting values and is valid", function()
 	local profile = fresh()
 	assertEquals(profile.version, rules.version)
 	assertEquals(profile.createdAt, 1700000000)
-	assertEquals(profile.coins, ProfileConfig.startCoins)
-	assertEquals(profile.depth, ProfileConfig.startDepth)
+	assertEquals(profile.coins, rules.startCoins)
+	assertEquals(profile.depth, rules.startDepth)
 	assertEquals(profile.upgradeLevels.shovel, 1)
 	assertEquals(profile.upgradeLevels.backpack, 1)
 	assertEquals(next(profile.backpack.ores), nil)
@@ -173,6 +160,40 @@ test("validate rejects bad backpack contents", function()
 	end, "find")
 end)
 
+test("validate rejects bad find ids and a stale next id", function()
+	local function find(id: any): any
+		return { id = id, findId = "shard", layerId = "sand_clay", rarityId = "common", value = 10 }
+	end
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(nil))
+		p.nextFindId = 2
+	end, "find")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(0))
+		p.nextFindId = 2
+	end, "find")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(1.5))
+		p.nextFindId = 3
+	end, "find")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(1))
+		table.insert(p.backpack.finds, find(1))
+		p.nextFindId = 2
+	end, "duplicate")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(5))
+		p.nextFindId = 5
+	end, "nextFindId")
+	expectInvalid(function(p)
+		p.nextFindId = 0
+	end, "nextFindId")
+end)
+
+test("a new profile starts the find ids at 1", function()
+	assertEquals(fresh().nextFindId, 1)
+end)
+
 test("validate rejects a wrong version and a bad creation time", function()
 	expectInvalid(function(p)
 		p.version = rules.version + 1
@@ -221,6 +242,30 @@ test("the frozen version 1 profile migrates to the current version and validates
 	assertEquals(migrated.coins, 250)
 	assertEquals(migrated.upgradeLevels.shovel, 3)
 	assertEquals(migrated.backpack.finds[1].value, 2500)
+end)
+
+test("migrating version 1 gives stored finds unique ids and sets the next id", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.backpack.finds[1].id, 1)
+	assertEquals(migrated.backpack.finds[2].id, 2)
+	assertEquals(migrated.nextFindId, 3)
+end)
+
+test("migrating a version 1 profile without finds starts the ids at 1", function()
+	local fixture = version1Fixture()
+	fixture.backpack.finds = {}
+	local migrated = ProfileData.migrate(fixture, Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.nextFindId, 1)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
 end)
 
 test("migrate applies every step from the stored version up", function()

@@ -1,12 +1,9 @@
 --!strict
-local BackpackConfig = require("../../src/shared/Config/Backpack")
 local DataLogic = require("../../src/server/DataLogic")
 local Framework = require("../Framework")
-local Layers = require("../../src/shared/Config/Layers")
 local Migrations = require("../../src/server/Migrations")
-local ProfileConfig = require("../../src/shared/Config/Profile")
 local ProfileData = require("../../src/server/ProfileData")
-local ShovelConfig = require("../../src/shared/Config/Shovel")
+local TestRules = require("../TestRules")
 
 local test = Framework.test
 local assertTrue = Framework.assertTrue
@@ -15,33 +12,19 @@ local assertDeepEquals = Framework.assertDeepEquals
 
 local NOW = 1700000000
 
-local layerIds = {}
-for _, layer in Layers do
-	table.insert(layerIds, layer.id)
-end
-
-local rules: ProfileData.Rules = {
-	version = ProfileData.currentVersion(Migrations),
-	startCoins = ProfileConfig.startCoins,
-	startDepth = ProfileConfig.startDepth,
-	levelCounts = { shovel = #ShovelConfig.levels, backpack = #BackpackConfig.levels },
-	layerIds = layerIds,
-}
+local rules = TestRules
 
 local function prepare(raw: any, useRules: ProfileData.Rules?, migrations: { ProfileData.Migration }?)
 	return DataLogic.prepare(raw, useRules or rules, migrations or Migrations, Framework.seededRng(7), NOW)
 end
 
 local function validProfile(): { [string]: any }
-	return {
-		version = rules.version,
-		createdAt = NOW - 100,
-		coins = 40,
-		upgradeLevels = { shovel = 2, backpack = 1 },
-		depth = 12.5,
-		layerSeeds = { sand_clay = 1, rock = 2, crystal = 3 },
-		backpack = { ores = { coal = 2 }, finds = {} },
-	}
+	local profile: any = ProfileData.new(rules, Framework.seededRng(3), NOW - 100)
+	profile.coins = 40
+	profile.upgradeLevels = { shovel = 2, backpack = 1 }
+	profile.depth = 12.5
+	profile.backpack = { ores = { coal = 2 }, finds = {} }
+	return profile
 end
 
 -- Profile keys ---------------------------------------------------------------

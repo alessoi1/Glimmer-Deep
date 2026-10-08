@@ -1,0 +1,20 @@
+--!strict
+-- Profile rules for specs: the shipped config, assembled like the server does.
+
+local BackpackConfig = require("../src/shared/Config/Backpack")
+local Layers = require("../src/shared/Config/Layers")
+local Migrations = require("../src/server/Migrations")
+local ProfileConfig = require("../src/shared/Config/Profile")
+local ProfileData = require("../src/server/ProfileData")
+local ProfileRulesLogic = require("../src/server/ProfileRulesLogic")
+local ShovelConfig = require("../src/shared/Config/Shovel")
+
+local rules: ProfileData.Rules = ProfileRulesLogic.build({
+	migrations = Migrations,
+	layers = Layers,
+	levelCounts = { shovel = #ShovelConfig.levels, backpack = #BackpackConfig.levels },
+	startCoins = ProfileConfig.startCoins,
+	startDepth = ProfileConfig.startDepth,
+})
+
+return rules

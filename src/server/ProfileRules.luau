@@ -6,28 +6,23 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Migrations = require(script.Parent:WaitForChild("Migrations"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
+local ProfileRulesLogic = require(script.Parent:WaitForChild("ProfileRulesLogic"))
 
 local ProfileRules = {}
 
 function ProfileRules.build(): ProfileData.Rules
 	local Config = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config")
-	local layers = require(Config:WaitForChild("Layers"))
-	local shovelConfig = require(Config:WaitForChild("Shovel"))
-	local backpackConfig = require(Config:WaitForChild("Backpack"))
 	local profileConfig = require(Config:WaitForChild("Profile"))
-
-	local layerIds = {}
-	for _, layer in layers do
-		table.insert(layerIds, layer.id)
-	end
-
-	return {
-		version = ProfileData.currentVersion(Migrations),
+	return ProfileRulesLogic.build({
+		migrations = Migrations,
+		layers = require(Config:WaitForChild("Layers")),
+		levelCounts = {
+			shovel = #require(Config:WaitForChild("Shovel")).levels,
+			backpack = #require(Config:WaitForChild("Backpack")).levels,
+		},
 		startCoins = profileConfig.startCoins,
 		startDepth = profileConfig.startDepth,
-		levelCounts = { shovel = #shovelConfig.levels, backpack = #backpackConfig.levels },
-		layerIds = layerIds,
-	}
+	})
 end
 
 return ProfileRules

@@ -3,12 +3,10 @@ local BackpackConfig = require("../../src/shared/Config/Backpack")
 local DigAction = require("../../src/shared/DigAction")
 local DigConfig = require("../../src/shared/Config/Dig")
 local Framework = require("../Framework")
-local Layers = require("../../src/shared/Config/Layers")
-local Migrations = require("../../src/server/Migrations")
-local ProfileConfig = require("../../src/shared/Config/Profile")
 local ProfileData = require("../../src/server/ProfileData")
 local ShovelConfig = require("../../src/shared/Config/Shovel")
 local TestConfig = require("../TestConfig")
+local TestRules = require("../TestRules")
 
 local test = Framework.test
 local assertTrue = Framework.assertTrue
@@ -16,18 +14,7 @@ local assertEquals = Framework.assertEquals
 local assertNear = Framework.assertNear
 local scriptedRng = Framework.scriptedRng
 
-local layerIds = {}
-for _, layer in Layers do
-	table.insert(layerIds, layer.id)
-end
-
-local rules: ProfileData.Rules = {
-	version = ProfileData.currentVersion(Migrations),
-	startCoins = ProfileConfig.startCoins,
-	startDepth = ProfileConfig.startDepth,
-	levelCounts = { shovel = #ShovelConfig.levels, backpack = #BackpackConfig.levels },
-	layerIds = layerIds,
-}
+local rules = TestRules
 
 local function freshProfile(): ProfileData.Profile
 	return ProfileData.new(rules, Framework.seededRng(1), 1700000000)
@@ -111,6 +98,22 @@ test("a better shovel digs faster", function()
 	assertTrue(DigAction.perform(params(fast, scriptedRng(ORE_DRAWS), 100 - gap, 100)).ok)
 end)
 
+test("a rare find gets the next find id and the counter moves on", function()
+	local profile = freshProfile()
+	local draws = { 0.0, 0.0, 0.0, 0.99 } -- rare check passes, common find, first find, no mutation
+	assertTrue(DigAction.perform(params(profile, scriptedRng(draws))).ok)
+	assertTrue(DigAction.perform(params(profile, scriptedRng(draws), 50, 100)).ok)
+	assertEquals(profile.backpack.finds[1].id, 1)
+	assertEquals(profile.backpack.finds[2].id, 2)
+	assertEquals(profile.nextFindId, 3)
+end)
+
+test("ore does not use up a find id", function()
+	local profile = freshProfile()
+	assertTrue(DigAction.perform(params(profile, scriptedRng(ORE_DRAWS))).ok)
+	assertEquals(profile.nextFindId, 1)
+end)
+
 test("a full backpack rejects the dig without rolling or adding depth", function()
 	local profile = freshProfile()
 	profile.backpack.ores.coal = BackpackConfig.levels[1].capacity
@@ -169,7 +172,7 @@ test("snapshot describes depth, layer, backpack, coins and dig cooldown", functi
 	profile.coins = 321
 	profile.upgradeLevels.shovel = 2
 	profile.backpack.ores.iron = 3
-	table.insert(profile.backpack.finds, { findId = "fossil", layerId = "rock", rarityId = "rare", value = 50 })
+	table.insert(profile.backpack.finds, { id = 1, findId = "fossil", layerId = "rock", rarityId = "rare", value = 50 })
 	local state = DigAction.snapshot(snapshotParams(profile))
 	assertEquals(state.depth, 60.5)
 	assertEquals(state.layerId, "rock")

@@ -14,6 +14,7 @@ export type Block = {
 }
 
 export type Find = {
+	id: number?, -- set when the find is stored in a profile
 	findId: string,
 	layerId: string,
 	rarityId: string,
@@ -63,7 +64,8 @@ end
 
 -- Adds one dug block. Returns false (and changes nothing) when the backpack is
 -- full. Raises an error for malformed blocks, which indicates a server bug.
-function Backpack.addBlock(backpack: Backpack, block: Block): boolean
+-- `newFindId` is the unique id a rare find is stored with (ignored for ore).
+function Backpack.addBlock(backpack: Backpack, block: Block, newFindId: number?): boolean
 	local oreId = block.oreId
 	local findId, rarityId, value = block.findId, block.rarityId, block.value
 	if block.kind == "ore" then
@@ -86,6 +88,7 @@ function Backpack.addBlock(backpack: Backpack, block: Block): boolean
 		backpack.ores[oreId] = (backpack.ores[oreId] or 0) + 1
 	elseif findId ~= nil and rarityId ~= nil and value ~= nil then
 		table.insert(backpack.finds, {
+			id = newFindId,
 			findId = findId,
 			layerId = block.layerId,
 			rarityId = rarityId,

@@ -76,6 +76,17 @@ test("adding a rare find stores its details and uses a slot", function()
 	assertEquals(Backpack.getUsed(backpack), 1)
 end)
 
+test("a rare find keeps the id it was given and ore never gets one", function()
+	local backpack = Backpack.new(10)
+	local block = { kind = "rare", layerId = "rock", findId = "fossil", rarityId = "epic", value = 250 }
+	assertTrue(Backpack.addBlock(backpack, block, 7))
+	assertTrue(Backpack.addBlock(backpack, block))
+	assertEquals(backpack.finds[1].id, 7)
+	assertEquals(backpack.finds[2].id, nil)
+	assertTrue(Backpack.addBlock(backpack, ore("coal"), 8))
+	assertEquals(backpack.ores.coal, 1)
+end)
+
 test("a full backpack rejects blocks and stays unchanged", function()
 	local backpack = Backpack.new(2)
 	assertTrue(Backpack.addBlock(backpack, ore("coal")))

@@ -14,6 +14,7 @@ export type Rng = DigRoll.Rng
 export type DiggerProfile = {
 	depth: number,
 	coins: number,
+	nextFindId: number,
 	upgradeLevels: { [string]: number },
 	backpack: {
 		ores: { [string]: number },
@@ -99,9 +100,12 @@ function DigAction.perform(params: Params): Result
 	end
 
 	local block = DigRoll.rollBlock(params.digConfig, params.rng, { depth = profile.depth })
-	if not Backpack.addBlock(backpack, block) then
+	if not Backpack.addBlock(backpack, block, profile.nextFindId) then
 		-- Cannot happen after the isFull check; guard against a logic error.
 		return result(false, "backpack_full", nil)
+	end
+	if block.kind == "rare" then
+		profile.nextFindId += 1
 	end
 	profile.depth += params.metersPerBlock
 

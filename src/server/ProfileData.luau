@@ -5,6 +5,7 @@
 -- The hole is stored as depth plus one seed per layer, never as blocks.
 
 export type Find = {
+	id: number, -- unique within the profile
 	findId: string,
 	layerId: string,
 	rarityId: string,
@@ -16,6 +17,7 @@ export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
 	coins: number,
+	nextFindId: number, -- next free find id
 	upgradeLevels: { [string]: number }, -- upgrade id -> level, starting at 1
 	depth: number, -- meters
 	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape
@@ -80,6 +82,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		version = rules.version,
 		createdAt = now,
 		coins = rules.startCoins,
+		nextFindId = 1,
 		upgradeLevels = upgradeLevels,
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
@@ -91,6 +94,9 @@ local function validateFind(find: any, index: number): (boolean, string?)
 	local label = string.format("backpack.finds[%d]", index)
 	if type(find) ~= "table" then
 		return false, label .. " must be a table"
+	end
+	if not isInteger(find.id) or find.id < 1 then
+		return false, label .. " needs a positive integer id"
 	end
 	if type(find.findId) ~= "string" or type(find.layerId) ~= "string" or type(find.rarityId) ~= "string" then
 		return false, label .. " needs string findId, layerId and rarityId"
@@ -157,10 +163,21 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	if type(profile.backpack.finds) ~= "table" then
 		return false, "backpack.finds must be a table"
 	end
+	if not isInteger(profile.nextFindId) or profile.nextFindId < 1 then
+		return false, "nextFindId must be a positive integer"
+	end
+	local seenIds: { [number]: boolean } = {}
 	for index, find in profile.backpack.finds do
 		local ok, reason = validateFind(find, index)
 		if not ok then
 			return false, reason
+		end
+		if seenIds[find.id] then
+			return false, string.format("backpack.finds[%d] has a duplicate id %d", index, find.id)
+		end
+		seenIds[find.id] = true
+		if find.id >= profile.nextFindId then
+			return false, "nextFindId must be higher than every find id"
 		end
 	end
 
