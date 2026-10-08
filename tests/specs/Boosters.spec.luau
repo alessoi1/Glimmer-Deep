@@ -213,7 +213,16 @@ test("the view lists both boosters for a normal player and no free run", functio
 	assertEquals(view.boosters[1].luckBonus, 0.25)
 	assertEquals(view.boosters[2].remaining, 1770)
 	assertEquals(view.free, nil)
-	assertTrue(not view.boosters[1].buyable, "no product id set yet")
+	assertTrue(view.boosters[1].buyable, "the shipped config has product ids")
+end)
+
+test("a booster without a product id is not buyable and never matches a receipt", function()
+	local cfg: any = table.clone(config)
+	cfg.boosters = { luck_booster = table.clone(config.boosters.luck_booster) }
+	cfg.boosters.luck_booster.productId = 0
+	cfg.order = { "luck_booster" }
+	local view = Boosters.view(Boosters.newState(), cfg, NOW, true, false)
+	assertTrue(not view.boosters[1].buyable)
 end)
 
 test("a restricted player does not see the paid luck booster but gets the free run", function()

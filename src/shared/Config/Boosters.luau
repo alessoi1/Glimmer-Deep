@@ -21,14 +21,14 @@ return {
 	order = { "luck_booster", "tempo_booster" },
 	boosters = {
 		luck_booster = {
-			productId = 0,
+			productId = 3717300404,
 			robux = 39,
 			durationSeconds = 15 * 60,
 			effect = { luckBonus = 0.25 },
 			paidRandom = true,
 		},
 		tempo_booster = {
-			productId = 0,
+			productId = 3717300466,
 			robux = 49,
 			durationSeconds = 30 * 60,
 			effect = { tempoBonus = 1 }, -- x2 dig speed
