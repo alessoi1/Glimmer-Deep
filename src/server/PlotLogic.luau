@@ -17,6 +17,8 @@ export type Config = {
 	bottomThickness: number,
 	spawnSize: number,
 	spawnHeight: number,
+	sellSize: number,
+	sellHeight: number,
 }
 
 -- Offset of a plot center from the first plot center.
@@ -78,6 +80,12 @@ function PlotLogic.validateConfig(config: Config): (boolean, string?)
 	if not isPositive(config.spawnSize) or config.spawnSize > (config.size - config.shaftSize) / 2 then
 		return false, "spawnSize must be positive and fit beside the shaft"
 	end
+	if not isPositive(config.sellHeight) then
+		return false, "sellHeight must be positive"
+	end
+	if not isPositive(config.sellSize) or config.sellSize > (config.size - config.shaftSize) / 2 then
+		return false, "sellSize must be positive and fit beside the shaft"
+	end
 	return true, nil
 end
 
@@ -119,6 +127,14 @@ function PlotLogic.spawnBox(config: Config): Box
 	local half = config.shaftSize / 2
 	local centerZ = (half + config.size / 2) / 2
 	return box("Spawn", config.spawnSize, config.spawnHeight, config.spawnSize, 0, config.spawnHeight / 2, centerZ)
+end
+
+-- The sell point rests on the surface in the middle of the ground north of the
+-- shaft, opposite the spawn pad.
+function PlotLogic.sellBox(config: Config): Box
+	local half = config.shaftSize / 2
+	local centerZ = -(half + config.size / 2) / 2
+	return box("SellPoint", config.sellSize, config.sellHeight, config.sellSize, 0, config.sellHeight / 2, centerZ)
 end
 
 -- Hands out plots 1..count to owners (user ids). Not thread-safe by design: the

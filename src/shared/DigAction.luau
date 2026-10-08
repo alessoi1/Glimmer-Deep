@@ -13,6 +13,7 @@ export type Rng = DigRoll.Rng
 -- Structural subset of ProfileData.Profile (the profile is changed in place).
 export type DiggerProfile = {
 	depth: number,
+	coins: number,
 	upgradeLevels: { [string]: number },
 	backpack: {
 		ores: { [string]: number },
@@ -55,6 +56,7 @@ export type SnapshotParams = {
 -- What the client needs to show: it never computes game values itself.
 export type State = {
 	depth: number,
+	coins: number,
 	layerId: string,
 	used: number,
 	capacity: number,
@@ -116,6 +118,7 @@ function DigAction.snapshot(params: SnapshotParams): State
 	}
 	return {
 		depth = profile.depth,
+		coins = profile.coins,
 		layerId = DigRoll.getLayer(params.digConfig, profile.depth).id,
 		used = Backpack.getUsed(backpack),
 		capacity = backpack.capacity,
