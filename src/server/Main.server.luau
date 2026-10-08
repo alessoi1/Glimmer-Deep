@@ -10,6 +10,8 @@ local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
+local UpgradeRules = require(script.Parent:WaitForChild("UpgradeRules"))
+local UpgradeService = require(script.Parent:WaitForChild("UpgradeService"))
 local SellService = require(script.Parent:WaitForChild("SellService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
 local ProfileRules = require(script.Parent:WaitForChild("ProfileRules"))
@@ -38,13 +40,7 @@ local shovelConfig = require(Config:WaitForChild("Shovel"))
 local backpackConfig = require(Config:WaitForChild("Backpack"))
 check("backpack levels", Backpack.validateLevels(backpackConfig.levels))
 check("shovel levels", Shovel.validateConfig(shovelConfig))
-check(
-	"upgrade tracks",
-	Upgrades.validateTracks({
-		shovel = { levels = shovelConfig.levels },
-		backpack = { levels = backpackConfig.levels },
-	})
-)
+check("upgrade tracks", Upgrades.validateTracks(UpgradeRules.build()))
 
 local profileRules = ProfileRules.build()
 local random = Random.new()
@@ -57,3 +53,4 @@ DataService.start()
 PlotService.start()
 DigService.start()
 SellService.start()
+UpgradeService.start()

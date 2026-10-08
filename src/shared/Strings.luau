@@ -71,6 +71,17 @@ return {
 		tooFar = "Geh näher an deinen Schacht",
 		unknown = "Das hat nicht geklappt",
 	},
+	upgrades = {
+		openButton = "Upgrades",
+		offer = "%s: %s (%s Münzen)",
+		maxed = "%s: Maximal",
+		capacity = "%d Plätze",
+		level = "Stufe %d",
+		bought = "Verbessert: %s",
+		notEnoughCoins = "Nicht genug Münzen",
+		maxLevel = "Schon auf der höchsten Stufe",
+		unknown = "Das hat nicht geklappt",
+	},
 	sell = {
 		button = "Verkaufen",
 		pointLabel = "Verkauf",
