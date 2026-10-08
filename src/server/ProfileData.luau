@@ -56,6 +56,12 @@ export type PetState = {
 	receipts: { string },
 }
 
+export type PrestigeState = {
+	points: number,
+	rebirths: number,
+	levels: { [string]: number },
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -74,6 +80,7 @@ export type Profile = {
 	passes: { [string]: boolean }, -- game pass key -> true while owned (verified by the server)
 	boosters: BoosterState,
 	pets: PetState,
+	prestige: PrestigeState,
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -152,6 +159,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		passes = {},
 		boosters = { expires = {}, receipts = {}, freeClaimedAt = 0 },
 		pets = { owned = {}, nextId = 1, equipped = {}, eggs = 0, sinceRare = 0, freeEggAt = 0, receipts = {} },
+		prestige = { points = 0, rebirths = 0, levels = {} },
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
@@ -417,6 +425,19 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	for index, purchaseId in boosters.receipts do
 		if type(index) ~= "number" or type(purchaseId) ~= "string" or purchaseId == "" then
 			return false, "boosters.receipts must be a list of non-empty strings"
+		end
+	end
+
+	local prestige = profile.prestige
+	if type(prestige) ~= "table" or type(prestige.levels) ~= "table" then
+		return false, "prestige needs points, rebirths and levels"
+	end
+	if not isNonNegativeInteger(prestige.points) or not isNonNegativeInteger(prestige.rebirths) then
+		return false, "prestige.points and prestige.rebirths must be non-negative integers"
+	end
+	for bonusId, level in prestige.levels do
+		if type(bonusId) ~= "string" or not isNonNegativeInteger(level) then
+			return false, "prestige.levels needs a non-negative integer per bonus id"
 		end
 	end
 

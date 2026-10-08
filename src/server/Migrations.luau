@@ -18,6 +18,7 @@
 --   8 -> 9: boosters (none running), remembered purchase ids and the free claim time.
 --   9 -> 10: pets (no pets, no eggs, guarantee counter at 0).
 --   10 -> 11: house decoration (nothing owned, nothing placed).
+--   11 -> 12: prestige (no points, no rebirths, no bonus levels).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -89,6 +90,10 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 		if type(data.house) == "table" then
 			data.house.decor = { owned = {}, placed = {} }
 		end
+		return data
+	end,
+	function(data)
+		data.prestige = { points = 0, rebirths = 0, levels = {} }
 		return data
 	end,
 }

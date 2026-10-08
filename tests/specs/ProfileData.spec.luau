@@ -724,6 +724,53 @@ test("migrating keeps the house level and adds empty decoration", function()
 	assertTrue(ok, why)
 end)
 
+test("a new profile has no prestige", function()
+	local prestige = fresh().prestige
+	assertEquals(prestige.points, 0)
+	assertEquals(prestige.rebirths, 0)
+	assertEquals(next(prestige.levels), nil)
+end)
+
+test("validate accepts prestige and rejects bad prestige data", function()
+	local profile: any = fresh()
+	profile.prestige = { points = 3, rebirths = 2, levels = { coins = 2, luck = 1 } }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+	expectInvalid(function(p)
+		p.prestige = nil
+	end, "prestige")
+	expectInvalid(function(p)
+		p.prestige.points = -1
+	end, "prestige")
+	expectInvalid(function(p)
+		p.prestige.rebirths = 1.5
+	end, "prestige")
+	expectInvalid(function(p)
+		p.prestige.levels = { coins = -1 }
+	end, "prestige")
+	expectInvalid(function(p)
+		p.prestige.levels = { [1] = 2 }
+	end, "prestige")
+end)
+
+test("a version 11 profile migrates to version 12 and keeps its house", function()
+	local profile: any = fresh()
+	profile.version = 11
+	profile.prestige = nil
+	profile.house = { level = 2, decor = { owned = { rug = true }, placed = {} } }
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.house.level, 2)
+	assertEquals(migrated.prestige.points, 0)
+	assertEquals(migrated.prestige.rebirths, 0)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)
