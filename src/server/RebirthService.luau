@@ -21,6 +21,7 @@ local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local MovementService = require(script.Parent:WaitForChild("MovementService"))
+local ModelFactory = require(script.Parent:WaitForChild("ModelFactory"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
@@ -31,10 +32,6 @@ local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 local log = Log.new("Rebirth")
 
 local RebirthService = {}
-
-local LABEL_WIDTH = 160
-local LABEL_HEIGHT = 36
-local LABEL_LIFT = 1
 
 local config: Prestige.Config = RebirthConfig
 local rules: ProfileData.Rules
@@ -65,11 +62,6 @@ end
 
 local function buildSigns()
 	local signBox = PlotLogic.rebirthSignBox(PlotConfig)
-	local color = Color3.fromRGB(
-		PlotConfig.colors.rebirthSign.r,
-		PlotConfig.colors.rebirthSign.g,
-		PlotConfig.colors.rebirthSign.b
-	)
 	for slot = 1, PlotService.getSlotCount() do
 		local model = PlotService.getModel(slot)
 		local center = PlotService.getPlotCenter(slot)
@@ -77,30 +69,17 @@ local function buildSigns()
 			log.error("plot missing for rebirth sign", { plot = slot })
 			continue
 		end
-		local sign = Instance.new("Part")
-		sign.Name = signBox.name
-		sign.Size = Vector3.new(signBox.sizeX, signBox.sizeY, signBox.sizeZ)
-		sign.Position = center + Vector3.new(signBox.x, signBox.y, signBox.z)
-		sign.Anchored = true
-		sign.Color = color
-		sign.Material = Enum.Material.SmoothPlastic
-		sign.Parent = model
+		local sign = ModelFactory.sign(
+			"Rebirth",
+			model,
+			center,
+			signBox.sizeX,
+			signBox.x,
+			signBox.z,
+			PlotConfig.colors.rebirthSign,
+			Strings.rebirth.signLabel
+		)
 		signPositions[slot] = sign.Position
-
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(LABEL_WIDTH, LABEL_HEIGHT)
-		billboard.StudsOffsetWorldSpace = Vector3.new(0, signBox.sizeY / 2 + LABEL_LIFT, 0)
-		billboard.MaxDistance = PlotConfig.size
-		billboard.Parent = sign
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(245, 245, 245)
-		label.TextStrokeTransparency = 0.5
-		label.Text = Strings.rebirth.signLabel
-		label.Parent = billboard
 
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.ActionText = Strings.rebirth.promptAction

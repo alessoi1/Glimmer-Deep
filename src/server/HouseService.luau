@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local House = require(Shared:WaitForChild("House"))
 local Log = require(Shared:WaitForChild("Log"))
+local ModelSpecs = require(Shared:WaitForChild("ModelSpecs"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Config = Shared:WaitForChild("Config")
@@ -19,6 +20,7 @@ local PlotConfig = require(Config:WaitForChild("Plot"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
 local MuseumService = require(script.Parent:WaitForChild("MuseumService"))
+local ModelFactory = require(script.Parent:WaitForChild("ModelFactory"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
@@ -28,8 +30,6 @@ local log = Log.new("House")
 
 local HouseService = {}
 
-local LABEL_WIDTH = 140
-local LABEL_HEIGHT = 30
 local LABEL_LIFT = 1
 
 local config: House.Config = HouseConfig
@@ -73,38 +73,23 @@ end
 
 local function buildSigns()
 	local signBox = PlotLogic.houseSignBox(PlotConfig)
-	local color =
-		Color3.fromRGB(PlotConfig.colors.houseSign.r, PlotConfig.colors.houseSign.g, PlotConfig.colors.houseSign.b)
 	for slot = 1, PlotService.getSlotCount() do
 		local model = PlotService.getModel(slot)
 		local center = PlotService.getPlotCenter(slot)
 		if model == nil or center == nil then
 			continue
 		end
-		local sign = Instance.new("Part")
-		sign.Name = signBox.name
-		sign.Size = Vector3.new(signBox.sizeX, signBox.sizeY, signBox.sizeZ)
-		sign.Position = center + Vector3.new(signBox.x, signBox.y, signBox.z)
-		sign.Anchored = true
-		sign.Color = color
-		sign.Material = Enum.Material.SmoothPlastic
-		sign.Parent = model
+		local sign = ModelFactory.sign(
+			"House",
+			model,
+			center,
+			signBox.sizeX,
+			signBox.x,
+			signBox.z,
+			PlotConfig.colors.houseSign,
+			Strings.house.signLabel
+		)
 		signPositions[slot] = sign.Position
-
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(LABEL_WIDTH, LABEL_HEIGHT + 6)
-		billboard.StudsOffsetWorldSpace = Vector3.new(0, signBox.sizeY / 2 + LABEL_LIFT, 0)
-		billboard.MaxDistance = PlotConfig.size
-		billboard.Parent = sign
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(245, 245, 245)
-		label.TextStrokeTransparency = 0.5
-		label.Text = Strings.house.signLabel
-		label.Parent = billboard
 
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.ActionText = Strings.house.promptAction
@@ -152,31 +137,12 @@ local function refreshDecor(slot: number)
 		return
 	end
 	for _, entry in House.view(profile, config).placed do
-		local def = config.items[entry.id]
 		local cell = PlotLogic.decorBox(PlotConfig, entry.slot)
-		local part = Instance.new("Part")
-		part.Name = entry.id
-		part.Size = Vector3.new(math.min(def.sizeX, cell.sizeX), def.sizeY, math.min(def.sizeZ, cell.sizeZ))
-		part.Position = center + Vector3.new(cell.x, def.sizeY / 2, cell.z)
-		part.Anchored = true
-		part.Color = Color3.fromRGB(def.color.r, def.color.g, def.color.b)
-		part.Material = Enum.Material.SmoothPlastic
-		part.Parent = folder
-
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(LABEL_WIDTH, LABEL_HEIGHT)
-		billboard.StudsOffsetWorldSpace = Vector3.new(0, def.sizeY / 2 + LABEL_LIFT, 0)
-		billboard.MaxDistance = PlotConfig.size / 2
-		billboard.Parent = part
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(245, 245, 245)
-		label.TextStrokeTransparency = 0.5
-		label.Text = Strings.house.item[entry.id] or entry.id
-		label.Parent = billboard
+		local spec = ModelSpecs.decor(ModelFactory.palette, entry.id)
+		if spec ~= nil then
+			local model, primary = ModelFactory.build(spec, center + Vector3.new(cell.x, 0, cell.z), folder)
+			ModelFactory.addLabel(model, primary, Strings.house.item[entry.id] or entry.id, LABEL_LIFT)
+		end
 	end
 end
 

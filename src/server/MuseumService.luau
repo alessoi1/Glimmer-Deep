@@ -13,6 +13,7 @@ local Backpack = require(Shared:WaitForChild("Backpack"))
 local Calendar = require(Shared:WaitForChild("Calendar"))
 local Log = require(Shared:WaitForChild("Log"))
 local MuseumLogic = require(Shared:WaitForChild("MuseumLogic"))
+local ModelSpecs = require(Shared:WaitForChild("ModelSpecs"))
 local MuseumMessages = require(Shared:WaitForChild("MuseumMessages"))
 local Quests = require(Shared:WaitForChild("Quests"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
@@ -26,6 +27,7 @@ local PlotConfig = require(Config:WaitForChild("Plot"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
+local ModelFactory = require(script.Parent:WaitForChild("ModelFactory"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
@@ -42,17 +44,7 @@ type Snapshot = {
 	board: { MuseumLogic.BoardEntry },
 }
 
-local COLOR_VITRINE =
-	Color3.fromRGB(PlotConfig.colors.vitrine.r, PlotConfig.colors.vitrine.g, PlotConfig.colors.vitrine.b)
-local COLOR_FILLED = Color3.fromRGB(
-	PlotConfig.colors.vitrineFilled.r,
-	PlotConfig.colors.vitrineFilled.g,
-	PlotConfig.colors.vitrineFilled.b
-)
-local COLOR_SIGN = Color3.fromRGB(PlotConfig.colors.sign.r, PlotConfig.colors.sign.g, PlotConfig.colors.sign.b)
-local LABEL_WIDTH = 180
-local LABEL_HEIGHT = 36
-local LABEL_LIFT = 2
+local LABEL_LIFT = 1.5
 
 local signPositions: { [number]: Vector3 } = {}
 local prompts: { [number]: ProximityPrompt } = {}
@@ -109,37 +101,6 @@ end
 
 -- World ---------------------------------------------------------------------------
 
-local function newPart(box: PlotLogic.Box, center: Vector3, color: Color3): Part
-	local part = Instance.new("Part")
-	part.Name = box.name
-	part.Size = Vector3.new(box.sizeX, box.sizeY, box.sizeZ)
-	part.Position = center + Vector3.new(box.x, box.y, box.z)
-	part.Anchored = true
-	part.Color = color
-	part.Material = Enum.Material.SmoothPlastic
-	part.TopSurface = Enum.SurfaceType.Smooth
-	part.BottomSurface = Enum.SurfaceType.Smooth
-	return part
-end
-
-local function addLabel(part: Part, text: string, lift: number)
-	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.fromOffset(LABEL_WIDTH, LABEL_HEIGHT)
-	billboard.StudsOffsetWorldSpace = Vector3.new(0, part.Size.Y / 2 + lift, 0)
-	billboard.AlwaysOnTop = false
-	billboard.MaxDistance = PlotConfig.size
-	billboard.Parent = part
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBold
-	label.TextScaled = true
-	label.TextColor3 = Color3.fromRGB(245, 245, 245)
-	label.TextStrokeTransparency = 0.5
-	label.Text = text
-	label.Parent = billboard
-end
-
 -- Builds the sign, its prompt and the (empty) showcase folder of every plot.
 local function buildSigns()
 	local signBox = PlotLogic.museumSignBox(PlotConfig)
@@ -150,10 +111,17 @@ local function buildSigns()
 			log.error("plot missing for museum sign", { plot = slot })
 			continue
 		end
-		local sign = newPart(signBox, center, COLOR_SIGN)
-		sign.Parent = model
+		local sign = ModelFactory.sign(
+			"Museum",
+			model,
+			center,
+			signBox.sizeX,
+			signBox.x,
+			signBox.z,
+			PlotConfig.colors.sign,
+			Strings.museum.title
+		)
 		signPositions[slot] = sign.Position
-		addLabel(sign, Strings.museum.title, LABEL_LIFT)
 
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.ActionText = Strings.museum.promptAction
@@ -198,14 +166,26 @@ local function refreshShowcases(slot: number)
 	for _, display in profile.museum.displays do
 		displayBySlot[display.slot] = display
 	end
-	for number = 1, slotCountOf(profile) do
+	local slots = slotCountOf(profile)
+	local floorX, floorZ, rows = PlotLogic.museumFloor(PlotConfig, slots)
+	ModelFactory.build(
+		ModelSpecs.museumFloor(ModelFactory.palette, PlotConfig.museum.columns, rows, PlotConfig.museum.spacing),
+		center + Vector3.new(floorX, 0, floorZ),
+		folder
+	)
+	for number = 1, slots do
 		local display = displayBySlot[number]
 		local box = PlotLogic.vitrineBox(PlotConfig, number)
-		local part = newPart(box, center, if display ~= nil then COLOR_FILLED else COLOR_VITRINE)
+		local spec = ModelSpecs.vitrine(
+			ModelFactory.palette,
+			PlotConfig.museum.vitrineSize,
+			PlotConfig.museum.vitrineHeight,
+			display ~= nil
+		)
+		local model, primary = ModelFactory.build(spec, center + Vector3.new(box.x, 0, box.z), folder)
 		if display ~= nil then
-			addLabel(part, MuseumMessages.describeFind(Strings, display.find), LABEL_LIFT)
+			ModelFactory.addLabel(model, primary, MuseumMessages.describeFind(Strings, display.find), LABEL_LIFT)
 		end
-		part.Parent = folder
 	end
 end
 

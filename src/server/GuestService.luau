@@ -22,6 +22,7 @@ local GuestConfig = require(Config:WaitForChild("Guests"))
 local PlotConfig = require(Config:WaitForChild("Plot"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local EventService = require(script.Parent:WaitForChild("EventService"))
+local ModelFactory = require(script.Parent:WaitForChild("ModelFactory"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
@@ -29,10 +30,6 @@ local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 local log = Log.new("Guests")
 
 local GuestService = {}
-
-local LABEL_WIDTH = 140
-local LABEL_HEIGHT = 36
-local LABEL_LIFT = 1
 
 local config: Guests.Config = GuestConfig
 local registry: Guests.Registry
@@ -119,8 +116,6 @@ end
 
 local function buildSigns()
 	local signBox = PlotLogic.guestSignBox(PlotConfig)
-	local color =
-		Color3.fromRGB(PlotConfig.colors.guestSign.r, PlotConfig.colors.guestSign.g, PlotConfig.colors.guestSign.b)
 	for slot = 1, PlotService.getSlotCount() do
 		local model = PlotService.getModel(slot)
 		local center = PlotService.getPlotCenter(slot)
@@ -128,30 +123,17 @@ local function buildSigns()
 			log.error("plot missing for guest sign", { plot = slot })
 			continue
 		end
-		local sign = Instance.new("Part")
-		sign.Name = signBox.name
-		sign.Size = Vector3.new(signBox.sizeX, signBox.sizeY, signBox.sizeZ)
-		sign.Position = center + Vector3.new(signBox.x, signBox.y, signBox.z)
-		sign.Anchored = true
-		sign.Color = color
-		sign.Material = Enum.Material.SmoothPlastic
-		sign.Parent = model
+		local sign = ModelFactory.sign(
+			"Guests",
+			model,
+			center,
+			signBox.sizeX,
+			signBox.x,
+			signBox.z,
+			PlotConfig.colors.guestSign,
+			Strings.guests.signLabel
+		)
 		signPositions[slot] = sign.Position
-
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(LABEL_WIDTH, LABEL_HEIGHT)
-		billboard.StudsOffsetWorldSpace = Vector3.new(0, signBox.sizeY / 2 + LABEL_LIFT, 0)
-		billboard.MaxDistance = PlotConfig.size
-		billboard.Parent = sign
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(245, 245, 245)
-		label.TextStrokeTransparency = 0.5
-		label.Text = Strings.guests.signLabel
-		label.Parent = billboard
 
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.ActionText = Strings.guests.promptAction

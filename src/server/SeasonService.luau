@@ -21,6 +21,7 @@ local SeasonConfig = require(Config:WaitForChild("Season"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
 local EventService = require(script.Parent:WaitForChild("EventService"))
+local ModelFactory = require(script.Parent:WaitForChild("ModelFactory"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
@@ -31,9 +32,6 @@ local log = Log.new("Season")
 
 local SeasonService = {}
 
-local LABEL_WIDTH = 160
-local LABEL_HEIGHT = 36
-local LABEL_LIFT = 1
 local ACTION_COOLDOWN = 0.4 -- seconds between two claims per player
 local USE_DISTANCE = 24 -- studs from the sign
 local PROMPT_DISTANCE = 12
@@ -92,8 +90,6 @@ end
 
 local function buildSigns()
 	local signBox = PlotLogic.seasonSignBox(PlotConfig)
-	local color =
-		Color3.fromRGB(PlotConfig.colors.seasonSign.r, PlotConfig.colors.seasonSign.g, PlotConfig.colors.seasonSign.b)
 	for slot = 1, PlotService.getSlotCount() do
 		local model = PlotService.getModel(slot)
 		local center = PlotService.getPlotCenter(slot)
@@ -101,30 +97,17 @@ local function buildSigns()
 			log.error("plot missing for season sign", { plot = slot })
 			continue
 		end
-		local sign = Instance.new("Part")
-		sign.Name = signBox.name
-		sign.Size = Vector3.new(signBox.sizeX, signBox.sizeY, signBox.sizeZ)
-		sign.Position = center + Vector3.new(signBox.x, signBox.y, signBox.z)
-		sign.Anchored = true
-		sign.Color = color
-		sign.Material = Enum.Material.SmoothPlastic
-		sign.Parent = model
+		local sign = ModelFactory.sign(
+			"Season",
+			model,
+			center,
+			signBox.sizeX,
+			signBox.x,
+			signBox.z,
+			PlotConfig.colors.seasonSign,
+			Strings.season.signLabel
+		)
 		signPositions[slot] = sign.Position
-
-		local billboard = Instance.new("BillboardGui")
-		billboard.Size = UDim2.fromOffset(LABEL_WIDTH, LABEL_HEIGHT)
-		billboard.StudsOffsetWorldSpace = Vector3.new(0, signBox.sizeY / 2 + LABEL_LIFT, 0)
-		billboard.MaxDistance = PlotConfig.size
-		billboard.Parent = sign
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(245, 245, 245)
-		label.TextStrokeTransparency = 0.5
-		label.Text = Strings.season.signLabel
-		label.Parent = billboard
 
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.ActionText = Strings.season.promptAction

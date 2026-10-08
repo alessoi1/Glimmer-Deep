@@ -252,6 +252,16 @@ function PlotLogic.houseSignBox(config: Config): Box
 	)
 end
 
+-- The floor under the showcases of a house level with `slots` showcases: the
+-- center (from the plot center) and the number of rows.
+function PlotLogic.museumFloor(config: Config, slots: number): (number, number, number)
+	local museum = config.museum
+	local rows = math.max(1, math.ceil(slots / museum.columns))
+	local x = museum.x + (museum.columns - 1) * museum.spacing / 2
+	local z = museum.z + (rows - 1) * museum.spacing / 2
+	return x, z, rows
+end
+
 -- The sign with the guest prompt.
 function PlotLogic.guestSignBox(config: Config): Box
 	local sign = config.guestSign
