@@ -22,7 +22,7 @@
 return {
 	rarityOrder = { "common", "rare", "epic", "legendary", "mythic" },
 	egg = {
-		productId = 0,
+		productId = 3717307004,
 		robux = 99,
 		chances = { common = 60, rare = 25, epic = 10, legendary = 4, mythic = 1 },
 	},

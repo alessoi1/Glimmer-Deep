@@ -417,7 +417,9 @@ test("a normal player sees the egg offer and no free egg", function()
 end)
 
 test("the egg is not buyable while the product id is unset", function()
-	local view = Pets.view(Pets.newState(), config, NOW, true, false)
+	local egg: any = table.clone(config.egg)
+	egg.productId = 0
+	local view = Pets.view(Pets.newState(), with({ egg = egg }), NOW, true, false)
 	assertTrue(view.egg ~= nil and not view.egg.buyable)
 end)
 
