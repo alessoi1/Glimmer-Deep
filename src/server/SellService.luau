@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
+local Quests = require(Shared:WaitForChild("Quests"))
 local SellAction = require(Shared:WaitForChild("SellAction"))
 local Config = Shared:WaitForChild("Config")
 local DigConfig = require(Config:WaitForChild("Dig"))
@@ -19,6 +20,7 @@ local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
+local QuestService = require(script.Parent:WaitForChild("QuestService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
 local log = Log.new("Sell")
@@ -83,6 +85,7 @@ local function handleSell(player: Player, ...: any)
 		coins = profile.coins,
 		depth = profile.depth,
 	})
+	QuestService.record(player, Quests.events.sold, 1)
 	sellResult:FireClient(player, { ok = true, coinsEarned = result.coinsEarned, state = DigService.getState(player) })
 end
 

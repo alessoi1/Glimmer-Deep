@@ -14,6 +14,7 @@ local Calendar = require(Shared:WaitForChild("Calendar"))
 local Log = require(Shared:WaitForChild("Log"))
 local MuseumLogic = require(Shared:WaitForChild("MuseumLogic"))
 local MuseumMessages = require(Shared:WaitForChild("MuseumMessages"))
+local Quests = require(Shared:WaitForChild("Quests"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Config = Shared:WaitForChild("Config")
@@ -28,6 +29,7 @@ local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotLogic = require(script.Parent:WaitForChild("PlotLogic"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
+local QuestService = require(script.Parent:WaitForChild("QuestService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
 local log = Log.new("Museum")
@@ -285,6 +287,9 @@ local function handleResult(
 		coins = profile.coins,
 	})
 	refreshShowcases(slot)
+	if kind == "displayed" then
+		QuestService.record(player, Quests.events.displayed, 1)
+	end
 	reply(player, profile, { ok = true, kind = kind })
 end
 
@@ -330,6 +335,7 @@ local function handleCollect(player: Player, ...: any)
 		return
 	end
 	log.info("museum income collected", { userId = player.UserId, coinsEarned = result.coins, coins = profile.coins })
+	QuestService.record(player, Quests.events.collected, 1)
 	reply(player, profile, { ok = true, kind = "collected", coins = result.coins })
 end
 

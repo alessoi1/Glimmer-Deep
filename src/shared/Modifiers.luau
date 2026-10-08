@@ -16,6 +16,7 @@ export type Part = {
 	offlineBonus: number?, -- offline digger yield
 	offlineHoursBonus: number?, -- extra hours the offline digger works (the "Nachtschicht" pass)
 	rangeBonus: number?, -- extra studs of dig range
+	walkSpeedBonus: number?, -- walking speed
 }
 
 export type Result = {
@@ -28,6 +29,7 @@ export type Result = {
 	offlineMultiplier: number,
 	offlineExtraHours: number,
 	rangeBonus: number,
+	walkSpeedMultiplier: number,
 }
 
 local Modifiers = {}
@@ -65,6 +67,7 @@ function Modifiers.combine(parts: { Part }): Result
 		offlineMultiplier = 1 + sum(parts, "offlineBonus"),
 		offlineExtraHours = sum(parts, "offlineHoursBonus"),
 		rangeBonus = sum(parts, "rangeBonus"),
+		walkSpeedMultiplier = 1 + sum(parts, "walkSpeedBonus"),
 	}
 end
 

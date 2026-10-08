@@ -2,7 +2,7 @@
 -- Pure shovel logic: level stats and the server-side dig cooldown check.
 -- No Roblox services; times are passed in (server clock only).
 
-export type LevelDef = { id: string, price: number, digCooldown: number }
+export type LevelDef = { id: string, price: number, digCooldown: number, rangeBonus: number? }
 
 export type Config = {
 	cooldownTolerance: number,

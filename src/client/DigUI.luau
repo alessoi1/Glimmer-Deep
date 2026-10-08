@@ -80,6 +80,7 @@ function DigUI.start()
 	local sellResult = Remotes.event(Remotes.names.sellResult)
 	local upgradeResult = Remotes.event(Remotes.names.upgradeResult)
 	local museumResult = Remotes.event(Remotes.names.museumResult)
+	local questResult = Remotes.event(Remotes.names.questResult)
 	local getState = Remotes.func(Remotes.names.getDigState)
 
 	local gui = Instance.new("ScreenGui")
@@ -246,7 +247,7 @@ function DigUI.start()
 
 	-- A sale, an upgrade or a museum action changes coins, backpack and cooldown; the sell and
 	-- upgrade UIs show their own messages.
-	for _, remote in { sellResult, upgradeResult, museumResult } do
+	for _, remote in { sellResult, upgradeResult, museumResult, questResult } do
 		remote.OnClientEvent:Connect(function(payload: { state: DigAction.State? })
 			if type(payload) == "table" and type(payload.state) == "table" then
 				applyState(payload.state)

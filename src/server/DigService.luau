@@ -10,6 +10,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local DigAction = require(Shared:WaitForChild("DigAction"))
+local Quests = require(Shared:WaitForChild("Quests"))
 local Config = Shared:WaitForChild("Config")
 local DigConfig = require(Config:WaitForChild("Dig"))
 local BackpackConfig = require(Config:WaitForChild("Backpack"))
@@ -20,6 +21,7 @@ local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
+local QuestService = require(script.Parent:WaitForChild("QuestService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
 local log = Log.new("Dig")
@@ -66,7 +68,9 @@ local function handleDig(player: Player, ...: any)
 		warnRejected(player, "no_plot_or_character")
 		return
 	end
-	if distance > DigConfig.digRange then
+	-- The shovel's reach adds to the base range.
+	local modifiers = ModifierService.get(profile)
+	if distance > DigConfig.digRange + modifiers.rangeBonus then
 		warnRejected(player, "too_far")
 		digResult:FireClient(player, { ok = false, reason = "too_far", state = snapshot(profile) })
 		return
@@ -81,7 +85,7 @@ local function handleDig(player: Player, ...: any)
 		backpackLevels = BackpackConfig.levels,
 		metersPerBlock = DigConfig.metersPerBlock,
 		onboarding = OnboardingConfig,
-		modifiers = ModifierService.get(profile),
+		modifiers = modifiers,
 		lastDigAt = lastDigAt[player],
 		now = now,
 		rng = function()
@@ -115,6 +119,16 @@ local function handleDig(player: Player, ...: any)
 			value = block.value,
 			depth = result.depth,
 		})
+	end
+	QuestService.record(player, Quests.events.dig, 1)
+	if block.kind == "rare" then
+		QuestService.record(player, Quests.events.rare, 1)
+		if block.mutationId ~= nil then
+			QuestService.record(player, Quests.events.mutation, 1)
+		end
+	end
+	if result.used >= result.capacity then
+		QuestService.record(player, Quests.events.backpackFilled, 1)
 	end
 	digResult:FireClient(player, { ok = true, block = block, state = snapshot(profile) })
 end

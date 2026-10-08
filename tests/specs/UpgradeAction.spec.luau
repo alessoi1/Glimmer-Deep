@@ -1,6 +1,7 @@
 --!strict
 local BackpackConfig = require("../../src/shared/Config/Backpack")
 local DiggerConfig = require("../../src/shared/Config/Digger")
+local SkillConfig = require("../../src/shared/Config/Skills")
 local Framework = require("../Framework")
 local ShovelConfig = require("../../src/shared/Config/Shovel")
 local Onboarding = require("../../src/shared/Onboarding")
@@ -17,9 +18,16 @@ local tracks: UpgradeAction.Tracks = {
 	backpack = { levels = BackpackConfig.levels },
 	digger = { levels = DiggerConfig.levels },
 }
+for skillId, track in SkillConfig.tracks do
+	tracks[skillId] = track
+end
 
 local function profile(coins: number): UpgradeAction.UpgraderProfile
-	return { coins = coins, upgradeLevels = { shovel = 1, backpack = 1, digger = 1 }, onboarding = Onboarding.new() }
+	return {
+		coins = coins,
+		upgradeLevels = { shovel = 1, backpack = 1, digger = 1, lamp = 1 },
+		onboarding = Onboarding.new(),
+	}
 end
 
 test("the shipped upgrade order names only existing tracks", function()
@@ -127,4 +135,13 @@ test("the digger is an upgrade that shows its next output", function()
 	assertEquals(entries[1].nextBlocksPerHour, DiggerConfig.levels[2].blocksPerHour)
 	assertTrue(UpgradeAction.buy(p, tracks, "digger").ok)
 	assertEquals(p.upgradeLevels.digger, 2)
+end)
+
+test("a skill shows the effect of its next level", function()
+	local p = profile(SkillConfig.tracks.lamp.levels[2].price)
+	local entry = UpgradeAction.snapshot(p, tracks, { "lamp" })[1]
+	assertEquals(entry.nextEffectKind, "luck")
+	assertEquals(entry.nextEffectPercent, 5)
+	assertTrue(UpgradeAction.buy(p, tracks, "lamp").ok)
+	assertEquals(p.upgradeLevels.lamp, 2)
 end)

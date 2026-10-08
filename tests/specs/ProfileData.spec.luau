@@ -397,6 +397,100 @@ test("migrating adds the depot, the digger and digger level 1", function()
 	assertTrue(ok, reason)
 end)
 
+test("a new profile has every skill at level 1", function()
+	local profile = fresh()
+	for _, skillId in { "strong_arms", "ore_finder", "cable_winch", "lamp" } do
+		assertEquals(profile.upgradeLevels[skillId], 1)
+	end
+end)
+
+test("migrating adds the skills at level 1 and keeps the other levels", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	for _, skillId in { "strong_arms", "ore_finder", "cable_winch", "lamp" } do
+		assertEquals(migrated.upgradeLevels[skillId], 1)
+	end
+	assertEquals(migrated.upgradeLevels.shovel, 3)
+	assertEquals(migrated.upgradeLevels.backpack, 2)
+end)
+
+test("a new profile has no quests picked and no login yet", function()
+	local profile = fresh()
+	assertEquals(profile.quests.day, 0)
+	assertEquals(#profile.quests.ids, 0)
+	assertEquals(profile.quests.bonusClaimed, false)
+	assertEquals(profile.login.lastDay, 0)
+	assertEquals(profile.login.streak, 0)
+	assertEquals(profile.login.claimed, true)
+end)
+
+test("validate accepts picked quests with progress and a running login chain", function()
+	local profile: any = fresh()
+	profile.quests = {
+		day = 19000,
+		ids = { "dig_blocks", "sell_trips" },
+		progress = { dig_blocks = 20 },
+		claimed = { sell_trips = true },
+		bonusClaimed = false,
+	}
+	profile.login = { lastDay = 19000, streak = 3, claimed = false }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+end)
+
+test("validate rejects bad quests and login values", function()
+	expectInvalid(function(p)
+		p.quests = nil
+	end, "quests")
+	expectInvalid(function(p)
+		p.quests.day = -1
+	end, "quests")
+	expectInvalid(function(p)
+		p.quests.ids = { 5 }
+	end, "quests")
+	expectInvalid(function(p)
+		p.quests.progress = { dig_blocks = -2 }
+	end, "quests")
+	expectInvalid(function(p)
+		p.quests.progress = { dig_blocks = 1.5 }
+	end, "quests")
+	expectInvalid(function(p)
+		p.quests.claimed = { dig_blocks = "yes" }
+	end, "quests")
+	expectInvalid(function(p)
+		p.quests.bonusClaimed = 1
+	end, "quests")
+	expectInvalid(function(p)
+		p.login = nil
+	end, "login")
+	expectInvalid(function(p)
+		p.login.streak = rules.loginChainLength + 1
+	end, "login")
+	expectInvalid(function(p)
+		p.login.lastDay = -3
+	end, "login")
+	expectInvalid(function(p)
+		p.login.claimed = "no"
+	end, "login")
+end)
+
+test("migrating adds empty quests and a login chain that has not started", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.quests.day, 0)
+	assertEquals(#migrated.quests.ids, 0)
+	assertEquals(migrated.login.streak, 0)
+	assertEquals(migrated.login.claimed, true)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

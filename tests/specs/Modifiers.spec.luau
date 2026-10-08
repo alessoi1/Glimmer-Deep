@@ -17,6 +17,7 @@ test("without any parts every modifier is neutral", function()
 	assertEquals(result.offlineMultiplier, 1)
 	assertEquals(result.rangeBonus, 0)
 	assertEquals(result.offlineExtraHours, 0)
+	assertEquals(result.walkSpeedMultiplier, 1)
 end)
 
 test("bonuses of several parts add up", function()
@@ -24,7 +25,8 @@ test("bonuses of several parts add up", function()
 		{ coinBonus = 0.1, luckBonus = 0.05, tempoBonus = 0.2 },
 		{ coinBonus = 0.1, capacityBonus = 0.2, offlineBonus = 0.5, rareFindBonus = 0.25, rangeBonus = 4 },
 		{ rangeBonus = 2, offlineHoursBonus = 3 },
-		{ offlineHoursBonus = 1 },
+		{ offlineHoursBonus = 1, walkSpeedBonus = 0.1 },
+		{ walkSpeedBonus = 0.2 },
 	})
 	assertNear(result.coinMultiplier, 1.2, 1e-9)
 	assertNear(result.luck, 1.05, 1e-9)
@@ -34,6 +36,7 @@ test("bonuses of several parts add up", function()
 	assertNear(result.rareFindMultiplier, 1.25, 1e-9)
 	assertEquals(result.rangeBonus, 6)
 	assertEquals(result.offlineExtraHours, 4)
+	assertNear(result.walkSpeedMultiplier, 1.3, 1e-9)
 end)
 
 test("sale factors multiply instead of adding", function()
