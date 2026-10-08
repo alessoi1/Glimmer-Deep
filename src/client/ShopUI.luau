@@ -23,14 +23,14 @@ local log = Log.new("ShopUI")
 local TOGGLE_WIDTH = 120
 local TOGGLE_HEIGHT = 44
 -- The toggle sits above the quests toggle in the button column on the right.
-local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 64 + 12 + 44 + 12 + 44 + 12
+local STACK_BELOW_TOGGLE = 24 + 120 + 12 + 44 + 12 + 44 + 12
 local BUTTON_MARGIN = 24
 local BUTTON_GAP = 12
 local PANEL_WIDTH = 300
 local PADDING = 8
 local ROW_HEIGHT = 84
 local ACTION_HEIGHT = 36
-local TEXT_SIZE = 16
+local TEXT_SIZE = 14
 local MESSAGE_SECONDS = 2.5
 local MESSAGE_TOP = 232 -- below the other messages
 local MESSAGE_WIDTH = 320

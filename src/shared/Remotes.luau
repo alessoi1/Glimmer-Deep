@@ -13,7 +13,6 @@ local Remotes = {
 		dig = "Dig", -- client -> server event: "I want to dig" (no arguments)
 		digResult = "DigResult", -- server -> client event: outcome and new state
 		getDigState = "GetDigState", -- client -> server function: current state, nil while loading
-		sell = "Sell", -- client -> server event: "I want to sell my backpack" (no arguments)
 		sellResult = "SellResult", -- server -> client event: outcome and new state
 		buyUpgrade = "BuyUpgrade", -- client -> server event: one argument, the upgrade id (string)
 		upgradeResult = "UpgradeResult", -- server -> client event: outcome, upgrades and new state

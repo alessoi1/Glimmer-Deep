@@ -18,8 +18,9 @@ local log = Log.new("Models")
 
 local ModelFactory = {}
 
-local LABEL_WIDTH = 180
-local LABEL_HEIGHT = 36
+local LABEL_WIDTH = 140
+local LABEL_HEIGHT = 24
+local LABEL_MAX_TEXT = 14
 local LABEL_LIFT = 1
 local OVERRIDE_FOLDER = "Models"
 
@@ -168,6 +169,9 @@ function ModelFactory.addLabel(model: Model, primary: BasePart, text: string, li
 	label.TextStrokeTransparency = 0.5
 	label.Text = text
 	label.Parent = billboard
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = LABEL_MAX_TEXT
+	limit.Parent = label
 end
 
 -- Builds a sign (post and board) at x, z of `box` relative to `center`, labels

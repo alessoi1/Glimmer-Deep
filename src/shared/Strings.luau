@@ -67,7 +67,7 @@ return {
 		hint = {
 			"Tippe auf Graben, um loszulegen",
 			"Weiter graben – gleich wartet ein Fund",
-			"Rucksack voll? Geh zum grünen Verkaufspunkt",
+			"Rucksack voll? Stell dich in den grünen Verkaufsstand",
 			"Kaufe dein erstes Upgrade",
 			"Der nächste seltene Fund gehört in dein Museum",
 			"Dein Bagger arbeitet weiter, auch wenn du gehst",

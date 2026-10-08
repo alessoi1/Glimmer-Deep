@@ -136,6 +136,9 @@ local specs: { () -> () } = {
 		require("./specs/ModelSpecs.spec")
 	end,
 	function()
+		require("./specs/TownLogic.spec")
+	end,
+	function()
 		require("./specs/SeasonMessages.spec")
 	end,
 }
