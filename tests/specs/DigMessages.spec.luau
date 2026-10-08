@@ -11,6 +11,7 @@ local strings: DigMessages.Strings = {
 	rarity = { epic = "Episch" },
 	mutation = { golden = "Golden" },
 	layer = { rock = "Fels" },
+	onboarding = { hint = { "Eins", "Zwei" } },
 	dig = {
 		foundOre = "+1 %s",
 		foundRare = "Fund: %s (%s)",
@@ -55,4 +56,11 @@ end)
 test("layer names come from the strings with the id as fallback", function()
 	assertEquals(DigMessages.layerName(strings, "rock"), "Fels")
 	assertEquals(DigMessages.layerName(strings, "deep"), "deep")
+end)
+
+test("hints come from the step and are empty after the last hint", function()
+	assertEquals(DigMessages.hint(strings, 1), "Eins")
+	assertEquals(DigMessages.hint(strings, 2), "Zwei")
+	assertEquals(DigMessages.hint(strings, 7), "")
+	assertEquals(DigMessages.hint(strings, 0), "")
 end)

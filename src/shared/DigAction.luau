@@ -6,6 +6,7 @@
 
 local Backpack = require("./Backpack")
 local DigRoll = require("./DigRoll")
+local Onboarding = require("./Onboarding")
 local Shovel = require("./Shovel")
 
 export type Rng = DigRoll.Rng
@@ -15,11 +16,18 @@ export type DiggerProfile = {
 	depth: number,
 	coins: number,
 	nextFindId: number,
+	onboarding: Onboarding.State,
+	stats: { blocksDug: number },
 	upgradeLevels: { [string]: number },
 	backpack: {
 		ores: { [string]: number },
 		finds: { Backpack.Find },
 	},
+}
+
+export type OnboardingParams = {
+	firstFindAfterBlocks: number,
+	firstFindMutation: string,
 }
 
 export type Params = {
@@ -29,6 +37,7 @@ export type Params = {
 	cooldownTolerance: number,
 	backpackLevels: { Backpack.LevelDef },
 	metersPerBlock: number,
+	onboarding: OnboardingParams,
 	lastDigAt: number?, -- server time of the last accepted dig, nil for the first
 	now: number, -- server time in seconds (sub-second precision)
 	rng: Rng,
@@ -62,6 +71,7 @@ export type State = {
 	used: number,
 	capacity: number,
 	digCooldown: number, -- seconds between digs with the current shovel
+	onboardingStep: number,
 }
 
 local SHOVEL_UPGRADE = "shovel"
@@ -99,7 +109,15 @@ function DigAction.perform(params: Params): Result
 		return result(false, "backpack_full", nil)
 	end
 
-	local block = DigRoll.rollBlock(params.digConfig, params.rng, { depth = profile.depth })
+	-- The dig that reaches the configured block count is a guaranteed rare find
+	-- with a fixed mutation, once per profile (the onboarding clip moment).
+	local guaranteeFirstFind = not profile.onboarding.firstFindGiven
+		and profile.stats.blocksDug + 1 >= params.onboarding.firstFindAfterBlocks
+	local block = DigRoll.rollBlock(params.digConfig, params.rng, {
+		depth = profile.depth,
+		guaranteedRare = if guaranteeFirstFind then true else nil,
+		guaranteedMutation = if guaranteeFirstFind then params.onboarding.firstFindMutation else nil,
+	})
 	if not Backpack.addBlock(backpack, block, profile.nextFindId) then
 		-- Cannot happen after the isFull check; guard against a logic error.
 		return result(false, "backpack_full", nil)
@@ -108,6 +126,14 @@ function DigAction.perform(params: Params): Result
 		profile.nextFindId += 1
 	end
 	profile.depth += params.metersPerBlock
+	profile.stats.blocksDug += 1
+	if guaranteeFirstFind then
+		profile.onboarding.firstFindGiven = true
+	end
+	Onboarding.advance(profile.onboarding, "dug")
+	if block.kind == "rare" then
+		Onboarding.advance(profile.onboarding, "found")
+	end
 
 	return result(true, nil, block)
 end
@@ -127,6 +153,7 @@ function DigAction.snapshot(params: SnapshotParams): State
 		used = Backpack.getUsed(backpack),
 		capacity = backpack.capacity,
 		digCooldown = Shovel.getDigCooldown(params.shovelLevels, profile.upgradeLevels[SHOVEL_UPGRADE]),
+		onboardingStep = profile.onboarding.step,
 	}
 end
 

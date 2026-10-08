@@ -7,6 +7,8 @@
 -- Version 1 is the first format.
 --   1 -> 2: every rare find gets a unique id (needed for museum and trading);
 --           nextFindId is the next free id.
+--   2 -> 3: onboarding progress and stats. Players who already played skip the
+--           onboarding (step 7, first find counted as given).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -21,6 +23,13 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 			end
 		end
 		data.nextFindId = nextId
+		return data
+	end,
+	function(data)
+		local played = (type(data.depth) == "number" and data.depth > 0)
+			or (type(data.coins) == "number" and data.coins > 0)
+		data.onboarding = if played then { step = 7, firstFindGiven = true } else { step = 1, firstFindGiven = false }
+		data.stats = { blocksDug = 0 }
 		return data
 	end,
 }

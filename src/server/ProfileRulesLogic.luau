@@ -11,6 +11,7 @@ export type Input = {
 	levelCounts: { [string]: number }, -- upgrade id -> number of levels
 	startCoins: number,
 	startDepth: number,
+	onboardingMaxStep: number,
 }
 
 local ProfileRulesLogic = {}
@@ -26,6 +27,7 @@ function ProfileRulesLogic.build(input: Input): ProfileData.Rules
 		startDepth = input.startDepth,
 		levelCounts = input.levelCounts,
 		layerIds = layerIds,
+		onboardingMaxStep = input.onboardingMaxStep,
 	}
 end
 

@@ -10,6 +10,7 @@ export type Strings = {
 	rarity: { [string]: string },
 	mutation: { [string]: string },
 	layer: { [string]: string },
+	onboarding: { hint: { string } },
 	dig: {
 		foundOre: string,
 		foundRare: string,
@@ -60,6 +61,11 @@ function DigMessages.describeFailure(strings: Strings, reason: string): string
 		return strings.dig.tooFar
 	end
 	return strings.dig.unknown
+end
+
+-- Hint for an onboarding step, or "" when the onboarding is done.
+function DigMessages.hint(strings: Strings, step: number): string
+	return strings.onboarding.hint[step] or ""
 end
 
 return DigMessages

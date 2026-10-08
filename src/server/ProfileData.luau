@@ -13,6 +13,8 @@ export type Find = {
 	value: number,
 }
 
+export type Onboarding = { step: number, firstFindGiven: boolean }
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -21,6 +23,8 @@ export type Profile = {
 	upgradeLevels: { [string]: number }, -- upgrade id -> level, starting at 1
 	depth: number, -- meters
 	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape
+	onboarding: Onboarding,
+	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
 		finds: { Find },
@@ -37,6 +41,7 @@ export type Rules = {
 	startDepth: number,
 	levelCounts: { [string]: number }, -- upgrade id -> number of levels
 	layerIds: { string },
+	onboardingMaxStep: number,
 }
 
 -- Upper bound for layer seeds (fits a 32-bit signed integer).
@@ -86,6 +91,8 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		upgradeLevels = upgradeLevels,
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
+		onboarding = { step = 1, firstFindGiven = false },
+		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
 	}
 end
@@ -147,6 +154,20 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		if not isInteger(seed) or seed < 1 then
 			return false, string.format("layerSeeds.%s must be a positive integer", layerId)
 		end
+	end
+
+	local onboarding = profile.onboarding
+	if
+		type(onboarding) ~= "table"
+		or not isInteger(onboarding.step)
+		or onboarding.step < 1
+		or onboarding.step > rules.onboardingMaxStep
+		or type(onboarding.firstFindGiven) ~= "boolean"
+	then
+		return false, "onboarding needs an integer step in range and a boolean firstFindGiven"
+	end
+	if type(profile.stats) ~= "table" or not isNonNegativeInteger(profile.stats.blocksDug) then
+		return false, "stats.blocksDug must be a non-negative integer"
 	end
 
 	if type(profile.backpack) ~= "table" then

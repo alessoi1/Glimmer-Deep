@@ -11,7 +11,8 @@ local ProfileRulesLogic = require(script.Parent:WaitForChild("ProfileRulesLogic"
 local ProfileRules = {}
 
 function ProfileRules.build(): ProfileData.Rules
-	local Config = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config")
+	local Shared = ReplicatedStorage:WaitForChild("Shared")
+	local Config = Shared:WaitForChild("Config")
 	local profileConfig = require(Config:WaitForChild("Profile"))
 	return ProfileRulesLogic.build({
 		migrations = Migrations,
@@ -22,6 +23,7 @@ function ProfileRules.build(): ProfileData.Rules
 		},
 		startCoins = profileConfig.startCoins,
 		startDepth = profileConfig.startDepth,
+		onboardingMaxStep = require(Shared:WaitForChild("Onboarding")).maxStep,
 	})
 end
 

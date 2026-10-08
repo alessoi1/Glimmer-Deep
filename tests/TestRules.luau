@@ -3,6 +3,7 @@
 
 local BackpackConfig = require("../src/shared/Config/Backpack")
 local Layers = require("../src/shared/Config/Layers")
+local Onboarding = require("../src/shared/Onboarding")
 local Migrations = require("../src/server/Migrations")
 local ProfileConfig = require("../src/shared/Config/Profile")
 local ProfileData = require("../src/server/ProfileData")
@@ -15,6 +16,7 @@ local rules: ProfileData.Rules = ProfileRulesLogic.build({
 	levelCounts = { shovel = #ShovelConfig.levels, backpack = #BackpackConfig.levels },
 	startCoins = ProfileConfig.startCoins,
 	startDepth = ProfileConfig.startDepth,
+	onboardingMaxStep = Onboarding.maxStep,
 })
 
 return rules

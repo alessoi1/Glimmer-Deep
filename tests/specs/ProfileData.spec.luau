@@ -190,6 +190,59 @@ test("validate rejects bad find ids and a stale next id", function()
 	end, "nextFindId")
 end)
 
+test("a new profile starts the onboarding and the stats", function()
+	local profile = fresh()
+	assertEquals(profile.onboarding.step, 1)
+	assertEquals(profile.onboarding.firstFindGiven, false)
+	assertEquals(profile.stats.blocksDug, 0)
+end)
+
+test("validate rejects bad onboarding and stats", function()
+	expectInvalid(function(p)
+		p.onboarding = nil
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.onboarding.step = 0
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.onboarding.step = rules.onboardingMaxStep + 1
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.onboarding.firstFindGiven = "yes"
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.stats = nil
+	end, "stats")
+	expectInvalid(function(p)
+		p.stats.blocksDug = -1
+	end, "blocksDug")
+end)
+
+test("migrating a version 2 profile with progress skips the onboarding", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.onboarding.step, rules.onboardingMaxStep)
+	assertEquals(migrated.onboarding.firstFindGiven, true)
+	assertEquals(migrated.stats.blocksDug, 0)
+end)
+
+test("migrating an untouched profile keeps the onboarding at the start", function()
+	local fixture = version1Fixture()
+	fixture.coins = 0
+	fixture.depth = 0
+	fixture.backpack = { ores = {}, finds = {} }
+	local migrated = ProfileData.migrate(fixture, Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.onboarding.step, 1)
+	assertEquals(migrated.onboarding.firstFindGiven, false)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

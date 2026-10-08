@@ -1,6 +1,7 @@
 --!strict
 local Framework = require("../Framework")
 local OreConfig = require("../../src/shared/Config/Ores")
+local Onboarding = require("../../src/shared/Onboarding")
 local SellAction = require("../../src/shared/SellAction")
 
 local test = Framework.test
@@ -8,7 +9,7 @@ local assertTrue = Framework.assertTrue
 local assertEquals = Framework.assertEquals
 
 local function profile(): SellAction.SellerProfile
-	return { coins = 10, backpack = { ores = {}, finds = {} } }
+	return { coins = 10, backpack = { ores = {}, finds = {} }, onboarding = Onboarding.new() }
 end
 
 test("selling ore adds its price to the coins and empties the ore", function()
@@ -76,4 +77,13 @@ test("coins stay a non-negative integer", function()
 	p.backpack.ores.coal = 7
 	SellAction.perform(p, OreConfig, 1.5)
 	assertTrue(p.coins >= 0 and p.coins % 1 == 0)
+end)
+
+test("a sale moves the onboarding to the upgrade step, a failed sale does not", function()
+	local p = profile()
+	SellAction.perform(p, OreConfig, nil)
+	assertEquals(p.onboarding.step, 1)
+	p.backpack.ores.coal = 1
+	SellAction.perform(p, OreConfig, nil)
+	assertEquals(p.onboarding.step, 4)
 end)

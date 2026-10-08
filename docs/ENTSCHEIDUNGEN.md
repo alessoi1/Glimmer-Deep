@@ -28,3 +28,6 @@ Der Nutzer hat die Umsetzung des gesamten Konzepts übergeben, mit Branches und 
 | Thema | Entscheidung | Grund |
 | --- | --- | --- |
 | Fund-ID | Zahl, pro Profil eindeutig (`nextFindId`). Global eindeutig wird sie als `userId:findId` gebildet (Auktionshaus). | Reicht für Museum; Auktionshaus braucht eine globale ID, die sich daraus ableiten lässt. |
+| Onboarding-Fund | Der 30. gegrabene Block (Lebenszeit-Zähler `stats.blocksDug`) ist ein garantierter seltener Fund, Mutation „golden“, einmalig pro Profil (`Config/Onboarding`). | Der Rucksack fasst 50 Blöcke, der Fund muss davor kommen; bei 0,6 s Abklingzeit sind 30 Blöcke etwa 18 Sekunden. Die Seltenheit bleibt zufällig, nur die Mutation ist fest. |
+| Onboarding-Schritte | 7 Schritte (Graben, weiter graben, verkaufen, Upgrade, Museum, Bagger-Hinweis, fertig), vom Server per Ereignis weitergeschaltet, nie rückwärts. Der Client zeigt nur den Tipptext. Bestehende Profile überspringen das Onboarding. | Server entscheidet über den Fortschritt; kein Text-Tutorial, nur ein kurzer Tipp unten in der Mitte. |
+| Pfeile im Onboarding | Noch nicht gebaut (nur Tipptext). | Pfeile und Highlights brauchen Studio-Prüfung; kommt mit dem UI-Feinschliff. |

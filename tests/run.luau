@@ -54,6 +54,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/UpgradeMessages.spec")
 	end,
+	function()
+		require("./specs/Onboarding.spec")
+	end,
 }
 
 local passed = 0

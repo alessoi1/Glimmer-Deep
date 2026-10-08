@@ -4,6 +4,7 @@
 -- the client. No Roblox services and no logging; the UpgradeService decides who
 -- may buy and logs the outcome. Server-side only use for buying.
 
+local Onboarding = require("./Onboarding")
 local Upgrades = require("./Upgrades")
 
 -- Level definitions as in Config/Shovel and Config/Backpack: the price is
@@ -15,6 +16,7 @@ export type Tracks = { [string]: { levels: { Level } } }
 export type UpgraderProfile = {
 	coins: number,
 	upgradeLevels: { [string]: number },
+	onboarding: Onboarding.State,
 }
 
 export type FailureReason = Upgrades.FailureReason | "bad_id"
@@ -50,6 +52,7 @@ function UpgradeAction.buy(profile: UpgraderProfile, tracks: Upgrades.Tracks, up
 	local result = Upgrades.purchase(state, tracks, upgradeId)
 	if result.ok then
 		profile.coins = state.coins
+		Onboarding.advance(profile.onboarding, "upgraded")
 	end
 	return result
 end

@@ -2,6 +2,7 @@
 local BackpackConfig = require("../../src/shared/Config/Backpack")
 local Framework = require("../Framework")
 local ShovelConfig = require("../../src/shared/Config/Shovel")
+local Onboarding = require("../../src/shared/Onboarding")
 local UpgradeAction = require("../../src/shared/UpgradeAction")
 local UpgradeConfig = require("../../src/shared/Config/Upgrade")
 local Upgrades = require("../../src/shared/Upgrades")
@@ -16,7 +17,7 @@ local tracks: UpgradeAction.Tracks = {
 }
 
 local function profile(coins: number): UpgradeAction.UpgraderProfile
-	return { coins = coins, upgradeLevels = { shovel = 1, backpack = 1 } }
+	return { coins = coins, upgradeLevels = { shovel = 1, backpack = 1 }, onboarding = Onboarding.new() }
 end
 
 test("the shipped upgrade order names only existing tracks", function()
@@ -106,4 +107,13 @@ test("buy accepts the plain Upgrades tracks", function()
 	local plain: Upgrades.Tracks = { shovel = { levels = ShovelConfig.levels } }
 	local p = profile(500)
 	assertTrue(UpgradeAction.buy(p, plain, "shovel").ok)
+end)
+
+test("a purchase moves the onboarding to the museum step, a failed one does not", function()
+	local p = profile(5)
+	UpgradeAction.buy(p, tracks, "shovel")
+	assertEquals(p.onboarding.step, 1)
+	p.coins = 500
+	UpgradeAction.buy(p, tracks, "shovel")
+	assertEquals(p.onboarding.step, 5)
 end)

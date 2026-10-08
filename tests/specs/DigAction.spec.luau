@@ -2,6 +2,7 @@
 local BackpackConfig = require("../../src/shared/Config/Backpack")
 local DigAction = require("../../src/shared/DigAction")
 local DigConfig = require("../../src/shared/Config/Dig")
+local OnboardingConfig = require("../../src/shared/Config/Onboarding")
 local Framework = require("../Framework")
 local ProfileData = require("../../src/server/ProfileData")
 local ShovelConfig = require("../../src/shared/Config/Shovel")
@@ -32,6 +33,10 @@ local function params(profile: ProfileData.Profile, rng: DigAction.Rng, lastDigA
 		cooldownTolerance = ShovelConfig.cooldownTolerance,
 		backpackLevels = BackpackConfig.levels,
 		metersPerBlock = DigConfig.metersPerBlock,
+		onboarding = {
+			firstFindAfterBlocks = OnboardingConfig.firstFindAfterBlocks,
+			firstFindMutation = OnboardingConfig.firstFindMutation,
+		},
 		lastDigAt = lastDigAt,
 		now = now or 100,
 		rng = rng,
@@ -114,6 +119,51 @@ test("ore does not use up a find id", function()
 	assertEquals(profile.nextFindId, 1)
 end)
 
+test("the dig that reaches the configured block count is a guaranteed golden find", function()
+	local profile = freshProfile()
+	profile.stats.blocksDug = OnboardingConfig.firstFindAfterBlocks - 1
+	-- No rare check is drawn; rarity pick and find pick come from the script.
+	local result = DigAction.perform(params(profile, scriptedRng({ 0.0, 0.0 })))
+	assertTrue(result.ok)
+	assertEquals(result.block.kind, "rare")
+	assertEquals(result.block.mutationId, OnboardingConfig.firstFindMutation)
+	assertEquals(profile.onboarding.firstFindGiven, true)
+	assertEquals(profile.stats.blocksDug, OnboardingConfig.firstFindAfterBlocks)
+end)
+
+test("the guarantee is given only once", function()
+	local profile = freshProfile()
+	profile.stats.blocksDug = OnboardingConfig.firstFindAfterBlocks - 1
+	profile.onboarding.firstFindGiven = true
+	local result = DigAction.perform(params(profile, scriptedRng(ORE_DRAWS)))
+	assertEquals(result.block.kind, "ore")
+end)
+
+test("no guarantee before the configured block count", function()
+	local profile = freshProfile()
+	profile.stats.blocksDug = OnboardingConfig.firstFindAfterBlocks - 2
+	local result = DigAction.perform(params(profile, scriptedRng(ORE_DRAWS)))
+	assertEquals(result.block.kind, "ore")
+	assertEquals(profile.onboarding.firstFindGiven, false)
+end)
+
+test("a dig counts as dug block and moves the onboarding step", function()
+	local profile = freshProfile()
+	assertTrue(DigAction.perform(params(profile, scriptedRng(ORE_DRAWS))).ok)
+	assertEquals(profile.stats.blocksDug, 1)
+	assertEquals(profile.onboarding.step, 2)
+	assertTrue(DigAction.perform(params(profile, scriptedRng({ 0.0, 0.0, 0.0, 0.99 }), 50, 100)).ok)
+	assertEquals(profile.stats.blocksDug, 2)
+	assertEquals(profile.onboarding.step, 3)
+end)
+
+test("a rejected dig changes neither the stats nor the onboarding", function()
+	local profile = freshProfile()
+	DigAction.perform(params(profile, failingRng, 99.9, 100))
+	assertEquals(profile.stats.blocksDug, 0)
+	assertEquals(profile.onboarding.step, 1)
+end)
+
 test("a full backpack rejects the dig without rolling or adding depth", function()
 	local profile = freshProfile()
 	profile.backpack.ores.coal = BackpackConfig.levels[1].capacity
@@ -177,6 +227,7 @@ test("snapshot describes depth, layer, backpack, coins and dig cooldown", functi
 	assertEquals(state.depth, 60.5)
 	assertEquals(state.layerId, "rock")
 	assertEquals(state.coins, 321)
+	assertEquals(state.onboardingStep, 1)
 	assertEquals(state.used, 4)
 	assertEquals(state.capacity, BackpackConfig.levels[1].capacity)
 	assertEquals(state.digCooldown, ShovelConfig.levels[2].digCooldown)

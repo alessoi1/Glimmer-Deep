@@ -13,6 +13,7 @@ local DigAction = require(Shared:WaitForChild("DigAction"))
 local Config = Shared:WaitForChild("Config")
 local DigConfig = require(Config:WaitForChild("Dig"))
 local BackpackConfig = require(Config:WaitForChild("Backpack"))
+local OnboardingConfig = require(Config:WaitForChild("Onboarding"))
 local ShovelConfig = require(Config:WaitForChild("Shovel"))
 local Rarities = require(Config:WaitForChild("Rarities"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
@@ -77,6 +78,7 @@ local function handleDig(player: Player, ...: any)
 		cooldownTolerance = ShovelConfig.cooldownTolerance,
 		backpackLevels = BackpackConfig.levels,
 		metersPerBlock = DigConfig.metersPerBlock,
+		onboarding = OnboardingConfig,
 		lastDigAt = lastDigAt[player],
 		now = now,
 		rng = function()
