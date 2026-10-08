@@ -14,6 +14,7 @@
 --   4 -> 5: depot (offline yield), digger (absence time) and digger level 1.
 --   5 -> 6: skill levels (strong_arms, ore_finder, cable_winch, lamp) at level 1.
 --   6 -> 7: daily quests and login chain (not started).
+--   7 -> 8: owned game passes (none).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -67,6 +68,10 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
 		data.quests = { day = 0, ids = {}, progress = {}, claimed = {}, bonusClaimed = false }
 		data.login = { lastDay = 0, streak = 0, claimed = true }
+		return data
+	end,
+	function(data)
+		data.passes = {}
 		return data
 	end,
 }

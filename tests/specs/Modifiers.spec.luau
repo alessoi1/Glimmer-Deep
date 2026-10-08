@@ -54,3 +54,11 @@ test("negative, missing and invalid numbers are ignored", function()
 	assertEquals(result.speedMultiplier, 1)
 	assertEquals(result.oreSaleFactor, 1)
 end)
+
+test("knownFields lists every field of a part", function()
+	for _, field in Modifiers.knownFields do
+		local part: any = { [field] = 1 }
+		Modifiers.combine({ part })
+	end
+	assertEquals(#Modifiers.knownFields, 10)
+end)

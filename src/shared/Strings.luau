@@ -87,6 +87,39 @@ return {
 		tooFar = "Geh näher an deinen Schacht",
 		unknown = "Das hat nicht geklappt",
 	},
+	shop = {
+		open = "Shop",
+		note = "Alles lässt sich auch erspielen, nur langsamer.",
+		pass = {
+			night_shift = {
+				name = "Nachtschicht",
+				description = "Der Bagger arbeitet 8 statt 4 Stunden, wenn du weg bist.",
+			},
+			double_coins = {
+				name = "Doppelte Münzen",
+				description = "Doppelte Münzen beim Erzverkauf. Wirkt nicht auf seltene Funde.",
+			},
+			quick_travel = {
+				name = "Schnellreise",
+				description = "Springe direkt zwischen Schacht und Verkaufspunkt.",
+			},
+			backpack_plus = {
+				name = "Rucksack Plus",
+				description = "20 % mehr Platz im Rucksack.",
+			},
+		},
+		price = "%s Robux",
+		viewOffer = "Angebot ansehen",
+		owned = "Gekauft",
+		soon = "Bald verfügbar",
+		travelHeading = "Schnellreise",
+		travelSell = "Zum Verkaufspunkt",
+		travelShaft = "Zum Schacht",
+		travelDone = "Unterwegs",
+		notAvailable = "Noch nicht verfügbar",
+		cooldown = "Einen Moment bitte",
+		unknown = "Das hat nicht geklappt",
+	},
 	quests = {
 		title = "Aufgaben",
 		open = "Aufgaben",
