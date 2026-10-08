@@ -48,6 +48,12 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/RejectLimiter.spec")
 	end,
+	function()
+		require("./specs/UpgradeAction.spec")
+	end,
+	function()
+		require("./specs/UpgradeMessages.spec")
+	end,
 }
 
 local passed = 0
