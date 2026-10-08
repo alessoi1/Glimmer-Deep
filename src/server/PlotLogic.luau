@@ -19,6 +19,17 @@ export type MuseumLayout = {
 	signSize: number,
 }
 
+export type DecorLayout = {
+	x: number,
+	z: number,
+	columns: number,
+	spacing: number,
+	cell: number,
+	signX: number,
+	signZ: number,
+	signSize: number,
+}
+
 export type Config = {
 	count: number,
 	columns: number,
@@ -32,6 +43,7 @@ export type Config = {
 	sellSize: number,
 	sellHeight: number,
 	museum: MuseumLayout,
+	decor: DecorLayout,
 }
 
 -- Offset of a plot center from the first plot center.
@@ -114,6 +126,16 @@ function PlotLogic.validateConfig(config: Config): (boolean, string?)
 	if not isPositive(museum.spacing) or museum.spacing <= museum.vitrineSize then
 		return false, "museum.spacing must be larger than vitrineSize"
 	end
+	local decor = config.decor
+	if not isPositiveInteger(decor.columns) or not isPositive(decor.cell) then
+		return false, "decor.columns must be a positive integer and decor.cell positive"
+	end
+	if not isPositive(decor.signSize) then
+		return false, "decor.signSize must be positive"
+	end
+	if not isPositive(decor.spacing) or decor.spacing <= decor.cell then
+		return false, "decor.spacing must be larger than decor.cell"
+	end
 	return true, nil
 end
 
@@ -178,6 +200,37 @@ function PlotLogic.vitrineBox(config: Config, slot: number): Box
 		museum.x + column * museum.spacing,
 		museum.vitrineHeight / 2,
 		museum.z + row * museum.spacing
+	)
+end
+
+-- Decoration place `slot` (1-based): columns fill first, then the next row south.
+-- The box is the cell the decoration stands in.
+function PlotLogic.decorBox(config: Config, slot: number): Box
+	local decor = config.decor
+	local column = (slot - 1) % decor.columns
+	local row = (slot - 1) // decor.columns
+	return box(
+		"Decor" .. slot,
+		decor.cell,
+		1,
+		decor.cell,
+		decor.x + column * decor.spacing,
+		0.5,
+		decor.z + row * decor.spacing
+	)
+end
+
+-- The sign with the house prompt.
+function PlotLogic.houseSignBox(config: Config): Box
+	local decor = config.decor
+	return box(
+		"HouseSign",
+		decor.signSize,
+		decor.signSize,
+		decor.signSize,
+		decor.signX,
+		decor.signSize / 2,
+		decor.signZ
 	)
 end
 

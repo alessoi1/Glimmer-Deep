@@ -30,6 +30,19 @@ return {
 		signZ = -30,
 		signSize = 3,
 	},
+	-- Decoration places west of the shaft: a grid (first column x, first row z,
+	-- centers) of square cells; every decoration stays inside its cell.
+	decor = {
+		x = -24,
+		z = -26,
+		columns = 3,
+		spacing = 7,
+		cell = 5,
+		-- The house sign (with the house prompt) stands between the decoration and the shaft.
+		signX = -18,
+		signZ = -10,
+		signSize = 3,
+	},
 	colors = {
 		ground = { r = 96, g = 120, b = 70 },
 		shaftBottom = { r = 70, g = 60, b = 50 },
@@ -38,5 +51,6 @@ return {
 		vitrine = { r = 200, g = 200, b = 215 },
 		vitrineFilled = { r = 240, g = 200, b = 90 },
 		sign = { r = 120, g = 90, b = 200 },
+		houseSign = { r = 220, g = 150, b = 80 },
 	},
 }

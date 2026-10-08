@@ -397,6 +397,14 @@ local function handlePrompt(slot: number, player: Player)
 	admire(player, owner, ownerProfile)
 end
 
+-- Rebuilds the showcases of the player's plot (after the house level changed).
+function MuseumService.refresh(player: Player)
+	local slot = PlotService.getSlotOf(player)
+	if slot ~= nil then
+		refreshShowcases(slot)
+	end
+end
+
 function MuseumService.start()
 	if started then
 		log.warn("start called twice")

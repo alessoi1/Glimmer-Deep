@@ -41,6 +41,13 @@ local Remotes = {
 		petEquip = "PetEquip", -- client -> server event: (pet instance id) toggle working
 		petFree = "PetFree", -- client -> server event: claim the free egg (no arguments)
 		petResult = "PetResult", -- server -> client event: outcome, new snapshot and hatch result
+		houseOpen = "HouseOpen", -- server -> client event: open the house panel with this view
+		getHouse = "GetHouse", -- client -> server function: house view, nil while loading
+		houseUpgrade = "HouseUpgrade", -- client -> server event: buy the next house level (no arguments)
+		houseBuy = "HouseBuy", -- client -> server event: (decoration id) buy it
+		housePlace = "HousePlace", -- client -> server event: (decoration id, place number)
+		houseRemove = "HouseRemove", -- client -> server event: (place number) take the decoration back
+		houseResult = "HouseResult", -- server -> client event: outcome, new view and state
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},

@@ -65,7 +65,7 @@ export type Profile = {
 	depth: number, -- meters
 	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape
 	onboarding: Onboarding,
-	house: { level: number },
+	house: { level: number, decor: { owned: { [string]: boolean }, placed: { { slot: number, id: string } } } },
 	museum: Museum,
 	depot: Stash, -- offline yield, sold together with the backpack
 	digger: { leftAt: number? }, -- server time the player left; nil while playing
@@ -144,7 +144,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
 		onboarding = { step = 1, firstFindGiven = false },
-		house = { level = 1 },
+		house = { level = 1, decor = { owned = {}, placed = {} } },
 		depot = { ores = {}, finds = {} },
 		digger = {},
 		quests = { day = 0, ids = {}, progress = {}, claimed = {}, bonusClaimed = false },
@@ -288,6 +288,31 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		or house.level > #rules.museumSlotsByHouseLevel
 	then
 		return false, string.format("house.level must be an integer from 1 to %d", #rules.museumSlotsByHouseLevel)
+	end
+
+	local decor = house.decor
+	if type(decor) ~= "table" or type(decor.owned) ~= "table" or type(decor.placed) ~= "table" then
+		return false, "house.decor needs owned and placed"
+	end
+	for id, owned in decor.owned do
+		if type(id) ~= "string" or owned ~= true then
+			return false, "house.decor.owned needs true per item id"
+		end
+	end
+	local usedSlots: { [number]: boolean } = {}
+	local usedIds: { [string]: boolean } = {}
+	for index, entry in decor.placed do
+		if type(entry) ~= "table" or not isInteger(entry.slot) or entry.slot < 1 or type(entry.id) ~= "string" then
+			return false, string.format("house.decor.placed[%d] needs a slot from 1 and an item id", index)
+		end
+		if usedSlots[entry.slot] or usedIds[entry.id] then
+			return false, string.format("house.decor.placed[%d] reuses a slot or an item", index)
+		end
+		if decor.owned[entry.id] ~= true then
+			return false, string.format("house.decor.placed[%d] is not owned", index)
+		end
+		usedSlots[entry.slot] = true
+		usedIds[entry.id] = true
 	end
 
 	local museum = profile.museum

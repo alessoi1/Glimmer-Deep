@@ -105,6 +105,12 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/PetMessages.spec")
 	end,
+	function()
+		require("./specs/House.spec")
+	end,
+	function()
+		require("./specs/HouseMessages.spec")
+	end,
 }
 
 local passed = 0
