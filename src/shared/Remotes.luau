@@ -31,6 +31,10 @@ local Remotes = {
 		getShop = "GetShop", -- client -> server function: shop view, nil while loading
 		shopOffer = "ShopOffer", -- client -> server event: (pass key) look at an offer
 		shopResult = "ShopResult", -- server -> client event: outcome, new view and state
+		getBoosters = "GetBoosters", -- client -> server function: booster snapshot, nil while loading
+		boosterOffer = "BoosterOffer", -- client -> server event: (booster id) look at an offer
+		boosterFree = "BoosterFree", -- client -> server event: claim the free run (no arguments)
+		boosterResult = "BoosterResult", -- server -> client event: outcome and new snapshot
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},

@@ -40,6 +40,12 @@ export type Login = { lastDay: number, streak: number, claimed: boolean }
 
 export type Onboarding = { step: number, firstFindGiven: boolean }
 
+export type BoosterState = {
+	expires: { [string]: number }, -- booster id -> server time it ends
+	receipts: { string }, -- latest purchase ids, oldest first
+	freeClaimedAt: number, -- server time of the last free claim, 0 = never
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -56,6 +62,7 @@ export type Profile = {
 	quests: QuestState,
 	login: Login,
 	passes: { [string]: boolean }, -- game pass key -> true while owned (verified by the server)
+	boosters: BoosterState,
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -132,6 +139,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		quests = { day = 0, ids = {}, progress = {}, claimed = {}, bonusClaimed = false },
 		login = { lastDay = 0, streak = 0, claimed = true },
 		passes = {},
+		boosters = { expires = {}, receipts = {}, freeClaimedAt = 0 },
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
@@ -354,6 +362,24 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	for passKey, owned in profile.passes do
 		if type(passKey) ~= "string" or owned ~= true then
 			return false, "passes needs true per pass key"
+		end
+	end
+
+	local boosters = profile.boosters
+	if type(boosters) ~= "table" or type(boosters.expires) ~= "table" or type(boosters.receipts) ~= "table" then
+		return false, "boosters needs expires, receipts and freeClaimedAt"
+	end
+	if not isNonNegativeInteger(boosters.freeClaimedAt) then
+		return false, "boosters.freeClaimedAt must be a non-negative integer"
+	end
+	for boosterId, expires in boosters.expires do
+		if type(boosterId) ~= "string" or not isNonNegativeInteger(expires) then
+			return false, "boosters.expires needs a non-negative integer per booster id"
+		end
+	end
+	for index, purchaseId in boosters.receipts do
+		if type(index) ~= "number" or type(purchaseId) ~= "string" or purchaseId == "" then
+			return false, "boosters.receipts must be a list of non-empty strings"
 		end
 	end
 
