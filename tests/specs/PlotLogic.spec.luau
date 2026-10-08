@@ -38,6 +38,9 @@ test("validateConfig rejects broken values", function()
 	assertTrue(not PlotLogic.validateConfig(with({ bottomThickness = 0 })))
 	assertTrue(not PlotLogic.validateConfig(with({ spawnSize = 40 })), "spawn must fit beside the shaft")
 	assertTrue(not PlotLogic.validateConfig(with({ spawnHeight = 0 })))
+	assertTrue(not PlotLogic.validateConfig(with({ sellSize = 0 })))
+	assertTrue(not PlotLogic.validateConfig(with({ sellSize = 40 })), "sell point must fit beside the shaft")
+	assertTrue(not PlotLogic.validateConfig(with({ sellHeight = 0 })))
 end)
 
 -- Layout -----------------------------------------------------------------------
@@ -123,6 +126,21 @@ test("the spawn sits on the surface beside the shaft", function()
 	assertNear(spawn.y - spawn.sizeY / 2, 0, 0.001, "spawn must rest on the surface")
 	assertTrue(math.abs(spawn.z) - spawn.sizeZ / 2 >= config.shaftSize / 2, "spawn must not hang over the shaft")
 	assertTrue(math.abs(spawn.z) + spawn.sizeZ / 2 <= config.size / 2, "spawn must stay on the plot")
+end)
+
+test("the sell point rests on the surface north of the shaft", function()
+	local sell = PlotLogic.sellBox(config)
+	assertNear(sell.y - sell.sizeY / 2, 0, 0.001, "sell point must rest on the surface")
+	assertTrue(sell.z < 0, "sell point lies opposite the spawn")
+	assertTrue(math.abs(sell.z) - sell.sizeZ / 2 >= config.shaftSize / 2, "sell point must not hang over the shaft")
+	assertTrue(math.abs(sell.z) + sell.sizeZ / 2 <= config.size / 2, "sell point must stay on the plot")
+end)
+
+test("the sell point does not overlap the spawn", function()
+	local sell = PlotLogic.sellBox(config)
+	local spawn = PlotLogic.spawnBox(config)
+	local gap = math.abs(sell.z - spawn.z) - (sell.sizeZ + spawn.sizeZ) / 2
+	assertTrue(gap >= 0, "sell point and spawn must not overlap")
 end)
 
 -- Allocation -------------------------------------------------------------------

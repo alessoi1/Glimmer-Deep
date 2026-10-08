@@ -39,6 +39,15 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/DigMessages.spec")
 	end,
+	function()
+		require("./specs/SellAction.spec")
+	end,
+	function()
+		require("./specs/SellMessages.spec")
+	end,
+	function()
+		require("./specs/RejectLimiter.spec")
+	end,
 }
 
 local passed = 0

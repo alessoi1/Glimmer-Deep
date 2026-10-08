@@ -21,6 +21,7 @@ local PlotService = {}
 local allocator: PlotLogic.Allocator = PlotLogic.newAllocator(PlotConfig.count)
 local spawns: { [number]: SpawnLocation } = {}
 local shaftCenters: { [number]: Vector3 } = {} -- plot index -> shaft center at ground height
+local sellPositions: { [number]: Vector3 } = {} -- plot index -> sell point center
 local started = false
 
 local function color(rgb: { r: number, g: number, b: number }): Color3
@@ -61,6 +62,27 @@ local function buildPlot(slot: PlotLogic.Slot, parent: Instance)
 	spawn.CanCollide = true
 	spawn.Parent = model
 	spawns[slot.index] = spawn
+
+	local sellBox = PlotLogic.sellBox(PlotConfig)
+	local sell = newPart(sellBox, center, "Part")
+	sell.Color = color(PlotConfig.colors.sell)
+	sell.Material = Enum.Material.SmoothPlastic
+	sell.Parent = model
+	sellPositions[slot.index] = sell.Position
+	local billboard = Instance.new("BillboardGui")
+	billboard.Size = UDim2.fromOffset(120, 40)
+	billboard.StudsOffsetWorldSpace = Vector3.new(0, sellBox.sizeY + 3, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = sell
+	local sign = Instance.new("TextLabel")
+	sign.Size = UDim2.fromScale(1, 1)
+	sign.BackgroundTransparency = 1
+	sign.Font = Enum.Font.GothamBold
+	sign.TextScaled = true
+	sign.TextColor3 = Color3.fromRGB(245, 245, 245)
+	sign.TextStrokeTransparency = 0.5
+	sign.Text = Strings.sell.pointLabel
+	sign.Parent = billboard
 
 	model.Parent = parent
 end
@@ -118,6 +140,31 @@ function PlotService.getShaftPosition(player: Player): Vector3?
 		return nil
 	end
 	return shaftCenters[slot]
+end
+
+-- Center of the sell point on the plot owned by the player, or nil when the
+-- player has no plot.
+function PlotService.getSellPosition(player: Player): Vector3?
+	local slot = allocator.slotOf(player.UserId)
+	if slot == nil then
+		return nil
+	end
+	return sellPositions[slot]
+end
+
+-- Horizontal distance (studs) from the player's character to a point, or nil
+-- when there is no point or no character with a root part.
+function PlotService.horizontalDistance(player: Player, target: Vector3?): number?
+	local character = player.Character
+	if target == nil or character == nil then
+		return nil
+	end
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if root == nil or not root:IsA("BasePart") then
+		return nil
+	end
+	local offset = root.Position - target
+	return Vector3.new(offset.X, 0, offset.Z).Magnitude
 end
 
 function PlotService.start()

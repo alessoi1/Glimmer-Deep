@@ -18,6 +18,7 @@ local Rarities = require(Config:WaitForChild("Rarities"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
+local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
 local log = Log.new("Dig")
 
@@ -26,27 +27,14 @@ local DigService = {}
 local digRules = DigRules.build()
 local random = Random.new()
 local lastDigAt: { [Player]: number } = {}
-local lastWarnAt: { [Player]: { [string]: number } } = {}
+local rejects: RejectLimiter.Limiter
 local rarityIndex: { [string]: number } = {}
 local logFromIndex = math.huge
 local digResult: RemoteEvent
 local started = false
 
--- Rejected calls are logged on warn, but at most once per warnInterval and
--- reason per player, so a held button cannot flood the log.
 local function warnRejected(player: Player, reason: string)
-	local now = os.clock()
-	local byReason = lastWarnAt[player]
-	if byReason == nil then
-		byReason = {}
-		lastWarnAt[player] = byReason
-	end
-	local previous = byReason[reason]
-	if previous ~= nil and now - previous < DigConfig.warnInterval then
-		return
-	end
-	byReason[reason] = now
-	log.warn("dig rejected", { remote = Remotes.names.dig, userId = player.UserId, reason = reason })
+	rejects.reject(player.UserId, Remotes.names.dig, reason)
 end
 
 local function snapshot(profile: DataService.Profile): DigAction.State
@@ -56,22 +44,6 @@ local function snapshot(profile: DataService.Profile): DigAction.State
 		shovelLevels = ShovelConfig.levels,
 		backpackLevels = BackpackConfig.levels,
 	})
-end
-
--- Horizontal distance from the player's character to the shaft of their plot,
--- or nil when there is no character or no plot.
-local function distanceToShaft(player: Player): number?
-	local shaft = PlotService.getShaftPosition(player)
-	local character = player.Character
-	if shaft == nil or character == nil then
-		return nil
-	end
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if root == nil or not root:IsA("BasePart") then
-		return nil
-	end
-	local offset = root.Position - shaft
-	return Vector3.new(offset.X, 0, offset.Z).Magnitude
 end
 
 local function handleDig(player: Player, ...: any)
@@ -86,7 +58,7 @@ local function handleDig(player: Player, ...: any)
 		return
 	end
 
-	local distance = distanceToShaft(player)
+	local distance = PlotService.horizontalDistance(player, PlotService.getShaftPosition(player))
 	if distance == nil then
 		warnRejected(player, "no_plot_or_character")
 		return
@@ -142,12 +114,22 @@ local function handleDig(player: Player, ...: any)
 	digResult:FireClient(player, { ok = true, block = block, state = snapshot(profile) })
 end
 
+-- Current state of a loaded player for display, or nil while the profile loads.
+function DigService.getState(player: Player): DigAction.State?
+	local profile = DataService.getData(player)
+	if profile == nil then
+		return nil
+	end
+	return snapshot(profile)
+end
+
 function DigService.start()
 	if started then
 		log.warn("start called twice")
 		return
 	end
 	started = true
+	rejects = RejectLimiter.new(log, DigConfig.warnInterval, os.clock)
 
 	for index, rarity in Rarities do
 		rarityIndex[rarity.id] = index
@@ -172,7 +154,7 @@ function DigService.start()
 
 	Players.PlayerRemoving:Connect(function(player: Player)
 		lastDigAt[player] = nil
-		lastWarnAt[player] = nil
+		rejects.forget(player.UserId)
 	end)
 
 	log.info("started", { metersPerBlock = DigConfig.metersPerBlock, digRange = DigConfig.digRange })

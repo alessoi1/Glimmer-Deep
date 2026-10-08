@@ -163,15 +163,17 @@ local function snapshotParams(profile: ProfileData.Profile): DigAction.SnapshotP
 	}
 end
 
-test("snapshot describes depth, layer, backpack and dig cooldown", function()
+test("snapshot describes depth, layer, backpack, coins and dig cooldown", function()
 	local profile = freshProfile()
 	profile.depth = 60.5
+	profile.coins = 321
 	profile.upgradeLevels.shovel = 2
 	profile.backpack.ores.iron = 3
 	table.insert(profile.backpack.finds, { findId = "fossil", layerId = "rock", rarityId = "rare", value = 50 })
 	local state = DigAction.snapshot(snapshotParams(profile))
 	assertEquals(state.depth, 60.5)
 	assertEquals(state.layerId, "rock")
+	assertEquals(state.coins, 321)
 	assertEquals(state.used, 4)
 	assertEquals(state.capacity, BackpackConfig.levels[1].capacity)
 	assertEquals(state.digCooldown, ShovelConfig.levels[2].digCooldown)
