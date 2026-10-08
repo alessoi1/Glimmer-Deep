@@ -35,6 +35,12 @@ local Remotes = {
 		boosterOffer = "BoosterOffer", -- client -> server event: (booster id) look at an offer
 		boosterFree = "BoosterFree", -- client -> server event: claim the free run (no arguments)
 		boosterResult = "BoosterResult", -- server -> client event: outcome and new snapshot
+		getPets = "GetPets", -- client -> server function: pet snapshot, nil while loading
+		petOffer = "PetOffer", -- client -> server event: look at the egg offer (no arguments)
+		petOpen = "PetOpen", -- client -> server event: open an egg (no arguments)
+		petEquip = "PetEquip", -- client -> server event: (pet instance id) toggle working
+		petFree = "PetFree", -- client -> server event: claim the free egg (no arguments)
+		petResult = "PetResult", -- server -> client event: outcome, new snapshot and hatch result
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},

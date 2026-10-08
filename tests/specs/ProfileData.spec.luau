@@ -586,6 +586,94 @@ test("a version 8 profile migrates to version 9 and keeps its passes", function(
 	assertTrue(ok, why)
 end)
 
+test("a new profile has no pets and no eggs", function()
+	local pets = fresh().pets
+	assertEquals(#pets.owned, 0)
+	assertEquals(#pets.equipped, 0)
+	assertEquals(pets.eggs, 0)
+	assertEquals(pets.sinceRare, 0)
+	assertEquals(pets.nextId, 1)
+end)
+
+test("validate accepts pet data and rejects bad pet data", function()
+	local profile: any = fresh()
+	profile.pets = {
+		owned = { { id = 1, petId = "mole" }, { id = 3, petId = "owl" } },
+		nextId = 4,
+		equipped = { 3 },
+		eggs = 2,
+		sinceRare = 4,
+		freeEggAt = 99,
+		receipts = { "a" },
+	}
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+	expectInvalid(function(p)
+		p.pets = nil
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.eggs = -1
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.sinceRare = 1.5
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.nextId = 0
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.owned = { { id = 1, petId = "mole" } }
+		p.pets.nextId = 1
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.owned = { { id = 1, petId = "mole" }, { id = 1, petId = "owl" } }
+		p.pets.nextId = 2
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.owned = { { id = 1, petId = 7 } }
+		p.pets.nextId = 2
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.equipped = { 5 }
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.owned = { { id = 1, petId = "mole" } }
+		p.pets.nextId = 2
+		p.pets.equipped = { 1, 1 }
+	end, "pets")
+	expectInvalid(function(p)
+		p.pets.receipts = { 3 }
+	end, "pets")
+end)
+
+test("migrating adds empty pet data", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(#migrated.pets.owned, 0)
+	assertEquals(migrated.pets.nextId, 1)
+	assertEquals(migrated.pets.eggs, 0)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
+end)
+
+test("a version 9 profile migrates to version 10 and keeps its boosters", function()
+	local profile: any = fresh()
+	profile.version = 9
+	profile.pets = nil
+	profile.boosters = { expires = { luck_booster = 500 }, receipts = { "r1" }, freeClaimedAt = 0 }
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.boosters.expires.luck_booster, 500)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)
