@@ -674,6 +674,56 @@ test("a version 9 profile migrates to version 10 and keeps its boosters", functi
 	assertTrue(ok, why)
 end)
 
+test("a new profile owns no decoration", function()
+	local decor = fresh().house.decor
+	assertEquals(next(decor.owned), nil)
+	assertEquals(#decor.placed, 0)
+end)
+
+test("validate accepts decoration and rejects bad decoration data", function()
+	local profile: any = fresh()
+	profile.house.decor = { owned = { rug = true, lantern = true }, placed = { { slot = 2, id = "rug" } } }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+	expectInvalid(function(p)
+		p.house.decor = nil
+	end, "house.decor")
+	expectInvalid(function(p)
+		p.house.decor.owned = { rug = false }
+	end, "house.decor")
+	expectInvalid(function(p)
+		p.house.decor.placed = { { slot = 1, id = "rug" } }
+	end, "house.decor")
+	expectInvalid(function(p)
+		p.house.decor.owned = { rug = true, lantern = true }
+		p.house.decor.placed = { { slot = 1, id = "rug" }, { slot = 1, id = "lantern" } }
+	end, "house.decor")
+	expectInvalid(function(p)
+		p.house.decor.owned = { rug = true }
+		p.house.decor.placed = { { slot = 1, id = "rug" }, { slot = 2, id = "rug" } }
+	end, "house.decor")
+	expectInvalid(function(p)
+		p.house.decor.owned = { rug = true }
+		p.house.decor.placed = { { slot = 0, id = "rug" } }
+	end, "house.decor")
+end)
+
+test("migrating keeps the house level and adds empty decoration", function()
+	local profile: any = fresh()
+	profile.version = 10
+	profile.house = { level = 2 }
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.house.level, 2)
+	assertEquals(next(migrated.house.decor.owned), nil)
+	assertEquals(#migrated.house.decor.placed, 0)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)
