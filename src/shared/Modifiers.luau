@@ -32,7 +32,21 @@ export type Result = {
 	walkSpeedMultiplier: number,
 }
 
-local Modifiers = {}
+local Modifiers = {
+	-- Every field a Part may have (the config checks effect tables against this).
+	knownFields = {
+		"coinBonus",
+		"oreSaleFactor",
+		"luckBonus",
+		"rareFindBonus",
+		"tempoBonus",
+		"capacityBonus",
+		"offlineBonus",
+		"offlineHoursBonus",
+		"rangeBonus",
+		"walkSpeedBonus",
+	},
+}
 
 local function valid(value: number?): number?
 	if value == nil or value ~= value or value < 0 or value == math.huge then

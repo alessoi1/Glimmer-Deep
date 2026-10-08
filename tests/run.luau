@@ -87,6 +87,12 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/QuestMessages.spec")
 	end,
+	function()
+		require("./specs/ShopLogic.spec")
+	end,
+	function()
+		require("./specs/ShopMessages.spec")
+	end,
 }
 
 local passed = 0

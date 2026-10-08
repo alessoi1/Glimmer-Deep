@@ -28,6 +28,10 @@ local Remotes = {
 		questClaim = "QuestClaim", -- client -> server event: (kind "quest" | "bonus" | "login", quest id)
 		questResult = "QuestResult", -- server -> client event: outcome, new view and state
 		questDone = "QuestDone", -- server -> client event: ids of quests that were just completed
+		getShop = "GetShop", -- client -> server function: shop view, nil while loading
+		shopOffer = "ShopOffer", -- client -> server event: (pass key) look at an offer
+		shopResult = "ShopResult", -- server -> client event: outcome, new view and state
+		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},
 }

@@ -3,6 +3,7 @@
 
 local DigUI = require(script.Parent:WaitForChild("DigUI"))
 local SellUI = require(script.Parent:WaitForChild("SellUI"))
+local ShopUI = require(script.Parent:WaitForChild("ShopUI"))
 local QuestUI = require(script.Parent:WaitForChild("QuestUI"))
 local OfflineUI = require(script.Parent:WaitForChild("OfflineUI"))
 local MuseumUI = require(script.Parent:WaitForChild("MuseumUI"))
@@ -14,3 +15,4 @@ UpgradeUI.start()
 MuseumUI.start()
 OfflineUI.start()
 QuestUI.start()
+ShopUI.start()

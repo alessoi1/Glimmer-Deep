@@ -491,6 +491,37 @@ test("migrating adds empty quests and a login chain that has not started", funct
 	assertTrue(ok, reason)
 end)
 
+test("a new profile owns no passes", function()
+	assertEquals(next(fresh().passes), nil)
+end)
+
+test("validate accepts owned passes and rejects bad pass data", function()
+	local profile: any = fresh()
+	profile.passes = { double_coins = true }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+	expectInvalid(function(p)
+		p.passes = nil
+	end, "passes")
+	expectInvalid(function(p)
+		p.passes = { double_coins = false }
+	end, "passes")
+	expectInvalid(function(p)
+		p.passes = { [1] = true }
+	end, "passes")
+end)
+
+test("migrating adds an empty pass list", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(next(migrated.passes), nil)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

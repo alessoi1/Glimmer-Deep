@@ -55,6 +55,7 @@ export type Profile = {
 	digger: { leftAt: number? }, -- server time the player left; nil while playing
 	quests: QuestState,
 	login: Login,
+	passes: { [string]: boolean }, -- game pass key -> true while owned (verified by the server)
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -130,6 +131,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		digger = {},
 		quests = { day = 0, ids = {}, progress = {}, claimed = {}, bonusClaimed = false },
 		login = { lastDay = 0, streak = 0, claimed = true },
+		passes = {},
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
@@ -344,6 +346,15 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		or type(login.claimed) ~= "boolean"
 	then
 		return false, string.format("login needs lastDay, a streak from 0 to %d and claimed", rules.loginChainLength)
+	end
+
+	if type(profile.passes) ~= "table" then
+		return false, "passes must be a table"
+	end
+	for passKey, owned in profile.passes do
+		if type(passKey) ~= "string" or owned ~= true then
+			return false, "passes needs true per pass key"
+		end
 	end
 
 	return true, nil
