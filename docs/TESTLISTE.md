@@ -98,6 +98,38 @@ Mit neuem Profil, in dieser Reihenfolge. Der Durchgang dauert etwa 20 bis 30 Min
 - [ ] Besucher bewundert das Museum: Meldung bei beiden, nur einmal je 6 Stunden, Bestenliste zeigt die Bewunderungen.
 - [ ] Bonus-Wirkungen (Booster, Haustier) gelten nur für den Käufer.
 
+## Runde 3: neue Systeme (Haus, Gäste, Rebirth, Event, Saison)
+
+Reihenfolge wie in `docs/OFFEN.md` unter den gleichnamigen Punkten. Vorab ein Profil mit genug Münzen (zum Beispiel erst Münzen verdienen oder in `Config/Profile` `startCoins` testweise hoch setzen, nicht committen).
+
+### Haus-Ausbau und Dekoration
+
+- [ ] Orangefarbenes Schild „Haus“ (Taste G) öffnet das Panel (Handy: scrollbar, Knöpfe groß genug).
+- [ ] Dekoration lässt sich vor dem Ausbau nicht kaufen („Erst das Haus ausbauen“).
+- [ ] Ausbau auf Stufe 2 kostet 10.000 Münzen; danach 12 Vitrinen im Museum und 6 Dekoplätze.
+- [ ] Deko kaufen, aufstellen, entfernen; aufgestellte Deko steht westlich vom Schacht und bleibt nach Neustart.
+
+### Gäste (zweite Person nötig)
+
+- [ ] Türkises Schild „Gäste“ (Taste H); ein Freund tritt bei, ein Fremder wird abgewiesen („Nur Freunde können mitgraben“). Zum Testen ohne Freundschaft `friendsOnly` in `Config/Guests` testweise auf `false`.
+- [ ] Gast gräbt am Schacht des Gastgebers; Erz und Tiefe gehören dem Gast, der Gastgeber bekommt Münzen.
+- [ ] Anzeige oben: „Gäste: Name“ beim Gastgeber, „Du gräbst bei Name mit“ beim Gast; erneutes Benutzen des Schilds beendet den Besuch.
+- [ ] Vier Gäste gehen, ein fünfter wird abgewiesen („Das Grundstück ist voll“).
+
+### Rebirth
+
+- [ ] Rotes Schild „Neue Bohrung“ (Taste J); Knopf erst ab 300 m aktiv (zum Testen `requiredDepth` in `Config/Rebirth` testweise senken).
+- [ ] Mit Rückfrage; danach Münzen 0, Tiefe 0, Werkzeuge auf Stufe 1, Erz weg; Museum, Haus, Haustiere und seltene Funde bleiben.
+- [ ] Punkte 5 (dann 7, 9 …); Boni kaufen und prüfen, dass sie wirken und nach Neustart bleiben.
+
+### Event und Saison
+
+- [ ] Gelbes Schild „Saison“ (Taste K): Event mit Namen und Restzeit, Saison mit Stufe und Punkten.
+- [ ] Beim Graben steigen die Saisonpunkte; Meldung „Saison-Stufe n erreicht“.
+- [ ] Gratis-Belohnungen abholen (Münzen, Ei, Booster); Premium zeigt „Premium“ als gesperrt.
+- [ ] Nach dem Kauf des „Entdecker-Pass“ (ID eintragen!) sind Premium-Belohnungen abholbar.
+- [ ] Event-Wirkung: in `Config/Events` testweise nur das Event „Glühwoche“ in `rotation` lassen und viele seltene Funde graben: auffällig viele glühende.
+
 ## Danach
 
 - [ ] Alle gefundenen Fehler als Liste mit Punkt-Nummer sammeln und weitergeben.

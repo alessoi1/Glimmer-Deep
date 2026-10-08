@@ -19,6 +19,7 @@
 --   9 -> 10: pets (no pets, no eggs, guarantee counter at 0).
 --   10 -> 11: house decoration (nothing owned, nothing placed).
 --   11 -> 12: prestige (no points, no rebirths, no bonus levels).
+--   12 -> 13: season progress (no season yet, no points, nothing claimed).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -94,6 +95,10 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	end,
 	function(data)
 		data.prestige = { points = 0, rebirths = 0, levels = {} }
+		return data
+	end,
+	function(data)
+		data.season = { id = 0, xp = 0, claimedFree = {}, claimedPremium = {} }
 		return data
 	end,
 }

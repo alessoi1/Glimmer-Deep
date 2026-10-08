@@ -47,6 +47,8 @@ return {
 	guestSign = { x = -18, z = 10, size = 3 },
 	-- The rebirth sign (with the rebirth prompt) stands east of the shaft, below the showcases.
 	rebirthSign = { x = 16, z = 8, size = 3 },
+	-- The season sign (with the season prompt) stands east of the shaft, below the rebirth sign.
+	seasonSign = { x = 16, z = 14, size = 3 },
 	colors = {
 		ground = { r = 96, g = 120, b = 70 },
 		shaftBottom = { r = 70, g = 60, b = 50 },
@@ -55,6 +57,7 @@ return {
 		vitrine = { r = 200, g = 200, b = 215 },
 		vitrineFilled = { r = 240, g = 200, b = 90 },
 		sign = { r = 120, g = 90, b = 200 },
+		seasonSign = { r = 230, g = 190, b = 90 },
 		rebirthSign = { r = 200, g = 90, b = 90 },
 		guestSign = { r = 90, g = 190, b = 190 },
 		houseSign = { r = 220, g = 150, b = 80 },

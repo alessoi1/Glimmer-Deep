@@ -771,6 +771,57 @@ test("a version 11 profile migrates to version 12 and keeps its house", function
 	assertTrue(ok, why)
 end)
 
+test("a new profile has no season progress", function()
+	local season = fresh().season
+	assertEquals(season.id, 0)
+	assertEquals(season.xp, 0)
+	assertEquals(#season.claimedFree, 0)
+	assertEquals(#season.claimedPremium, 0)
+end)
+
+test("validate accepts season data and rejects bad season data", function()
+	local profile: any = fresh()
+	profile.season = { id = 700, xp = 1250, claimedFree = { 1, 2 }, claimedPremium = { 1 } }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+	expectInvalid(function(p)
+		p.season = nil
+	end, "season")
+	expectInvalid(function(p)
+		p.season.xp = -1
+	end, "season")
+	expectInvalid(function(p)
+		p.season.id = 1.5
+	end, "season")
+	expectInvalid(function(p)
+		p.season.claimedFree = { 0 }
+	end, "season")
+	expectInvalid(function(p)
+		p.season.claimedFree = { 2, 2 }
+	end, "season")
+	expectInvalid(function(p)
+		p.season.claimedPremium = "x"
+	end, "season")
+end)
+
+test("a version 12 profile migrates to version 13 and keeps its prestige", function()
+	local profile: any = fresh()
+	profile.version = 12
+	profile.season = nil
+	profile.prestige = { points = 4, rebirths = 1, levels = { coins = 1 } }
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.prestige.points, 4)
+	assertEquals(migrated.season.id, 0)
+	assertEquals(migrated.season.xp, 0)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

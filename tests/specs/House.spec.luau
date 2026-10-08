@@ -193,6 +193,7 @@ test("every decoration place fits on the plot without touching shaft, pads or sh
 		PlotLogic.houseSignBox(PlotConfig),
 		PlotLogic.guestSignBox(PlotConfig),
 		PlotLogic.rebirthSignBox(PlotConfig),
+		PlotLogic.seasonSignBox(PlotConfig),
 		{ name = "Shaft", sizeX = PlotConfig.shaftSize, sizeY = 1, sizeZ = PlotConfig.shaftSize, x = 0, y = 0, z = 0 },
 	}
 	for number = 1, MuseumConfig.slotsByHouseLevel[config.maxLevel] do

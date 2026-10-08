@@ -18,6 +18,7 @@ local OnboardingConfig = require(Config:WaitForChild("Onboarding"))
 local ShovelConfig = require(Config:WaitForChild("Shovel"))
 local Rarities = require(Config:WaitForChild("Rarities"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
+local EventService = require(script.Parent:WaitForChild("EventService"))
 local GuestService = require(script.Parent:WaitForChild("GuestService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
@@ -96,6 +97,7 @@ local function handleDig(player: Player, ...: any)
 		metersPerBlock = DigConfig.metersPerBlock,
 		onboarding = OnboardingConfig,
 		modifiers = modifiers,
+		mutationBoost = EventService.mutationBoost(),
 		lastDigAt = lastDigAt[player],
 		now = now,
 		rng = function()

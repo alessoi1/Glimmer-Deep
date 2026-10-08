@@ -126,6 +126,15 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/RebirthMessages.spec")
 	end,
+	function()
+		require("./specs/Events.spec")
+	end,
+	function()
+		require("./specs/Season.spec")
+	end,
+	function()
+		require("./specs/SeasonMessages.spec")
+	end,
 }
 
 local passed = 0
