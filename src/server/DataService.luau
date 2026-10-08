@@ -145,6 +145,27 @@ function DataService.getData(player: Player): ProfileData.Profile?
 	return profile.Data
 end
 
+-- Saves the profile right now and waits for it. Returns true when the save went
+-- through, false when the player has no live profile or the save failed. Use it
+-- where a change must be on disk before something is confirmed (purchase
+-- receipts). Only checkable in Roblox Studio.
+function DataService.saveNow(player: Player): boolean
+	local profile = profiles[player]
+	if profile == nil then
+		log.warn("save requested without a live profile", { userId = player.UserId })
+		return false
+	end
+	local ok, err = pcall(function()
+		profile:Save()
+	end)
+	if not ok then
+		log.error("immediate save failed", { userId = player.UserId, error = tostring(err) })
+		return false
+	end
+	log.debug("immediate save done", { userId = player.UserId })
+	return true
+end
+
 -- Registers a callback that runs just before a leaving player's profile is
 -- saved and released (the last chance to change it).
 function DataService.onLeaving(listener: LeavingListener)

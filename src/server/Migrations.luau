@@ -15,6 +15,7 @@
 --   5 -> 6: skill levels (strong_arms, ore_finder, cable_winch, lamp) at level 1.
 --   6 -> 7: daily quests and login chain (not started).
 --   7 -> 8: owned game passes (none).
+--   8 -> 9: boosters (none running), remembered purchase ids and the free claim time.
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -72,6 +73,10 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	end,
 	function(data)
 		data.passes = {}
+		return data
+	end,
+	function(data)
+		data.boosters = { expires = {}, receipts = {}, freeClaimedAt = 0 }
 		return data
 	end,
 }

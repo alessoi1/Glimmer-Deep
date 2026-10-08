@@ -522,6 +522,70 @@ test("migrating adds an empty pass list", function()
 	assertTrue(ok, reason)
 end)
 
+test("a new profile has no boosters, receipts or free claim", function()
+	local boosters = fresh().boosters
+	assertEquals(next(boosters.expires), nil)
+	assertEquals(#boosters.receipts, 0)
+	assertEquals(boosters.freeClaimedAt, 0)
+end)
+
+test("validate accepts booster data and rejects bad booster data", function()
+	local profile: any = fresh()
+	profile.boosters = { expires = { luck_booster = 1000 }, receipts = { "a", "b" }, freeClaimedAt = 5 }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+	expectInvalid(function(p)
+		p.boosters = nil
+	end, "boosters")
+	expectInvalid(function(p)
+		p.boosters.expires = { luck_booster = -1 }
+	end, "boosters")
+	expectInvalid(function(p)
+		p.boosters.expires = { luck_booster = 1.5 }
+	end, "boosters")
+	expectInvalid(function(p)
+		p.boosters.expires = { [1] = 100 }
+	end, "boosters")
+	expectInvalid(function(p)
+		p.boosters.receipts = { 7 }
+	end, "boosters")
+	expectInvalid(function(p)
+		p.boosters.receipts = { "" }
+	end, "boosters")
+	expectInvalid(function(p)
+		p.boosters.freeClaimedAt = -1
+	end, "boosters")
+end)
+
+test("migrating adds empty booster data", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(next(migrated.boosters.expires), nil)
+	assertEquals(#migrated.boosters.receipts, 0)
+	assertEquals(migrated.boosters.freeClaimedAt, 0)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
+end)
+
+test("a version 8 profile migrates to version 9 and keeps its passes", function()
+	local profile: any = fresh()
+	profile.version = 8
+	profile.boosters = nil
+	profile.passes = { double_coins = true }
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.passes.double_coins, true)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

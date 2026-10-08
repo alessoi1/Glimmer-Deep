@@ -9,6 +9,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local BoosterMessages = require(Shared:WaitForChild("BoosterMessages"))
+local Boosters = require(Shared:WaitForChild("Boosters"))
 local Log = require(Shared:WaitForChild("Log"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local ShopLogic = require(Shared:WaitForChild("ShopLogic"))
@@ -47,6 +49,12 @@ local COLOR_TEXT = Color3.fromRGB(245, 245, 245)
 local COLOR_MUTED = Color3.fromRGB(190, 190, 200)
 local COLOR_HEADING = Color3.fromRGB(170, 190, 255)
 
+type BoosterResultPayload = {
+	ok: boolean,
+	reason: string?,
+	snapshot: Boosters.Snapshot?,
+}
+
 type ResultPayload = {
 	ok: boolean,
 	reason: string?,
@@ -81,6 +89,10 @@ function ShopUI.start()
 	local offerRemote = Remotes.event(Remotes.names.shopOffer)
 	local travelRemote = Remotes.event(Remotes.names.quickTravel)
 	local shopResult = Remotes.event(Remotes.names.shopResult)
+	local getBoosters = Remotes.func(Remotes.names.getBoosters)
+	local boosterOffer = Remotes.event(Remotes.names.boosterOffer)
+	local boosterFree = Remotes.event(Remotes.names.boosterFree)
+	local boosterResult = Remotes.event(Remotes.names.boosterResult)
 
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "ShopHud"
@@ -128,6 +140,23 @@ function ShopUI.start()
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	list.Parent = body
+	local function newBox(order: number): Frame
+		local box = Instance.new("Frame")
+		box.BackgroundTransparency = 1
+		box.LayoutOrder = order
+		box.Size = UDim2.fromScale(1, 0)
+		box.AutomaticSize = Enum.AutomaticSize.Y
+		box.Parent = body
+		local boxList = Instance.new("UIListLayout")
+		boxList.Padding = UDim.new(0, 6)
+		boxList.SortOrder = Enum.SortOrder.LayoutOrder
+		boxList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		boxList.Parent = box
+		return box
+	end
+	local passesBox = newBox(1)
+	local boostersBox = newBox(2)
+
 	local padding = Instance.new("UIPadding")
 	padding.PaddingTop = UDim.new(0, PADDING)
 	padding.PaddingBottom = UDim.new(0, PADDING)
@@ -181,13 +210,13 @@ function ShopUI.start()
 		if not view.available then
 			panel.Visible = false
 		end
-		for _, child in body:GetChildren() do
+		for _, child in passesBox:GetChildren() do
 			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
 		end
 
-		newText(body, Strings.shop.note, false, COLOR_MUTED, 2 * (TEXT_SIZE + 4))
+		newText(passesBox, Strings.shop.note, false, COLOR_MUTED, 2 * (TEXT_SIZE + 4))
 		local travelOwned = false
 		for _, pass in view.passes do
 			if pass.key == "quick_travel" and pass.owned then
@@ -196,7 +225,7 @@ function ShopUI.start()
 			local row = Instance.new("Frame")
 			row.BackgroundColor3 = COLOR_ROW
 			row.Size = UDim2.new(1, -2 * PADDING, 0, ROW_HEIGHT + ACTION_HEIGHT + PADDING)
-			row.Parent = body
+			row.Parent = passesBox
 			local corner = Instance.new("UICorner")
 			corner.Parent = row
 			local rowList = Instance.new("UIListLayout")
@@ -213,12 +242,106 @@ function ShopUI.start()
 		end
 
 		if travelOwned then
-			newText(body, Strings.shop.travelHeading, true, COLOR_HEADING, TEXT_SIZE + 8)
-			addButton(body, Strings.shop.travelSell, true, function()
+			newText(passesBox, Strings.shop.travelHeading, true, COLOR_HEADING, TEXT_SIZE + 8)
+			addButton(passesBox, Strings.shop.travelSell, true, function()
 				travelRemote:FireServer("sell")
 			end)
-			addButton(body, Strings.shop.travelShaft, true, function()
+			addButton(passesBox, Strings.shop.travelShaft, true, function()
 				travelRemote:FireServer("shaft")
+			end)
+		end
+	end
+
+	local function newRow(parent: Instance): Frame
+		local row = Instance.new("Frame")
+		row.BackgroundColor3 = COLOR_ROW
+		row.Size = UDim2.new(1, -2 * PADDING, 0, 0)
+		row.AutomaticSize = Enum.AutomaticSize.Y
+		row.Parent = parent
+		local corner = Instance.new("UICorner")
+		corner.Parent = row
+		local rowList = Instance.new("UIListLayout")
+		rowList.Padding = UDim.new(0, 4)
+		rowList.SortOrder = Enum.SortOrder.LayoutOrder
+		rowList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		rowList.Parent = row
+		local rowPadding = Instance.new("UIPadding")
+		rowPadding.PaddingTop = UDim.new(0, PADDING)
+		rowPadding.PaddingBottom = UDim.new(0, PADDING)
+		rowPadding.Parent = row
+		return row
+	end
+
+	local function renderBoosters(snapshot: Boosters.Snapshot)
+		for _, child in boostersBox:GetChildren() do
+			if child:IsA("GuiObject") then
+				child:Destroy()
+			end
+		end
+		local view = snapshot.view
+		boostersBox.Visible = view.available
+		if not view.available then
+			return
+		end
+
+		newText(boostersBox, Strings.shop.boosters.heading, true, COLOR_HEADING, TEXT_SIZE + 8)
+		newText(boostersBox, Strings.shop.boosters.note, false, COLOR_MUTED, 2 * (TEXT_SIZE + 4))
+		for _, booster in view.boosters do
+			local row = newRow(boostersBox)
+			newText(row, BoosterMessages.name(Strings, booster.key), true, COLOR_TEXT, TEXT_SIZE + 6)
+			newText(row, BoosterMessages.description(Strings, booster.key), false, COLOR_MUTED, 3 * (TEXT_SIZE + 2))
+			-- Paid random item: show the exact chances before the purchase.
+			if booster.luckBonus > 0 then
+				newText(row, Strings.shop.boosters.chancesHeading, false, COLOR_MUTED, 2 * (TEXT_SIZE + 2))
+				for _, chance in snapshot.chances do
+					newText(
+						row,
+						BoosterMessages.chanceLine(Strings, chance.rarityId, chance.base, chance.boosted),
+						false,
+						COLOR_TEXT,
+						TEXT_SIZE + 2
+					)
+				end
+				newText(
+					row,
+					BoosterMessages.mutationLine(Strings, snapshot.mutationBase, snapshot.mutationBoosted),
+					false,
+					COLOR_TEXT,
+					TEXT_SIZE + 2
+				)
+			end
+			newText(row, BoosterMessages.priceText(Strings, booster.robux), false, COLOR_TEXT, TEXT_SIZE + 4)
+			if booster.remaining > 0 then
+				newText(
+					row,
+					BoosterMessages.runningText(Strings, booster.remaining),
+					true,
+					COLOR_HEADING,
+					TEXT_SIZE + 4
+				)
+			end
+			addButton(row, BoosterMessages.actionText(Strings, booster), booster.buyable, function()
+				boosterOffer:FireServer(booster.key)
+			end)
+		end
+
+		local free = view.free
+		if free ~= nil then
+			local row = newRow(boostersBox)
+			newText(row, Strings.shop.boosters.freeHeading, true, COLOR_TEXT, TEXT_SIZE + 6)
+			newText(row, Strings.shop.boosters.freeNote, false, COLOR_MUTED, 2 * (TEXT_SIZE + 2))
+			newText(row, Strings.shop.boosters.chancesHeading, false, COLOR_MUTED, 2 * (TEXT_SIZE + 2))
+			for _, chance in snapshot.chances do
+				newText(
+					row,
+					BoosterMessages.chanceLine(Strings, chance.rarityId, chance.base, chance.boosted),
+					false,
+					COLOR_TEXT,
+					TEXT_SIZE + 2
+				)
+			end
+			addButton(row, BoosterMessages.freeText(Strings, free), free.canClaim, function()
+				boosterFree:FireServer()
 			end)
 		end
 	end
@@ -229,6 +352,14 @@ function ShopUI.start()
 		end)
 		if ok and type(result) == "table" then
 			render(result :: ShopLogic.View)
+			local boostersOk, snapshot = pcall(function()
+				return getBoosters:InvokeServer()
+			end)
+			if boostersOk and type(snapshot) == "table" then
+				renderBoosters(snapshot :: Boosters.Snapshot)
+			elseif not boostersOk then
+				log.warn("could not read the boosters", { error = tostring(snapshot) })
+			end
 			return true
 		end
 		if not ok then
@@ -254,6 +385,19 @@ function ShopUI.start()
 		end
 		if not payload.ok or payload.reason ~= nil then
 			showMessage(ShopMessages.describeResult(Strings, payload.ok, payload.reason))
+		end
+	end)
+
+	boosterResult.OnClientEvent:Connect(function(payload: BoosterResultPayload)
+		if type(payload) ~= "table" then
+			log.warn("unexpected booster result from server")
+			return
+		end
+		if type(payload.snapshot) == "table" then
+			renderBoosters(payload.snapshot)
+		end
+		if not payload.ok or payload.reason ~= nil then
+			showMessage(BoosterMessages.describeResult(Strings, payload.ok, payload.reason))
 		end
 	end)
 

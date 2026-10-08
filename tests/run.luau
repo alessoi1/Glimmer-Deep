@@ -93,6 +93,12 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/ShopMessages.spec")
 	end,
+	function()
+		require("./specs/Boosters.spec")
+	end,
+	function()
+		require("./specs/BoosterMessages.spec")
+	end,
 }
 
 local passed = 0
