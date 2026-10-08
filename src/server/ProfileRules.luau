@@ -14,14 +14,18 @@ function ProfileRules.build(): ProfileData.Rules
 	local Shared = ReplicatedStorage:WaitForChild("Shared")
 	local Config = Shared:WaitForChild("Config")
 	local profileConfig = require(Config:WaitForChild("Profile"))
+	local levelCounts: { [string]: number } = {
+		shovel = #require(Config:WaitForChild("Shovel")).levels,
+		backpack = #require(Config:WaitForChild("Backpack")).levels,
+		digger = #require(Config:WaitForChild("Digger")).levels,
+	}
+	for upgradeId, track in require(Config:WaitForChild("Skills")).tracks do
+		levelCounts[upgradeId] = #track.levels
+	end
 	return ProfileRulesLogic.build({
 		migrations = Migrations,
 		layers = require(Config:WaitForChild("Layers")),
-		levelCounts = {
-			shovel = #require(Config:WaitForChild("Shovel")).levels,
-			backpack = #require(Config:WaitForChild("Backpack")).levels,
-			digger = #require(Config:WaitForChild("Digger")).levels,
-		},
+		levelCounts = levelCounts,
 		startCoins = profileConfig.startCoins,
 		startDepth = profileConfig.startDepth,
 		museumSlotsByHouseLevel = require(Config:WaitForChild("Museum")).slotsByHouseLevel,

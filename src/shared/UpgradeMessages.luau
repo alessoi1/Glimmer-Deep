@@ -13,6 +13,7 @@ export type Strings = {
 		maxed: string,
 		capacity: string,
 		blocksPerHour: string,
+		effect: { [string]: string }, -- effect kind -> format with the percentage
 		level: string,
 		bought: string,
 		notEnoughCoins: string,
@@ -29,6 +30,8 @@ export type Entry = {
 	nextId: string?,
 	nextCapacity: number?,
 	nextBlocksPerHour: number?,
+	nextEffectKind: string?,
+	nextEffectPercent: number?,
 }
 
 local UpgradeMessages = {}
@@ -43,6 +46,11 @@ local function describeNext(strings: Strings, entry: Entry): string
 		return nameOf(strings.shovel, entry.nextId)
 	elseif entry.nextCapacity ~= nil then
 		return string.format(strings.upgrades.capacity, entry.nextCapacity)
+	elseif entry.nextEffectKind ~= nil and entry.nextEffectPercent ~= nil then
+		local format = strings.upgrades.effect[entry.nextEffectKind]
+		if format ~= nil then
+			return string.format(format, entry.nextEffectPercent)
+		end
 	elseif entry.nextBlocksPerHour ~= nil then
 		return string.format(strings.upgrades.blocksPerHour, entry.nextBlocksPerHour)
 	end

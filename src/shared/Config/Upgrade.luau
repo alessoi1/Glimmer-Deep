@@ -4,6 +4,6 @@
 -- cooldown: minimum seconds between two accepted purchase calls per player.
 
 return {
-	order = { "shovel", "backpack", "digger" },
+	order = { "shovel", "backpack", "digger", "strong_arms", "ore_finder", "cable_winch", "lamp" },
 	cooldown = 0.3,
 }

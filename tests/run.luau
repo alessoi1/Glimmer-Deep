@@ -75,6 +75,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/OfflineMessages.spec")
 	end,
+	function()
+		require("./specs/UpgradeEffects.spec")
+	end,
 }
 
 local passed = 0

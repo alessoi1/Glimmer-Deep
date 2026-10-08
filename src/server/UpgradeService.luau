@@ -10,11 +10,15 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local UpgradeAction = require(Shared:WaitForChild("UpgradeAction"))
+local UpgradeEffects = require(Shared:WaitForChild("UpgradeEffects"))
 local Config = Shared:WaitForChild("Config")
 local DigConfig = require(Config:WaitForChild("Dig"))
 local UpgradeConfig = require(Config:WaitForChild("Upgrade"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
+local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
+local MovementService = require(script.Parent:WaitForChild("MovementService"))
+local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 local UpgradeRules = require(script.Parent:WaitForChild("UpgradeRules"))
 
@@ -77,6 +81,7 @@ local function handleBuy(player: Player, upgradeId: any, ...: any)
 		return
 	end
 
+	MovementService.refresh(player)
 	log.info("upgrade bought", {
 		userId = player.UserId,
 		upgradeId = upgradeId,
@@ -99,6 +104,11 @@ function UpgradeService.start()
 	end
 	started = true
 	rejects = RejectLimiter.new(log, DigConfig.warnInterval, os.clock)
+
+	-- Skills and the shovel's reach give bonuses to the whole game.
+	ModifierService.register("upgrades", function(profile: ProfileData.Profile)
+		return UpgradeEffects.part(profile.upgradeLevels, tracks)
+	end)
 
 	upgradeResult = Remotes.event(Remotes.names.upgradeResult)
 	Remotes.event(Remotes.names.buyUpgrade).OnServerEvent:Connect(handleBuy)

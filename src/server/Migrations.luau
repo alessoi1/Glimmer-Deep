@@ -12,6 +12,7 @@
 --   3 -> 4: house (level 1) and museum (no showcases yet; the visitor income
 --           counts from the profile creation, which pays nothing without finds).
 --   4 -> 5: depot (offline yield), digger (absence time) and digger level 1.
+--   5 -> 6: skill levels (strong_arms, ore_finder, cable_winch, lamp) at level 1.
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -51,6 +52,14 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 		data.digger = {}
 		if type(data.upgradeLevels) == "table" then
 			data.upgradeLevels.digger = 1
+		end
+		return data
+	end,
+	function(data)
+		if type(data.upgradeLevels) == "table" then
+			for _, skillId in { "strong_arms", "ore_finder", "cable_winch", "lamp" } do
+				data.upgradeLevels[skillId] = 1
+			end
 		end
 		return data
 	end,

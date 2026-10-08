@@ -51,6 +51,10 @@ return {
 		shovel = "Schaufel",
 		backpack = "Rucksack",
 		digger = "Bagger",
+		strong_arms = "Starke Arme",
+		ore_finder = "Erzspürer",
+		cable_winch = "Seilwinde",
+		lamp = "Lampe",
 	},
 	data = {
 		loadFailed = "Dein Spielstand konnte nicht geladen werden. Bitte komm in ein paar Minuten wieder. Dein Fortschritt ist sicher.",
@@ -140,6 +144,12 @@ return {
 		maxed = "%s: Maximal",
 		capacity = "%d Plätze",
 		blocksPerHour = "%d Blöcke/Std",
+		effect = {
+			tempo = "Tempo +%d %%",
+			rareFind = "Seltene Funde +%d %%",
+			walkSpeed = "Lauftempo +%d %%",
+			luck = "Glück +%d %%",
+		},
 		level = "Stufe %d",
 		bought = "Verbessert: %s",
 		notEnoughCoins = "Nicht genug Münzen",

@@ -397,6 +397,26 @@ test("migrating adds the depot, the digger and digger level 1", function()
 	assertTrue(ok, reason)
 end)
 
+test("a new profile has every skill at level 1", function()
+	local profile = fresh()
+	for _, skillId in { "strong_arms", "ore_finder", "cable_winch", "lamp" } do
+		assertEquals(profile.upgradeLevels[skillId], 1)
+	end
+end)
+
+test("migrating adds the skills at level 1 and keeps the other levels", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	for _, skillId in { "strong_arms", "ore_finder", "cable_winch", "lamp" } do
+		assertEquals(migrated.upgradeLevels[skillId], 1)
+	end
+	assertEquals(migrated.upgradeLevels.shovel, 3)
+	assertEquals(migrated.upgradeLevels.backpack, 2)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

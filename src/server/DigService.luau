@@ -66,7 +66,9 @@ local function handleDig(player: Player, ...: any)
 		warnRejected(player, "no_plot_or_character")
 		return
 	end
-	if distance > DigConfig.digRange then
+	-- The shovel's reach adds to the base range.
+	local modifiers = ModifierService.get(profile)
+	if distance > DigConfig.digRange + modifiers.rangeBonus then
 		warnRejected(player, "too_far")
 		digResult:FireClient(player, { ok = false, reason = "too_far", state = snapshot(profile) })
 		return
@@ -81,7 +83,7 @@ local function handleDig(player: Player, ...: any)
 		backpackLevels = BackpackConfig.levels,
 		metersPerBlock = DigConfig.metersPerBlock,
 		onboarding = OnboardingConfig,
-		modifiers = ModifierService.get(profile),
+		modifiers = modifiers,
 		lastDigAt = lastDigAt[player],
 		now = now,
 		rng = function()

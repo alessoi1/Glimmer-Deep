@@ -94,6 +94,16 @@ function UpgradeUI.start()
 	panel.Parent = gui
 	local panelCorner = Instance.new("UICorner")
 	panelCorner.Parent = panel
+	local sizeLimit = Instance.new("UISizeConstraint")
+	sizeLimit.Parent = panel
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.Size = UDim2.fromScale(1, 1)
+	scroll.CanvasSize = UDim2.new()
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.ScrollBarThickness = 6
+	scroll.Parent = panel
 
 	local messageLabel = Instance.new("TextLabel")
 	messageLabel.BackgroundTransparency = 1
@@ -133,7 +143,7 @@ function UpgradeUI.start()
 		row.Font = Enum.Font.GothamBold
 		row.TextSize = TEXT_SIZE
 		row.TextWrapped = true
-		row.Parent = panel
+		row.Parent = scroll
 		local corner = Instance.new("UICorner")
 		corner.Parent = row
 		row.Activated:Connect(function()
@@ -149,7 +159,10 @@ function UpgradeUI.start()
 	end
 
 	local function applyEntries(entries: { UpgradeAction.Entry })
-		panel.Size = UDim2.fromOffset(PANEL_WIDTH, PANEL_PADDING + #entries * (ROW_HEIGHT + PANEL_PADDING))
+		local wanted = PANEL_PADDING + #entries * (ROW_HEIGHT + PANEL_PADDING)
+		-- At most 80 % of the screen high, as high as the rows when they fit.
+		panel.Size = UDim2.new(0, PANEL_WIDTH, 0.8, 0)
+		sizeLimit.MaxSize = Vector2.new(PANEL_WIDTH, wanted)
 		for index, entry in entries do
 			local row = rowFor(entry.id, index)
 			row.Text = UpgradeMessages.describeOffer(Strings, entry)
