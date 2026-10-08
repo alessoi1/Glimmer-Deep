@@ -23,6 +23,7 @@ function ProfileRules.build(): ProfileData.Rules
 		},
 		startCoins = profileConfig.startCoins,
 		startDepth = profileConfig.startDepth,
+		museumSlotsByHouseLevel = require(Config:WaitForChild("Museum")).slotsByHouseLevel,
 		onboardingMaxStep = require(Shared:WaitForChild("Onboarding")).maxStep,
 	})
 end

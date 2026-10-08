@@ -243,6 +243,102 @@ test("migrating an untouched profile keeps the onboarding at the start", functio
 	assertEquals(migrated.onboarding.firstFindGiven, false)
 end)
 
+test("a new profile has house level 1 and an empty museum", function()
+	local profile = fresh()
+	assertEquals(profile.house.level, 1)
+	assertEquals(#profile.museum.displays, 0)
+	assertEquals(profile.museum.incomeSince, 1700000000)
+	assertEquals(profile.museum.admires, 0)
+	assertEquals(profile.museum.week, 0)
+	assertEquals(profile.museum.weekAdmires, 0)
+end)
+
+local function display(slot: any, id: any): any
+	return { slot = slot, find = { id = id, findId = "shard", layerId = "sand_clay", rarityId = "common", value = 10 } }
+end
+
+test("validate accepts displayed finds with unique ids and slots", function()
+	local profile: any = fresh()
+	table.insert(profile.museum.displays, display(1, 1))
+	table.insert(profile.museum.displays, display(4, 2))
+	profile.nextFindId = 3
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+end)
+
+test("validate rejects bad house and museum values", function()
+	expectInvalid(function(p)
+		p.house = nil
+	end, "house")
+	expectInvalid(function(p)
+		p.house.level = 0
+	end, "house")
+	expectInvalid(function(p)
+		p.house.level = #rules.museumSlotsByHouseLevel + 1
+	end, "house")
+	expectInvalid(function(p)
+		p.museum = nil
+	end, "museum")
+	expectInvalid(function(p)
+		p.museum.incomeSince = -1
+	end, "incomeSince")
+	expectInvalid(function(p)
+		p.museum.admires = 1.5
+	end, "admires")
+	expectInvalid(function(p)
+		p.museum.weekAdmires = -1
+	end, "weekAdmires")
+	expectInvalid(function(p)
+		p.museum.week = "x"
+	end, "week")
+	expectInvalid(function(p)
+		p.museum.displays = nil
+	end, "displays")
+end)
+
+test("validate rejects bad showcases", function()
+	expectInvalid(function(p)
+		table.insert(p.museum.displays, display(0, 1))
+		p.nextFindId = 2
+	end, "slot")
+	expectInvalid(function(p)
+		table.insert(p.museum.displays, display(rules.museumSlotsByHouseLevel[1] + 1, 1))
+		p.nextFindId = 2
+	end, "slot")
+	expectInvalid(function(p)
+		table.insert(p.museum.displays, display(1, 1))
+		table.insert(p.museum.displays, display(1, 2))
+		p.nextFindId = 3
+	end, "slot")
+	expectInvalid(function(p)
+		table.insert(p.museum.displays, display(1, 1))
+		table.insert(p.backpack.finds, display(1, 1).find)
+		p.nextFindId = 2
+	end, "duplicate")
+	expectInvalid(function(p)
+		table.insert(p.museum.displays, display(1, 5))
+		p.nextFindId = 5
+	end, "nextFindId")
+	expectInvalid(function(p)
+		table.insert(p.museum.displays, { slot = 1, find = { id = 1, findId = "shard" } })
+		p.nextFindId = 2
+	end, "find")
+end)
+
+test("migrating adds the house and an empty museum whose income starts at creation", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.house.level, 1)
+	assertEquals(#migrated.museum.displays, 0)
+	assertEquals(migrated.museum.incomeSince, 1700000000)
+	assertEquals(migrated.museum.admires, 0)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

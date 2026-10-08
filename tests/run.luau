@@ -57,6 +57,15 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/Onboarding.spec")
 	end,
+	function()
+		require("./specs/Modifiers.spec")
+	end,
+	function()
+		require("./specs/Calendar.spec")
+	end,
+	function()
+		require("./specs/MuseumLogic.spec")
+	end,
 }
 
 local passed = 0

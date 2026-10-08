@@ -13,6 +13,16 @@ export type Find = {
 	value: number,
 }
 
+export type Display = { slot: number, find: Find }
+
+export type Museum = {
+	displays: { Display },
+	incomeSince: number, -- server time from which visitor income is counted
+	admires: number,
+	week: number, -- week number of weekAdmires
+	weekAdmires: number,
+}
+
 export type Onboarding = { step: number, firstFindGiven: boolean }
 
 export type Profile = {
@@ -24,6 +34,8 @@ export type Profile = {
 	depth: number, -- meters
 	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape
 	onboarding: Onboarding,
+	house: { level: number },
+	museum: Museum,
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -42,6 +54,7 @@ export type Rules = {
 	levelCounts: { [string]: number }, -- upgrade id -> number of levels
 	layerIds: { string },
 	onboardingMaxStep: number,
+	museumSlotsByHouseLevel: { number }, -- showcases per house level; its length is the highest house level
 }
 
 -- Upper bound for layer seeds (fits a 32-bit signed integer).
@@ -92,13 +105,15 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
 		onboarding = { step = 1, firstFindGiven = false },
+		house = { level = 1 },
+		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
 	}
 end
 
-local function validateFind(find: any, index: number): (boolean, string?)
-	local label = string.format("backpack.finds[%d]", index)
+local function validateFind(find: any, index: number, labelOverride: string?): (boolean, string?)
+	local label = labelOverride or string.format("backpack.finds[%d]", index)
 	if type(find) ~= "table" then
 		return false, label .. " must be a table"
 	end
@@ -198,6 +213,51 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		end
 		seenIds[find.id] = true
 		if find.id >= profile.nextFindId then
+			return false, "nextFindId must be higher than every find id"
+		end
+	end
+
+	local house = profile.house
+	if
+		type(house) ~= "table"
+		or not isInteger(house.level)
+		or house.level < 1
+		or house.level > #rules.museumSlotsByHouseLevel
+	then
+		return false, string.format("house.level must be an integer from 1 to %d", #rules.museumSlotsByHouseLevel)
+	end
+
+	local museum = profile.museum
+	if type(museum) ~= "table" then
+		return false, "museum must be a table"
+	end
+	for _, field in { "incomeSince", "admires", "week", "weekAdmires" } do
+		if not isNonNegativeInteger(museum[field]) then
+			return false, string.format("museum.%s must be a non-negative integer", field)
+		end
+	end
+	if type(museum.displays) ~= "table" then
+		return false, "museum.displays must be a table"
+	end
+	local slotCount = rules.museumSlotsByHouseLevel[house.level]
+	local seenSlots: { [number]: boolean } = {}
+	for index, display in museum.displays do
+		if type(display) ~= "table" or not isInteger(display.slot) or display.slot < 1 or display.slot > slotCount then
+			return false, string.format("museum.displays[%d] needs a slot from 1 to %d", index, slotCount)
+		end
+		if seenSlots[display.slot] then
+			return false, string.format("museum.displays[%d] reuses slot %d", index, display.slot)
+		end
+		seenSlots[display.slot] = true
+		local ok, reason = validateFind(display.find, index, string.format("museum.displays[%d].find", index))
+		if not ok then
+			return false, reason
+		end
+		if seenIds[display.find.id] then
+			return false, string.format("museum.displays[%d] has a duplicate find id %d", index, display.find.id)
+		end
+		seenIds[display.find.id] = true
+		if display.find.id >= profile.nextFindId then
 			return false, "nextFindId must be higher than every find id"
 		end
 	end

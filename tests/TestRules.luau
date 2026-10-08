@@ -3,6 +3,7 @@
 
 local BackpackConfig = require("../src/shared/Config/Backpack")
 local Layers = require("../src/shared/Config/Layers")
+local MuseumConfig = require("../src/shared/Config/Museum")
 local Onboarding = require("../src/shared/Onboarding")
 local Migrations = require("../src/server/Migrations")
 local ProfileConfig = require("../src/shared/Config/Profile")
@@ -17,6 +18,7 @@ local rules: ProfileData.Rules = ProfileRulesLogic.build({
 	startCoins = ProfileConfig.startCoins,
 	startDepth = ProfileConfig.startDepth,
 	onboardingMaxStep = Onboarding.maxStep,
+	museumSlotsByHouseLevel = MuseumConfig.slotsByHouseLevel,
 })
 
 return rules
