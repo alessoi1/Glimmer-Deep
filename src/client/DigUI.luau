@@ -12,6 +12,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DigAction = require(Shared:WaitForChild("DigAction"))
 local DigMessages = require(Shared:WaitForChild("DigMessages"))
 local DigRoll = require(Shared:WaitForChild("DigRoll"))
+local SellMessages = require(Shared:WaitForChild("SellMessages"))
 local Log = require(Shared:WaitForChild("Log"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Strings = require(Shared:WaitForChild("Strings"))
@@ -74,6 +75,7 @@ function DigUI.start()
 	local playerGui = player:WaitForChild("PlayerGui")
 	local digRemote = Remotes.event(Remotes.names.dig)
 	local digResult = Remotes.event(Remotes.names.digResult)
+	local sellResult = Remotes.event(Remotes.names.sellResult)
 	local getState = Remotes.func(Remotes.names.getDigState)
 
 	local gui = Instance.new("ScreenGui")
@@ -84,7 +86,7 @@ function DigUI.start()
 	local panel = Instance.new("Frame")
 	panel.BackgroundColor3 = COLOR_PANEL
 	panel.BackgroundTransparency = 0.25
-	panel.Size = UDim2.fromOffset(PANEL_WIDTH, 16 + 3 * (TEXT_SIZE + 6))
+	panel.Size = UDim2.fromOffset(PANEL_WIDTH, 16 + 4 * (TEXT_SIZE + 6))
 	panel.AnchorPoint = Vector2.new(0, 1)
 	local panelBottom = if UserInputService.TouchEnabled then PANEL_BOTTOM_TOUCH else PANEL_MARGIN
 	panel.Position = UDim2.new(0, PANEL_MARGIN, 1, -panelBottom)
@@ -94,6 +96,7 @@ function DigUI.start()
 	local depthLabel = newLabel(panel, 0)
 	local layerLabel = newLabel(panel, 1)
 	local backpackLabel = newLabel(panel, 2)
+	local coinsLabel = newLabel(panel, 3)
 
 	local messageLabel = Instance.new("TextLabel")
 	messageLabel.BackgroundTransparency = 1
@@ -133,6 +136,7 @@ function DigUI.start()
 		layerLabel.Text =
 			string.format("%s: %s", Strings.dig.layerLabel, DigMessages.layerName(Strings, newState.layerId))
 		backpackLabel.Text = string.format("%s: %d / %d", Strings.dig.backpackLabel, newState.used, newState.capacity)
+		coinsLabel.Text = string.format("%s: %s", Strings.dig.coinsLabel, SellMessages.formatCoins(newState.coins))
 	end
 
 	local function showMessage(text: string)
@@ -210,6 +214,13 @@ function DigUI.start()
 			showMessage(DigMessages.describeBlock(Strings, payload.block))
 		elseif payload.reason ~= nil then
 			showMessage(DigMessages.describeFailure(Strings, payload.reason))
+		end
+	end)
+
+	-- A sale changes the backpack and the coins; the sell UI shows its message.
+	sellResult.OnClientEvent:Connect(function(payload: { state: DigAction.State? })
+		if type(payload) == "table" and type(payload.state) == "table" then
+			applyState(payload.state)
 		end
 	end)
 
