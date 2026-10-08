@@ -17,6 +17,7 @@ local OreConfig = require(Config:WaitForChild("Ores"))
 local SellConfig = require(Config:WaitForChild("Sell"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigService = require(script.Parent:WaitForChild("DigService"))
+local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
@@ -62,7 +63,9 @@ local function handleSell(player: Player, ...: any)
 		return
 	end
 
-	local result = SellAction.perform(profile, OreConfig, nil)
+	-- Bonuses and the sale pass apply to ore only, never to rare finds.
+	local bonuses = ModifierService.get(profile)
+	local result = SellAction.perform(profile, OreConfig, bonuses.coinMultiplier * bonuses.oreSaleFactor)
 	for oreId, count in result.unknownOres do
 		log.warn("ore without price stays in the backpack", { userId = player.UserId, oreId = oreId, count = count })
 	end

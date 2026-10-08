@@ -18,6 +18,7 @@ local ShovelConfig = require(Config:WaitForChild("Shovel"))
 local Rarities = require(Config:WaitForChild("Rarities"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
+local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
@@ -44,6 +45,7 @@ local function snapshot(profile: DataService.Profile): DigAction.State
 		digConfig = digRules,
 		shovelLevels = ShovelConfig.levels,
 		backpackLevels = BackpackConfig.levels,
+		modifiers = ModifierService.get(profile),
 	})
 end
 
@@ -79,6 +81,7 @@ local function handleDig(player: Player, ...: any)
 		backpackLevels = BackpackConfig.levels,
 		metersPerBlock = DigConfig.metersPerBlock,
 		onboarding = OnboardingConfig,
+		modifiers = ModifierService.get(profile),
 		lastDigAt = lastDigAt[player],
 		now = now,
 		rng = function()

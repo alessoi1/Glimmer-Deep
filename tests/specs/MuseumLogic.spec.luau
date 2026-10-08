@@ -287,3 +287,17 @@ test("the view lists showcases, backpack finds, sets and income for the client",
 	assertEquals(view.admires, 0)
 	assertEquals(view.weekAdmires, 0)
 end)
+
+test("the board ranks museums by weekly admirations and skips empty ones", function()
+	local board = MuseumLogic.board({
+		{ name = "Zed", weekAdmires = 3 },
+		{ name = "Amy", weekAdmires = 3 },
+		{ name = "Bob", weekAdmires = 7 },
+		{ name = "Cy", weekAdmires = 0 },
+		{ name = "Di", weekAdmires = 1 },
+	}, 3)
+	assertEquals(#board, 3)
+	assertEquals(board[1].name, "Bob")
+	assertEquals(board[2].name, "Amy")
+	assertEquals(board[3].name, "Zed")
+end)

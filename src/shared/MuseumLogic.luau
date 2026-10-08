@@ -276,6 +276,30 @@ function MuseumLogic.weeklyAdmires(museum: Museum, week: number): number
 	return museum.weekAdmires
 end
 
+export type BoardEntry = { name: string, weekAdmires: number }
+
+-- The most admired museums of the week: highest count first, ties by name;
+-- museums without admirations are left out.
+function MuseumLogic.board(entries: { BoardEntry }, size: number): { BoardEntry }
+	local sorted: { BoardEntry } = {}
+	for _, entry in entries do
+		if entry.weekAdmires > 0 then
+			table.insert(sorted, entry)
+		end
+	end
+	table.sort(sorted, function(a: BoardEntry, b: BoardEntry)
+		if a.weekAdmires ~= b.weekAdmires then
+			return a.weekAdmires > b.weekAdmires
+		end
+		return a.name < b.name
+	end)
+	local top: { BoardEntry } = {}
+	for index = 1, math.min(size, #sorted) do
+		table.insert(top, { name = sorted[index].name, weekAdmires = sorted[index].weekAdmires })
+	end
+	return top
+end
+
 -- Everything the museum panel of the client shows.
 function MuseumLogic.view(profile: MuseumProfile, layers: { LayerDef }, context: Context, week: number): View
 	local displays: { Display } = {}

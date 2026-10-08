@@ -184,3 +184,87 @@ test("release of an unknown owner does nothing", function()
 	assertEquals(plots.release(99), nil)
 	assertEquals(plots.freeCount(), 2)
 end)
+
+-- Museum layout ------------------------------------------------------------------
+
+local MAX_SHOWCASES = 60
+
+local function overlapsXZ(a: PlotLogic.Box, b: PlotLogic.Box): boolean
+	return math.abs(a.x - b.x) < (a.sizeX + b.sizeX) / 2 and math.abs(a.z - b.z) < (a.sizeZ + b.sizeZ) / 2
+end
+
+test("validateConfig rejects a broken museum layout", function()
+	local museum = config.museum
+	assertTrue(not PlotLogic.validateConfig(with({
+		museum = {
+			x = museum.x,
+			z = museum.z,
+			columns = 0,
+			spacing = museum.spacing,
+			vitrineSize = museum.vitrineSize,
+			vitrineHeight = museum.vitrineHeight,
+			signX = museum.signX,
+			signZ = museum.signZ,
+			signSize = museum.signSize,
+		},
+	})))
+	assertTrue(not PlotLogic.validateConfig(with({
+		museum = {
+			x = museum.x,
+			z = museum.z,
+			columns = museum.columns,
+			spacing = 1,
+			vitrineSize = 2,
+			vitrineHeight = museum.vitrineHeight,
+			signX = museum.signX,
+			signZ = museum.signZ,
+			signSize = museum.signSize,
+		},
+	})), "showcases must not overlap")
+end)
+
+test("showcases are placed in a grid, first column first", function()
+	local first = PlotLogic.vitrineBox(config, 1)
+	local second = PlotLogic.vitrineBox(config, 2)
+	local nextRow = PlotLogic.vitrineBox(config, config.museum.columns + 1)
+	assertNear(first.x, config.museum.x, 0.001)
+	assertNear(first.z, config.museum.z, 0.001)
+	assertNear(second.x - first.x, config.museum.spacing, 0.001)
+	assertNear(nextRow.z - first.z, config.museum.spacing, 0.001)
+	assertNear(nextRow.x, first.x, 0.001)
+	assertNear(first.y - first.sizeY / 2, 0, 0.001, "showcases rest on the surface")
+end)
+
+test("all showcases of the highest house level fit on the plot without overlaps", function()
+	local boxes: { PlotLogic.Box } =
+		{ PlotLogic.spawnBox(config), PlotLogic.sellBox(config), PlotLogic.museumSignBox(config) }
+	table.insert(
+		boxes,
+		{ name = "Shaft", sizeX = config.shaftSize, sizeY = 1, sizeZ = config.shaftSize, x = 0, y = 0, z = 0 }
+	)
+	for slot = 1, MAX_SHOWCASES do
+		local box = PlotLogic.vitrineBox(config, slot)
+		assertTrue(math.abs(box.x) + box.sizeX / 2 <= config.size / 2, "showcase " .. slot .. " leaves the plot (x)")
+		assertTrue(math.abs(box.z) + box.sizeZ / 2 <= config.size / 2, "showcase " .. slot .. " leaves the plot (z)")
+		for _, other in boxes do
+			assertTrue(not overlapsXZ(box, other), string.format("showcase %d overlaps %s", slot, other.name))
+		end
+		table.insert(boxes, box)
+	end
+end)
+
+test("the museum sign stands on the plot surface", function()
+	local sign = PlotLogic.museumSignBox(config)
+	assertNear(sign.y - sign.sizeY / 2, 0, 0.001)
+	assertTrue(math.abs(sign.x) + sign.sizeX / 2 <= config.size / 2)
+	assertTrue(math.abs(sign.z) + sign.sizeZ / 2 <= config.size / 2)
+end)
+
+test("the owner of a plot can be looked up and ends with the release", function()
+	local allocator = PlotLogic.newAllocator(2)
+	local slot = allocator.claim(500) :: number
+	assertEquals(allocator.ownerOf(slot), 500)
+	assertEquals(allocator.ownerOf(slot + 1), nil)
+	allocator.release(500)
+	assertEquals(allocator.ownerOf(slot), nil)
+end)
