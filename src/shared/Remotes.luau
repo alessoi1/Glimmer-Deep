@@ -48,6 +48,12 @@ local Remotes = {
 		housePlace = "HousePlace", -- client -> server event: (decoration id, place number)
 		houseRemove = "HouseRemove", -- client -> server event: (place number) take the decoration back
 		houseResult = "HouseResult", -- server -> client event: outcome, new view and state
+		guestStatus = "GuestStatus", -- server -> client event: guest role, names and the last join problem
+		rebirthOpen = "RebirthOpen", -- server -> client event: open the rebirth panel with this view
+		getRebirth = "GetRebirth", -- client -> server function: prestige view, nil while loading
+		rebirthDo = "RebirthDo", -- client -> server event: start a new hole (no arguments)
+		rebirthBuy = "RebirthBuy", -- client -> server event: (bonus id) buy the next level with prestige points
+		rebirthResult = "RebirthResult", -- server -> client event: outcome, new view and state
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},

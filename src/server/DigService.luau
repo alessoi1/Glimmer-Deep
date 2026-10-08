@@ -18,6 +18,7 @@ local OnboardingConfig = require(Config:WaitForChild("Onboarding"))
 local ShovelConfig = require(Config:WaitForChild("Shovel"))
 local Rarities = require(Config:WaitForChild("Rarities"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
+local GuestService = require(script.Parent:WaitForChild("GuestService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local PlotService = require(script.Parent:WaitForChild("PlotService"))
@@ -63,7 +64,16 @@ local function handleDig(player: Player, ...: any)
 		return
 	end
 
-	local distance = PlotService.horizontalDistance(player, PlotService.getShaftPosition(player))
+	-- The nearest shaft counts: the own one, or the host's when the player is a guest.
+	local distance: number? = nil
+	local shaftOwnerId = player.UserId
+	for _, shaft in GuestService.shaftsOf(player) do
+		local candidate = PlotService.horizontalDistance(player, shaft.position)
+		if candidate ~= nil and (distance == nil or candidate < distance) then
+			distance = candidate
+			shaftOwnerId = shaft.ownerId
+		end
+	end
 	if distance == nil then
 		warnRejected(player, "no_plot_or_character")
 		return
@@ -119,6 +129,9 @@ local function handleDig(player: Player, ...: any)
 			value = block.value,
 			depth = result.depth,
 		})
+	end
+	if shaftOwnerId ~= player.UserId then
+		GuestService.rewardHost(player, shaftOwnerId)
 	end
 	QuestService.record(player, Quests.events.dig, 1)
 	if block.kind == "rare" then

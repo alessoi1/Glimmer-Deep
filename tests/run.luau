@@ -111,6 +111,21 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/HouseMessages.spec")
 	end,
+	function()
+		require("./specs/Guests.spec")
+	end,
+	function()
+		require("./specs/GuestMessages.spec")
+	end,
+	function()
+		require("./specs/Prestige.spec")
+	end,
+	function()
+		require("./specs/RebirthReset.spec")
+	end,
+	function()
+		require("./specs/RebirthMessages.spec")
+	end,
 }
 
 local passed = 0
