@@ -1,14 +1,11 @@
 --!strict
 -- Boosters bought as Developer Products: registers their bonuses, opens the
--- purchase prompt, confirms receipts (ProcessReceipt) and hands restricted
--- players a free run of the luck booster instead of the paid one.
--- Purchases happen only through MarketplaceService; the client only says which
--- offer it wants to look at. A receipt is confirmed only after the profile was
--- saved, and a repeated receipt never grants twice. Only checkable in Roblox
--- Studio.
+-- purchase prompt, handles their receipts (the ReceiptService confirms them)
+-- and hands restricted players a free run of the luck booster instead of the
+-- paid one. Purchases happen only through MarketplaceService; the client only
+-- says which offer it wants to look at. Only checkable in Roblox Studio.
 
 local MarketplaceService = game:GetService("MarketplaceService")
-local PolicyService = game:GetService("PolicyService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -24,7 +21,9 @@ local DigConfig = require(Config:WaitForChild("Dig"))
 local DataService = require(script.Parent:WaitForChild("DataService"))
 local DigRules = require(script.Parent:WaitForChild("DigRules"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
+local PaidRandomPolicy = require(script.Parent:WaitForChild("PaidRandomPolicy"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
+local ReceiptService = require(script.Parent:WaitForChild("ReceiptService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 
 local log = Log.new("Boosters")
@@ -36,21 +35,19 @@ local ACTION_COOLDOWN = 1 -- seconds between two offers or claims per player
 local config: Boosters.Config = BoosterConfig
 local digRollConfig: DigRoll.Config
 local lastActionAt: { [Player]: number } = {}
--- true = PolicyService restricts paid random items. nil = not known yet; treated
--- as restricted, so a paid random item is never offered by mistake.
-local restricted: { [Player]: boolean } = {}
 local rejects: RejectLimiter.Limiter
 local boosterResult: RemoteEvent
 local started = false
 
-local function isRestricted(player: Player): boolean
-	return restricted[player] ~= false
-end
-
 local function snapshotFor(player: Player, profile: ProfileData.Profile): Boosters.Snapshot
 	local now = os.time()
-	local view =
-		Boosters.view(profile.boosters, config, now, Onboarding.isDone(profile.onboarding), isRestricted(player))
+	local view = Boosters.view(
+		profile.boosters,
+		config,
+		now,
+		Onboarding.isDone(profile.onboarding),
+		PaidRandomPolicy.isRestricted(player)
+	)
 	local luckBoosterId = config.freeClaim.boosterId
 	local luckBonus = config.boosters[luckBoosterId].effect.luckBonus or 0
 	local currentLuck = ModifierService.get(profile).luck
@@ -108,7 +105,7 @@ local function handleOffer(player: Player, boosterId: any, ...: any)
 		return
 	end
 	-- Paid random items are never offered to restricted players.
-	if def.paidRandom and isRestricted(player) then
+	if def.paidRandom and PaidRandomPolicy.isRestricted(player) then
 		rejects.reject(player.UserId, remote, "restricted")
 		reply(player, profile, false, "not_available")
 		return
@@ -145,7 +142,8 @@ local function handleFree(player: Player, ...: any)
 	end
 	-- The free run is only for players known to be restricted; an unknown policy
 	-- gets no free run (and no paid random item either).
-	local ok, reason = Boosters.claimFree(profile.boosters, config, restricted[player] == true, os.time())
+	local ok, reason =
+		Boosters.claimFree(profile.boosters, config, PaidRandomPolicy.isKnownRestricted(player), os.time())
 	if not ok then
 		rejects.reject(player.UserId, remote, reason or "not_available")
 		reply(player, profile, false, if reason == "cooldown" then "cooldown" else "not_available")
@@ -155,63 +153,11 @@ local function handleFree(player: Player, ...: any)
 	reply(player, profile, true, nil)
 end
 
--- Roblox calls this for every purchase of a Developer Product, again and again
--- until PurchaseGranted comes back. Never errors out: an error counts as not
--- processed.
-local function processReceipt(info: any): Enum.ProductPurchaseDecision
-	local notYet = Enum.ProductPurchaseDecision.NotProcessedYet
-	local userId = info.PlayerId
-	local purchaseId = info.PurchaseId
-	local productId = info.ProductId
-	local player = if type(userId) == "number" then Players:GetPlayerByUserId(userId) else nil
-	if player == nil then
-		-- The player left; Roblox asks again when they come back.
-		log.info("receipt for an absent player", { userId = userId, productId = productId })
-		return notYet
+local function handleReceipt(profile: ProfileData.Profile, info: ReceiptService.Info): ReceiptService.Outcome?
+	if Boosters.keyOfProduct(config, info.productId) == nil then
+		return nil
 	end
-	local profile = DataService.getData(player)
-	if profile == nil then
-		log.warn("receipt before the profile is loaded", { userId = userId, productId = productId })
-		return notYet
-	end
-
-	local outcome = Boosters.processReceipt(profile.boosters, config, purchaseId, productId, os.time())
-	if outcome == "unknown_product" or outcome == "bad_receipt" then
-		log.error("receipt cannot be processed", { userId = userId, productId = productId, outcome = outcome })
-		return notYet
-	end
-	log.info(
-		"receipt processed",
-		{ userId = userId, productId = productId, purchaseId = purchaseId, outcome = outcome }
-	)
-
-	-- Confirm only when the grant is on disk. A repeated receipt saves again, so a
-	-- failed first save is retried by Roblox's next call.
-	if not DataService.saveNow(player) then
-		log.error("receipt not confirmed, save failed", { userId = userId, purchaseId = purchaseId })
-		return notYet
-	end
-	if outcome == "granted" and player.Parent == Players then
-		reply(player, profile, true, nil)
-	end
-	return Enum.ProductPurchaseDecision.PurchaseGranted
-end
-
-local function loadPolicy(player: Player)
-	local ok, info = pcall(function()
-		return PolicyService:GetPolicyInfoForPlayerAsync(player)
-	end)
-	if not ok then
-		-- Stays "unknown", which counts as restricted.
-		log.warn("policy lookup failed", { userId = player.UserId, error = tostring(info) })
-		return
-	end
-	restricted[player] = info.ArePaidRandomItemsRestricted == true
-	log.info("policy known", { userId = player.UserId, paidRandomRestricted = restricted[player] })
-	local profile = DataService.getData(player)
-	if profile ~= nil and player.Parent == Players then
-		reply(player, profile, true, nil)
-	end
+	return Boosters.processReceipt(profile.boosters, config, info.purchaseId, info.productId, os.time())
 end
 
 function BoosterService.start()
@@ -248,13 +194,21 @@ function BoosterService.start()
 		return snapshotFor(player, profile)
 	end
 
-	MarketplaceService.ProcessReceipt = processReceipt
-	DataService.onLoaded(function(player: Player, _profile: ProfileData.Profile)
-		task.spawn(loadPolicy, player)
+	ReceiptService.register({
+		name = "boosters",
+		handle = handleReceipt,
+		onGranted = function(player: Player, profile: ProfileData.Profile)
+			reply(player, profile, true, nil)
+		end,
+	})
+	PaidRandomPolicy.onKnown(function(player: Player)
+		local profile = DataService.getData(player)
+		if profile ~= nil then
+			reply(player, profile, true, nil)
+		end
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		lastActionAt[player] = nil
-		restricted[player] = nil
 		rejects.forget(player.UserId)
 	end)
 

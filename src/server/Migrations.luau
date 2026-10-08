@@ -16,6 +16,7 @@
 --   6 -> 7: daily quests and login chain (not started).
 --   7 -> 8: owned game passes (none).
 --   8 -> 9: boosters (none running), remembered purchase ids and the free claim time.
+--   9 -> 10: pets (no pets, no eggs, guarantee counter at 0).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -77,6 +78,10 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	end,
 	function(data)
 		data.boosters = { expires = {}, receipts = {}, freeClaimedAt = 0 }
+		return data
+	end,
+	function(data)
+		data.pets = { owned = {}, nextId = 1, equipped = {}, eggs = 0, sinceRare = 0, freeEggAt = 0, receipts = {} }
 		return data
 	end,
 }

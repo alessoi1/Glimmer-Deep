@@ -46,6 +46,16 @@ export type BoosterState = {
 	freeClaimedAt: number, -- server time of the last free claim, 0 = never
 }
 
+export type PetState = {
+	owned: { { id: number, petId: string } },
+	nextId: number,
+	equipped: { number },
+	eggs: number,
+	sinceRare: number,
+	freeEggAt: number,
+	receipts: { string },
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -63,6 +73,7 @@ export type Profile = {
 	login: Login,
 	passes: { [string]: boolean }, -- game pass key -> true while owned (verified by the server)
 	boosters: BoosterState,
+	pets: PetState,
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -140,6 +151,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		login = { lastDay = 0, streak = 0, claimed = true },
 		passes = {},
 		boosters = { expires = {}, receipts = {}, freeClaimedAt = 0 },
+		pets = { owned = {}, nextId = 1, equipped = {}, eggs = 0, sinceRare = 0, freeEggAt = 0, receipts = {} },
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
@@ -380,6 +392,47 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	for index, purchaseId in boosters.receipts do
 		if type(index) ~= "number" or type(purchaseId) ~= "string" or purchaseId == "" then
 			return false, "boosters.receipts must be a list of non-empty strings"
+		end
+	end
+
+	local pets = profile.pets
+	if type(pets) ~= "table" or type(pets.owned) ~= "table" or type(pets.equipped) ~= "table" then
+		return false, "pets needs owned and equipped lists"
+	end
+	for _, field in { "eggs", "sinceRare", "freeEggAt" } do
+		if not isNonNegativeInteger(pets[field]) then
+			return false, string.format("pets.%s must be a non-negative integer", field)
+		end
+	end
+	if not isInteger(pets.nextId) or pets.nextId < 1 then
+		return false, "pets.nextId must be a positive integer"
+	end
+	local ownedIds: { [number]: boolean } = {}
+	for index, pet in pets.owned do
+		if type(pet) ~= "table" or not isInteger(pet.id) or pet.id < 1 or type(pet.petId) ~= "string" then
+			return false, string.format("pets.owned[%d] needs a positive integer id and a string petId", index)
+		end
+		if ownedIds[pet.id] then
+			return false, string.format("pets.owned[%d] has a duplicate id %d", index, pet.id)
+		end
+		if pet.id >= pets.nextId then
+			return false, "pets.nextId must be higher than every pet id"
+		end
+		ownedIds[pet.id] = true
+	end
+	local equippedIds: { [number]: boolean } = {}
+	for index, instanceId in pets.equipped do
+		if not isInteger(instanceId) or not ownedIds[instanceId] or equippedIds[instanceId] then
+			return false, string.format("pets.equipped[%d] must be an owned pet, listed once", index)
+		end
+		equippedIds[instanceId] = true
+	end
+	if type(pets.receipts) ~= "table" then
+		return false, "pets.receipts must be a list"
+	end
+	for _, purchaseId in pets.receipts do
+		if type(purchaseId) ~= "string" or purchaseId == "" then
+			return false, "pets.receipts must be a list of non-empty strings"
 		end
 	end
 
