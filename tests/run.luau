@@ -78,6 +78,15 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/UpgradeEffects.spec")
 	end,
+	function()
+		require("./specs/Quests.spec")
+	end,
+	function()
+		require("./specs/LoginChain.spec")
+	end,
+	function()
+		require("./specs/QuestMessages.spec")
+	end,
 }
 
 local passed = 0

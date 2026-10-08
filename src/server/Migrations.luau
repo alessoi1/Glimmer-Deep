@@ -13,6 +13,7 @@
 --           counts from the profile creation, which pays nothing without finds).
 --   4 -> 5: depot (offline yield), digger (absence time) and digger level 1.
 --   5 -> 6: skill levels (strong_arms, ore_finder, cable_winch, lamp) at level 1.
+--   6 -> 7: daily quests and login chain (not started).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -61,6 +62,11 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 				data.upgradeLevels[skillId] = 1
 			end
 		end
+		return data
+	end,
+	function(data)
+		data.quests = { day = 0, ids = {}, progress = {}, claimed = {}, bonusClaimed = false }
+		data.login = { lastDay = 0, streak = 0, claimed = true }
 		return data
 	end,
 }

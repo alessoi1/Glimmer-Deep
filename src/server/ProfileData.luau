@@ -28,6 +28,16 @@ export type Museum = {
 	weekAdmires: number,
 }
 
+export type QuestState = {
+	day: number,
+	ids: { string },
+	progress: { [string]: number },
+	claimed: { [string]: boolean },
+	bonusClaimed: boolean,
+}
+
+export type Login = { lastDay: number, streak: number, claimed: boolean }
+
 export type Onboarding = { step: number, firstFindGiven: boolean }
 
 export type Profile = {
@@ -43,6 +53,8 @@ export type Profile = {
 	museum: Museum,
 	depot: Stash, -- offline yield, sold together with the backpack
 	digger: { leftAt: number? }, -- server time the player left; nil while playing
+	quests: QuestState,
+	login: Login,
 	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
@@ -62,6 +74,7 @@ export type Rules = {
 	layerIds: { string },
 	onboardingMaxStep: number,
 	museumSlotsByHouseLevel: { number }, -- showcases per house level; its length is the highest house level
+	loginChainLength: number,
 }
 
 -- Upper bound for layer seeds (fits a 32-bit signed integer).
@@ -115,6 +128,8 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		house = { level = 1 },
 		depot = { ores = {}, finds = {} },
 		digger = {},
+		quests = { day = 0, ids = {}, progress = {}, claimed = {}, bonusClaimed = false },
+		login = { lastDay = 0, streak = 0, claimed = true },
 		museum = { displays = {}, incomeSince = now, admires = 0, week = 0, weekAdmires = 0 },
 		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
@@ -291,6 +306,44 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	local digger = profile.digger
 	if type(digger) ~= "table" or (digger.leftAt ~= nil and not isNonNegativeInteger(digger.leftAt)) then
 		return false, "digger.leftAt must be a non-negative integer when set"
+	end
+
+	local quests = profile.quests
+	if
+		type(quests) ~= "table"
+		or not isNonNegativeInteger(quests.day)
+		or type(quests.ids) ~= "table"
+		or type(quests.progress) ~= "table"
+		or type(quests.claimed) ~= "table"
+		or type(quests.bonusClaimed) ~= "boolean"
+	then
+		return false, "quests needs day, ids, progress, claimed and bonusClaimed"
+	end
+	for _, questId in quests.ids do
+		if type(questId) ~= "string" then
+			return false, "quests.ids must be strings"
+		end
+	end
+	for questId, amount in quests.progress do
+		if type(questId) ~= "string" or not isNonNegativeInteger(amount) then
+			return false, "quests.progress needs non-negative integers per quest id"
+		end
+	end
+	for questId, claimed in quests.claimed do
+		if type(questId) ~= "string" or claimed ~= true then
+			return false, "quests.claimed needs true per quest id"
+		end
+	end
+
+	local login = profile.login
+	if
+		type(login) ~= "table"
+		or not isNonNegativeInteger(login.lastDay)
+		or not isNonNegativeInteger(login.streak)
+		or login.streak > rules.loginChainLength
+		or type(login.claimed) ~= "boolean"
+	then
+		return false, string.format("login needs lastDay, a streak from 0 to %d and claimed", rules.loginChainLength)
 	end
 
 	return true, nil

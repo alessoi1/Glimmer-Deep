@@ -24,6 +24,10 @@ local Remotes = {
 		museumCollect = "MuseumCollect", -- client -> server event: collect the visitor income
 		museumResult = "MuseumResult", -- server -> client event: outcome, message data and new view
 		getMuseum = "GetMuseum", -- client -> server function: own museum view, nil while loading
+		getQuests = "GetQuests", -- client -> server function: quest view, nil while loading
+		questClaim = "QuestClaim", -- client -> server event: (kind "quest" | "bonus" | "login", quest id)
+		questResult = "QuestResult", -- server -> client event: outcome, new view and state
+		questDone = "QuestDone", -- server -> client event: ids of quests that were just completed
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},
 }

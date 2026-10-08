@@ -30,6 +30,7 @@ function ProfileRules.build(): ProfileData.Rules
 		startDepth = profileConfig.startDepth,
 		museumSlotsByHouseLevel = require(Config:WaitForChild("Museum")).slotsByHouseLevel,
 		onboardingMaxStep = require(Shared:WaitForChild("Onboarding")).maxStep,
+		loginChainLength = #require(Config:WaitForChild("Quests")).login.rewards,
 	})
 end
 

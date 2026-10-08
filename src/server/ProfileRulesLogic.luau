@@ -13,6 +13,7 @@ export type Input = {
 	startDepth: number,
 	onboardingMaxStep: number,
 	museumSlotsByHouseLevel: { number },
+	loginChainLength: number,
 }
 
 local ProfileRulesLogic = {}
@@ -30,6 +31,7 @@ function ProfileRulesLogic.build(input: Input): ProfileData.Rules
 		layerIds = layerIds,
 		onboardingMaxStep = input.onboardingMaxStep,
 		museumSlotsByHouseLevel = input.museumSlotsByHouseLevel,
+		loginChainLength = input.loginChainLength,
 	}
 end
 

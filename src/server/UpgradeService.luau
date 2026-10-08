@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Log = require(Shared:WaitForChild("Log"))
+local Quests = require(Shared:WaitForChild("Quests"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local UpgradeAction = require(Shared:WaitForChild("UpgradeAction"))
 local UpgradeEffects = require(Shared:WaitForChild("UpgradeEffects"))
@@ -19,6 +20,7 @@ local DigService = require(script.Parent:WaitForChild("DigService"))
 local ModifierService = require(script.Parent:WaitForChild("ModifierService"))
 local MovementService = require(script.Parent:WaitForChild("MovementService"))
 local ProfileData = require(script.Parent:WaitForChild("ProfileData"))
+local QuestService = require(script.Parent:WaitForChild("QuestService"))
 local RejectLimiter = require(script.Parent:WaitForChild("RejectLimiter"))
 local UpgradeRules = require(script.Parent:WaitForChild("UpgradeRules"))
 
@@ -82,6 +84,7 @@ local function handleBuy(player: Player, upgradeId: any, ...: any)
 	end
 
 	MovementService.refresh(player)
+	QuestService.record(player, Quests.events.upgraded, 1)
 	log.info("upgrade bought", {
 		userId = player.UserId,
 		upgradeId = upgradeId,
