@@ -5,6 +5,7 @@
 -- The hole is stored as depth plus one seed per layer, never as blocks.
 
 export type Find = {
+	id: number, -- unique within the profile
 	findId: string,
 	layerId: string,
 	rarityId: string,
@@ -12,13 +13,18 @@ export type Find = {
 	value: number,
 }
 
+export type Onboarding = { step: number, firstFindGiven: boolean }
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
 	coins: number,
+	nextFindId: number, -- next free find id
 	upgradeLevels: { [string]: number }, -- upgrade id -> level, starting at 1
 	depth: number, -- meters
 	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape
+	onboarding: Onboarding,
+	stats: { blocksDug: number },
 	backpack: {
 		ores: { [string]: number },
 		finds: { Find },
@@ -35,6 +41,7 @@ export type Rules = {
 	startDepth: number,
 	levelCounts: { [string]: number }, -- upgrade id -> number of levels
 	layerIds: { string },
+	onboardingMaxStep: number,
 }
 
 -- Upper bound for layer seeds (fits a 32-bit signed integer).
@@ -80,9 +87,12 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		version = rules.version,
 		createdAt = now,
 		coins = rules.startCoins,
+		nextFindId = 1,
 		upgradeLevels = upgradeLevels,
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
+		onboarding = { step = 1, firstFindGiven = false },
+		stats = { blocksDug = 0 },
 		backpack = { ores = {}, finds = {} },
 	}
 end
@@ -91,6 +101,9 @@ local function validateFind(find: any, index: number): (boolean, string?)
 	local label = string.format("backpack.finds[%d]", index)
 	if type(find) ~= "table" then
 		return false, label .. " must be a table"
+	end
+	if not isInteger(find.id) or find.id < 1 then
+		return false, label .. " needs a positive integer id"
 	end
 	if type(find.findId) ~= "string" or type(find.layerId) ~= "string" or type(find.rarityId) ~= "string" then
 		return false, label .. " needs string findId, layerId and rarityId"
@@ -143,6 +156,20 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		end
 	end
 
+	local onboarding = profile.onboarding
+	if
+		type(onboarding) ~= "table"
+		or not isInteger(onboarding.step)
+		or onboarding.step < 1
+		or onboarding.step > rules.onboardingMaxStep
+		or type(onboarding.firstFindGiven) ~= "boolean"
+	then
+		return false, "onboarding needs an integer step in range and a boolean firstFindGiven"
+	end
+	if type(profile.stats) ~= "table" or not isNonNegativeInteger(profile.stats.blocksDug) then
+		return false, "stats.blocksDug must be a non-negative integer"
+	end
+
 	if type(profile.backpack) ~= "table" then
 		return false, "backpack must be a table"
 	end
@@ -157,10 +184,21 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	if type(profile.backpack.finds) ~= "table" then
 		return false, "backpack.finds must be a table"
 	end
+	if not isInteger(profile.nextFindId) or profile.nextFindId < 1 then
+		return false, "nextFindId must be a positive integer"
+	end
+	local seenIds: { [number]: boolean } = {}
 	for index, find in profile.backpack.finds do
 		local ok, reason = validateFind(find, index)
 		if not ok then
 			return false, reason
+		end
+		if seenIds[find.id] then
+			return false, string.format("backpack.finds[%d] has a duplicate id %d", index, find.id)
+		end
+		seenIds[find.id] = true
+		if find.id >= profile.nextFindId then
+			return false, "nextFindId must be higher than every find id"
 		end
 	end
 

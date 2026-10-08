@@ -1,29 +1,16 @@
 --!strict
-local BackpackConfig = require("../../src/shared/Config/Backpack")
 local Framework = require("../Framework")
-local Layers = require("../../src/shared/Config/Layers")
 local Migrations = require("../../src/server/Migrations")
-local ProfileConfig = require("../../src/shared/Config/Profile")
 local ProfileData = require("../../src/server/ProfileData")
-local ShovelConfig = require("../../src/shared/Config/Shovel")
+local TestRules = require("../TestRules")
 
 local test = Framework.test
 local assertTrue = Framework.assertTrue
 local assertEquals = Framework.assertEquals
 local assertDeepEquals = Framework.assertDeepEquals
 
-local layerIds = {}
-for _, layer in Layers do
-	table.insert(layerIds, layer.id)
-end
-
-local rules: ProfileData.Rules = {
-	version = ProfileData.currentVersion(Migrations),
-	startCoins = ProfileConfig.startCoins,
-	startDepth = ProfileConfig.startDepth,
-	levelCounts = { shovel = #ShovelConfig.levels, backpack = #BackpackConfig.levels },
-	layerIds = layerIds,
-}
+local rules = TestRules
+local layerIds = rules.layerIds
 
 local function fresh(): ProfileData.Profile
 	return ProfileData.new(rules, Framework.seededRng(1), 1700000000)
@@ -55,8 +42,8 @@ test("a new profile has the starting values and is valid", function()
 	local profile = fresh()
 	assertEquals(profile.version, rules.version)
 	assertEquals(profile.createdAt, 1700000000)
-	assertEquals(profile.coins, ProfileConfig.startCoins)
-	assertEquals(profile.depth, ProfileConfig.startDepth)
+	assertEquals(profile.coins, rules.startCoins)
+	assertEquals(profile.depth, rules.startDepth)
 	assertEquals(profile.upgradeLevels.shovel, 1)
 	assertEquals(profile.upgradeLevels.backpack, 1)
 	assertEquals(next(profile.backpack.ores), nil)
@@ -173,6 +160,93 @@ test("validate rejects bad backpack contents", function()
 	end, "find")
 end)
 
+test("validate rejects bad find ids and a stale next id", function()
+	local function find(id: any): any
+		return { id = id, findId = "shard", layerId = "sand_clay", rarityId = "common", value = 10 }
+	end
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(nil))
+		p.nextFindId = 2
+	end, "find")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(0))
+		p.nextFindId = 2
+	end, "find")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(1.5))
+		p.nextFindId = 3
+	end, "find")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(1))
+		table.insert(p.backpack.finds, find(1))
+		p.nextFindId = 2
+	end, "duplicate")
+	expectInvalid(function(p)
+		table.insert(p.backpack.finds, find(5))
+		p.nextFindId = 5
+	end, "nextFindId")
+	expectInvalid(function(p)
+		p.nextFindId = 0
+	end, "nextFindId")
+end)
+
+test("a new profile starts the onboarding and the stats", function()
+	local profile = fresh()
+	assertEquals(profile.onboarding.step, 1)
+	assertEquals(profile.onboarding.firstFindGiven, false)
+	assertEquals(profile.stats.blocksDug, 0)
+end)
+
+test("validate rejects bad onboarding and stats", function()
+	expectInvalid(function(p)
+		p.onboarding = nil
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.onboarding.step = 0
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.onboarding.step = rules.onboardingMaxStep + 1
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.onboarding.firstFindGiven = "yes"
+	end, "onboarding")
+	expectInvalid(function(p)
+		p.stats = nil
+	end, "stats")
+	expectInvalid(function(p)
+		p.stats.blocksDug = -1
+	end, "blocksDug")
+end)
+
+test("migrating a version 2 profile with progress skips the onboarding", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.onboarding.step, rules.onboardingMaxStep)
+	assertEquals(migrated.onboarding.firstFindGiven, true)
+	assertEquals(migrated.stats.blocksDug, 0)
+end)
+
+test("migrating an untouched profile keeps the onboarding at the start", function()
+	local fixture = version1Fixture()
+	fixture.coins = 0
+	fixture.depth = 0
+	fixture.backpack = { ores = {}, finds = {} }
+	local migrated = ProfileData.migrate(fixture, Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.onboarding.step, 1)
+	assertEquals(migrated.onboarding.firstFindGiven, false)
+end)
+
+test("a new profile starts the find ids at 1", function()
+	assertEquals(fresh().nextFindId, 1)
+end)
+
 test("validate rejects a wrong version and a bad creation time", function()
 	expectInvalid(function(p)
 		p.version = rules.version + 1
@@ -221,6 +295,30 @@ test("the frozen version 1 profile migrates to the current version and validates
 	assertEquals(migrated.coins, 250)
 	assertEquals(migrated.upgradeLevels.shovel, 3)
 	assertEquals(migrated.backpack.finds[1].value, 2500)
+end)
+
+test("migrating version 1 gives stored finds unique ids and sets the next id", function()
+	local migrated = ProfileData.migrate(version1Fixture(), Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.backpack.finds[1].id, 1)
+	assertEquals(migrated.backpack.finds[2].id, 2)
+	assertEquals(migrated.nextFindId, 3)
+end)
+
+test("migrating a version 1 profile without finds starts the ids at 1", function()
+	local fixture = version1Fixture()
+	fixture.backpack.finds = {}
+	local migrated = ProfileData.migrate(fixture, Migrations)
+	assertTrue(migrated ~= nil)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.nextFindId, 1)
+	local ok, reason = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, reason)
 end)
 
 test("migrate applies every step from the stored version up", function()

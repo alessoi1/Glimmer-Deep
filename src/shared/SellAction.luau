@@ -3,12 +3,14 @@
 -- pays the coins into the profile. No Roblox services and no logging; the
 -- SellService decides who may sell and logs the outcome. Server-side only use.
 
+local Onboarding = require("./Onboarding")
 local Selling = require("./Selling")
 
 -- Structural subset of ProfileData.Profile (the profile is changed in place).
 export type SellerProfile = {
 	coins: number,
 	backpack: Selling.Sellable,
+	onboarding: Onboarding.State,
 }
 
 export type FailureReason = "empty"
@@ -41,6 +43,7 @@ function SellAction.perform(profile: SellerProfile, oreValues: Selling.OreValues
 	end
 
 	profile.coins += sale.coins
+	Onboarding.advance(profile.onboarding, "sold")
 	return {
 		ok = true,
 		reason = nil,

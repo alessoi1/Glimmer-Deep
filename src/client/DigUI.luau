@@ -29,6 +29,8 @@ local PANEL_MARGIN = 12
 local PANEL_BOTTOM_TOUCH = 170
 local TEXT_SIZE = 20
 local MESSAGE_SECONDS = 2.5
+local HINT_WIDTH = 300
+local HINT_HEIGHT = 56
 local STATE_RETRY_SECONDS = 0.5
 local HOLD_POLL_SECONDS = 0.05
 local COOLDOWN_SAFETY = 0.95 -- send slightly before the cooldown ends; the server decides
@@ -111,6 +113,23 @@ function DigUI.start()
 	messageLabel.Text = ""
 	messageLabel.Parent = gui
 
+	-- Onboarding hint at the bottom center, between the thumb areas.
+	local hintLabel = Instance.new("TextLabel")
+	hintLabel.BackgroundColor3 = COLOR_PANEL
+	hintLabel.BackgroundTransparency = 0.25
+	hintLabel.AnchorPoint = Vector2.new(0.5, 1)
+	hintLabel.Position = UDim2.new(0.5, 0, 1, -PANEL_MARGIN)
+	hintLabel.Size = UDim2.fromOffset(HINT_WIDTH, HINT_HEIGHT)
+	hintLabel.Font = Enum.Font.GothamMedium
+	hintLabel.TextSize = TEXT_SIZE
+	hintLabel.TextWrapped = true
+	hintLabel.TextColor3 = COLOR_TEXT
+	hintLabel.Text = ""
+	hintLabel.Visible = false
+	hintLabel.Parent = gui
+	local hintCorner = Instance.new("UICorner")
+	hintCorner.Parent = hintLabel
+
 	local button = Instance.new("TextButton")
 	button.AnchorPoint = Vector2.new(1, 1)
 	button.Position = UDim2.new(1, -BUTTON_MARGIN, 1, -BUTTON_MARGIN)
@@ -137,6 +156,9 @@ function DigUI.start()
 		layerLabel.Text =
 			string.format("%s: %s", Strings.dig.layerLabel, DigMessages.layerName(Strings, newState.layerId))
 		backpackLabel.Text = string.format("%s: %d / %d", Strings.dig.backpackLabel, newState.used, newState.capacity)
+		local hint = DigMessages.hint(Strings, newState.onboardingStep)
+		hintLabel.Text = hint
+		hintLabel.Visible = hint ~= ""
 		coinsLabel.Text = string.format("%s: %s", Strings.dig.coinsLabel, SellMessages.formatCoins(newState.coins))
 	end
 

@@ -4,8 +4,34 @@
 --
 -- Every change to the stored profile format needs a new entry here AND a test
 -- in tests/specs/ProfileData.spec.luau (keep the frozen older fixtures migrating).
--- Version 1 is the first format, so there are no migrations yet.
+-- Version 1 is the first format.
+--   1 -> 2: every rare find gets a unique id (needed for museum and trading);
+--           nextFindId is the next free id.
+--   2 -> 3: onboarding progress and stats. Players who already played skip the
+--           onboarding (step 7, first find counted as given).
 
-local migrations: { (data: { [string]: any }) -> { [string]: any } } = {}
+local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
+	function(data)
+		local nextId = 1
+		local backpack = data.backpack
+		if type(backpack) == "table" and type(backpack.finds) == "table" then
+			for _, find in backpack.finds do
+				if type(find) == "table" then
+					find.id = nextId
+					nextId += 1
+				end
+			end
+		end
+		data.nextFindId = nextId
+		return data
+	end,
+	function(data)
+		local played = (type(data.depth) == "number" and data.depth > 0)
+			or (type(data.coins) == "number" and data.coins > 0)
+		data.onboarding = if played then { step = 7, firstFindGiven = true } else { step = 1, firstFindGiven = false }
+		data.stats = { blocksDug = 0 }
+		return data
+	end,
+}
 
 return migrations
