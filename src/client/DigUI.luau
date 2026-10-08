@@ -22,7 +22,7 @@ local log = Log.new("DigUI")
 -- Layout and timing of the interface (not game values).
 local BUTTON_SIZE = 120 -- px, large enough for thumbs on phones
 local BUTTON_MARGIN = 24
-local PANEL_WIDTH = 240
+local PANEL_WIDTH = 300
 local PANEL_MARGIN = 12
 -- On touch devices the left thumb uses the movement stick in the bottom-left
 -- corner, so the panel sits above it.
@@ -79,6 +79,7 @@ function DigUI.start()
 	local digResult = Remotes.event(Remotes.names.digResult)
 	local sellResult = Remotes.event(Remotes.names.sellResult)
 	local upgradeResult = Remotes.event(Remotes.names.upgradeResult)
+	local museumResult = Remotes.event(Remotes.names.museumResult)
 	local getState = Remotes.func(Remotes.names.getDigState)
 
 	local gui = Instance.new("ScreenGui")
@@ -156,6 +157,9 @@ function DigUI.start()
 		layerLabel.Text =
 			string.format("%s: %s", Strings.dig.layerLabel, DigMessages.layerName(Strings, newState.layerId))
 		backpackLabel.Text = string.format("%s: %d / %d", Strings.dig.backpackLabel, newState.used, newState.capacity)
+		if newState.depotUsed > 0 then
+			backpackLabel.Text ..= string.format(" + %s %d", Strings.dig.depotLabel, newState.depotUsed)
+		end
 		local hint = DigMessages.hint(Strings, newState.onboardingStep)
 		hintLabel.Text = hint
 		hintLabel.Visible = hint ~= ""
@@ -240,9 +244,9 @@ function DigUI.start()
 		end
 	end)
 
-	-- A sale or an upgrade changes coins, backpack and cooldown; the sell and
+	-- A sale, an upgrade or a museum action changes coins, backpack and cooldown; the sell and
 	-- upgrade UIs show their own messages.
-	for _, remote in { sellResult, upgradeResult } do
+	for _, remote in { sellResult, upgradeResult, museumResult } do
 		remote.OnClientEvent:Connect(function(payload: { state: DigAction.State? })
 			if type(payload) == "table" and type(payload.state) == "table" then
 				applyState(payload.state)

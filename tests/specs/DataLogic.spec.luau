@@ -21,7 +21,7 @@ end
 local function validProfile(): { [string]: any }
 	local profile: any = ProfileData.new(rules, Framework.seededRng(3), NOW - 100)
 	profile.coins = 40
-	profile.upgradeLevels = { shovel = 2, backpack = 1 }
+	profile.upgradeLevels.shovel = 2
 	profile.depth = 12.5
 	profile.backpack = { ores = { coal = 2 }, finds = {} }
 	return profile

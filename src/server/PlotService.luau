@@ -20,6 +20,9 @@ local PlotService = {}
 
 local allocator: PlotLogic.Allocator = PlotLogic.newAllocator(PlotConfig.count)
 local spawns: { [number]: SpawnLocation } = {}
+local models: { [number]: Model } = {}
+local assignedListeners: { (player: Player, slot: number) -> () } = {}
+local releasedListeners: { (userId: number, slot: number) -> () } = {}
 local shaftCenters: { [number]: Vector3 } = {} -- plot index -> shaft center at ground height
 local sellPositions: { [number]: Vector3 } = {} -- plot index -> sell point center
 local started = false
@@ -84,6 +87,7 @@ local function buildPlot(slot: PlotLogic.Slot, parent: Instance)
 	sign.Text = Strings.sell.pointLabel
 	sign.Parent = billboard
 
+	models[slot.index] = model
 	model.Parent = parent
 end
 
@@ -123,12 +127,24 @@ local function assignPlot(player: Player)
 	player.RespawnLocation = spawns[slot]
 	log.info("plot assigned", { userId = userId, plot = slot, free = allocator.freeCount() })
 	task.spawn(spawnCharacter, player)
+	for _, listener in assignedListeners do
+		local ok, err = pcall(listener, player, slot)
+		if not ok then
+			log.error("assigned listener failed", { userId = userId, error = tostring(err) })
+		end
+	end
 end
 
 local function releasePlot(player: Player)
 	local slot = allocator.release(player.UserId)
 	if slot ~= nil then
 		log.info("plot released", { userId = player.UserId, plot = slot, free = allocator.freeCount() })
+		for _, listener in releasedListeners do
+			local ok, err = pcall(listener, player.UserId, slot)
+			if not ok then
+				log.error("released listener failed", { userId = player.UserId, error = tostring(err) })
+			end
+		end
 	end
 end
 
@@ -140,6 +156,39 @@ function PlotService.getShaftPosition(player: Player): Vector3?
 		return nil
 	end
 	return shaftCenters[slot]
+end
+
+-- Number of the plot owned by the player, or nil.
+function PlotService.getSlotOf(player: Player): number?
+	return allocator.slotOf(player.UserId)
+end
+
+-- User id of the owner of plot `slot`, or nil when the plot is free.
+function PlotService.getOwnerId(slot: number): number?
+	return allocator.ownerOf(slot)
+end
+
+-- Number of plots on this server.
+function PlotService.getSlotCount(): number
+	return PlotConfig.count
+end
+
+-- Model and shaft center (ground height) of a plot, whether it is taken or not.
+function PlotService.getModel(slot: number): Model?
+	return models[slot]
+end
+
+function PlotService.getPlotCenter(slot: number): Vector3?
+	return shaftCenters[slot]
+end
+
+-- Called after a player got a plot / after a player's plot was released.
+function PlotService.onAssigned(listener: (player: Player, slot: number) -> ())
+	table.insert(assignedListeners, listener)
+end
+
+function PlotService.onReleased(listener: (userId: number, slot: number) -> ())
+	table.insert(releasedListeners, listener)
 end
 
 -- Center of the sell point on the plot owned by the player, or nil when the

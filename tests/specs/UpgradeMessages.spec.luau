@@ -12,6 +12,7 @@ local strings: UpgradeMessages.Strings = {
 		offer = "%s: %s (%s Münzen)",
 		maxed = "%s: Maximal",
 		capacity = "%d Plätze",
+		blocksPerHour = "%d Blöcke/Std",
 		level = "Stufe %d",
 		bought = "Verbessert: %s",
 		notEnoughCoins = "Nicht genug Münzen",
@@ -36,6 +37,12 @@ end)
 test("a backpack offer names the capacity", function()
 	local text = UpgradeMessages.describeOffer(strings, entry({ id = "backpack", nextPrice = 150, nextCapacity = 100 }))
 	assertEquals(text, "Rucksack: 100 Plätze (150 Münzen)")
+end)
+
+test("a digger offer names the blocks per hour", function()
+	local text =
+		UpgradeMessages.describeOffer(strings, entry({ id = "digger", nextPrice = 500, nextBlocksPerHour = 120 }))
+	assertEquals(text, "digger: 120 Blöcke/Std (500 Münzen)")
 end)
 
 test("an offer without details falls back to the level", function()

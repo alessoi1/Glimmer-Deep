@@ -18,6 +18,7 @@ export type DiggerProfile = {
 	nextFindId: number,
 	onboarding: Onboarding.State,
 	stats: { blocksDug: number },
+	depot: { ores: { [string]: number }, finds: { Backpack.Find } },
 	upgradeLevels: { [string]: number },
 	backpack: {
 		ores: { [string]: number },
@@ -30,6 +31,14 @@ export type OnboardingParams = {
 	firstFindMutation: string,
 }
 
+-- Bonuses from the player (see Modifiers.Result, which fits this type). All 1 when absent.
+export type DigModifiers = {
+	luck: number,
+	rareFindMultiplier: number,
+	speedMultiplier: number,
+	capacityMultiplier: number,
+}
+
 export type Params = {
 	profile: DiggerProfile,
 	digConfig: DigRoll.Config,
@@ -38,6 +47,7 @@ export type Params = {
 	backpackLevels: { Backpack.LevelDef },
 	metersPerBlock: number,
 	onboarding: OnboardingParams,
+	modifiers: DigModifiers?,
 	lastDigAt: number?, -- server time of the last accepted dig, nil for the first
 	now: number, -- server time in seconds (sub-second precision)
 	rng: Rng,
@@ -61,6 +71,7 @@ export type SnapshotParams = {
 	digConfig: DigRoll.Config,
 	shovelLevels: { Shovel.LevelDef },
 	backpackLevels: { Backpack.LevelDef },
+	modifiers: DigModifiers?,
 }
 
 -- What the client needs to show: it never computes game values itself.
@@ -72,6 +83,7 @@ export type State = {
 	capacity: number,
 	digCooldown: number, -- seconds between digs with the current shovel
 	onboardingStep: number,
+	depotUsed: number, -- items in the depot (offline yield)
 }
 
 local SHOVEL_UPGRADE = "shovel"
@@ -81,10 +93,15 @@ local DigAction = {}
 
 function DigAction.perform(params: Params): Result
 	local profile = params.profile
+	local bonus = params.modifiers
 
 	-- Shares the profile's tables, so adding a block changes the profile.
 	local backpack: Backpack.Backpack = {
-		capacity = Backpack.capacityForLevel(params.backpackLevels, profile.upgradeLevels[BACKPACK_UPGRADE]),
+		capacity = Backpack.capacityForLevel(
+			params.backpackLevels,
+			profile.upgradeLevels[BACKPACK_UPGRADE],
+			if bonus then bonus.capacityMultiplier else nil
+		),
 		ores = profile.backpack.ores,
 		finds = profile.backpack.finds,
 	}
@@ -100,7 +117,11 @@ function DigAction.perform(params: Params): Result
 		}
 	end
 
-	local cooldown = Shovel.getDigCooldown(params.shovelLevels, profile.upgradeLevels[SHOVEL_UPGRADE])
+	local cooldown = Shovel.getDigCooldown(
+		params.shovelLevels,
+		profile.upgradeLevels[SHOVEL_UPGRADE],
+		if bonus then bonus.speedMultiplier else nil
+	)
 	if not Shovel.isReady(params.lastDigAt, params.now, cooldown, params.cooldownTolerance) then
 		return result(false, "cooldown", nil)
 	end
@@ -115,6 +136,8 @@ function DigAction.perform(params: Params): Result
 		and profile.stats.blocksDug + 1 >= params.onboarding.firstFindAfterBlocks
 	local block = DigRoll.rollBlock(params.digConfig, params.rng, {
 		depth = profile.depth,
+		luck = if bonus then bonus.luck else nil,
+		rareFindBonus = if bonus then bonus.rareFindMultiplier else nil,
 		guaranteedRare = if guaranteeFirstFind then true else nil,
 		guaranteedMutation = if guaranteeFirstFind then params.onboarding.firstFindMutation else nil,
 	})
@@ -141,8 +164,17 @@ end
 -- Read-only view of the digger's current state.
 function DigAction.snapshot(params: SnapshotParams): State
 	local profile = params.profile
+	local bonus = params.modifiers
+	local depotUsed = #profile.depot.finds
+	for _, count in profile.depot.ores do
+		depotUsed += count
+	end
 	local backpack: Backpack.Backpack = {
-		capacity = Backpack.capacityForLevel(params.backpackLevels, profile.upgradeLevels[BACKPACK_UPGRADE]),
+		capacity = Backpack.capacityForLevel(
+			params.backpackLevels,
+			profile.upgradeLevels[BACKPACK_UPGRADE],
+			if bonus then bonus.capacityMultiplier else nil
+		),
 		ores = profile.backpack.ores,
 		finds = profile.backpack.finds,
 	}
@@ -152,8 +184,13 @@ function DigAction.snapshot(params: SnapshotParams): State
 		layerId = DigRoll.getLayer(params.digConfig, profile.depth).id,
 		used = Backpack.getUsed(backpack),
 		capacity = backpack.capacity,
-		digCooldown = Shovel.getDigCooldown(params.shovelLevels, profile.upgradeLevels[SHOVEL_UPGRADE]),
+		digCooldown = Shovel.getDigCooldown(
+			params.shovelLevels,
+			profile.upgradeLevels[SHOVEL_UPGRADE],
+			if bonus then bonus.speedMultiplier else nil
+		),
 		onboardingStep = profile.onboarding.step,
+		depotUsed = depotUsed,
 	}
 end
 

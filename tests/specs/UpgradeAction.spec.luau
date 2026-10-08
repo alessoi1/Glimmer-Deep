@@ -1,5 +1,6 @@
 --!strict
 local BackpackConfig = require("../../src/shared/Config/Backpack")
+local DiggerConfig = require("../../src/shared/Config/Digger")
 local Framework = require("../Framework")
 local ShovelConfig = require("../../src/shared/Config/Shovel")
 local Onboarding = require("../../src/shared/Onboarding")
@@ -14,10 +15,11 @@ local assertEquals = Framework.assertEquals
 local tracks: UpgradeAction.Tracks = {
 	shovel = { levels = ShovelConfig.levels },
 	backpack = { levels = BackpackConfig.levels },
+	digger = { levels = DiggerConfig.levels },
 }
 
 local function profile(coins: number): UpgradeAction.UpgraderProfile
-	return { coins = coins, upgradeLevels = { shovel = 1, backpack = 1 }, onboarding = Onboarding.new() }
+	return { coins = coins, upgradeLevels = { shovel = 1, backpack = 1, digger = 1 }, onboarding = Onboarding.new() }
 end
 
 test("the shipped upgrade order names only existing tracks", function()
@@ -116,4 +118,13 @@ test("a purchase moves the onboarding to the museum step, a failed one does not"
 	p.coins = 500
 	UpgradeAction.buy(p, tracks, "shovel")
 	assertEquals(p.onboarding.step, 5)
+end)
+
+test("the digger is an upgrade that shows its next output", function()
+	local p = profile(DiggerConfig.levels[2].price)
+	local entries = UpgradeAction.snapshot(p, tracks, { "digger" })
+	assertEquals(entries[1].nextPrice, DiggerConfig.levels[2].price)
+	assertEquals(entries[1].nextBlocksPerHour, DiggerConfig.levels[2].blocksPerHour)
+	assertTrue(UpgradeAction.buy(p, tracks, "digger").ok)
+	assertEquals(p.upgradeLevels.digger, 2)
 end)

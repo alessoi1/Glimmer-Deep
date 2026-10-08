@@ -10,6 +10,9 @@
 -- admireCooldown: seconds before the same visitor can admire the same museum
 --   again (kept in server memory only).
 -- promptDistance: studs within which the museum prompt is shown.
+-- useDistance: studs within which a player can use the museum panel actions.
+-- actionCooldown: minimum seconds between two museum actions per player.
+-- boardSize: number of museums on the weekly board.
 
 return {
 	slotsByHouseLevel = { 4, 12, 30, 60 },
@@ -19,4 +22,7 @@ return {
 	setLuckBonus = 0.05,
 	admireCooldown = 6 * 3600,
 	promptDistance = 12,
+	useDistance = 24,
+	actionCooldown = 0.3,
+	boardSize = 5,
 }

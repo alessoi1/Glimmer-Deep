@@ -7,6 +7,18 @@
 -- the middle, plus a bottom plate. The plot center is x = 0, z = 0 at ground
 -- surface height y = 0.
 
+export type MuseumLayout = {
+	x: number,
+	z: number,
+	columns: number,
+	spacing: number,
+	vitrineSize: number,
+	vitrineHeight: number,
+	signX: number,
+	signZ: number,
+	signSize: number,
+}
+
 export type Config = {
 	count: number,
 	columns: number,
@@ -19,6 +31,7 @@ export type Config = {
 	spawnHeight: number,
 	sellSize: number,
 	sellHeight: number,
+	museum: MuseumLayout,
 }
 
 -- Offset of a plot center from the first plot center.
@@ -39,6 +52,7 @@ export type Allocator = {
 	claim: (owner: number) -> number?,
 	release: (owner: number) -> number?,
 	slotOf: (owner: number) -> number?,
+	ownerOf: (slot: number) -> number?,
 	freeCount: () -> number,
 }
 
@@ -85,6 +99,20 @@ function PlotLogic.validateConfig(config: Config): (boolean, string?)
 	end
 	if not isPositive(config.sellSize) or config.sellSize > (config.size - config.shaftSize) / 2 then
 		return false, "sellSize must be positive and fit beside the shaft"
+	end
+	local museum = config.museum
+	if not isPositiveInteger(museum.columns) then
+		return false, "museum.columns must be a positive integer"
+	end
+	if
+		not isPositive(museum.vitrineSize)
+		or not isPositive(museum.vitrineHeight)
+		or not isPositive(museum.signSize)
+	then
+		return false, "museum sizes must be positive"
+	end
+	if not isPositive(museum.spacing) or museum.spacing <= museum.vitrineSize then
+		return false, "museum.spacing must be larger than vitrineSize"
 	end
 	return true, nil
 end
@@ -137,6 +165,36 @@ function PlotLogic.sellBox(config: Config): Box
 	return box("SellPoint", config.sellSize, config.sellHeight, config.sellSize, 0, config.sellHeight / 2, centerZ)
 end
 
+-- Showcase number `slot` (1-based): columns fill first, then the next row south.
+function PlotLogic.vitrineBox(config: Config, slot: number): Box
+	local museum = config.museum
+	local column = (slot - 1) % museum.columns
+	local row = (slot - 1) // museum.columns
+	return box(
+		"Vitrine" .. slot,
+		museum.vitrineSize,
+		museum.vitrineHeight,
+		museum.vitrineSize,
+		museum.x + column * museum.spacing,
+		museum.vitrineHeight / 2,
+		museum.z + row * museum.spacing
+	)
+end
+
+-- The sign (with the museum prompt) stands in front of the showcases.
+function PlotLogic.museumSignBox(config: Config): Box
+	local museum = config.museum
+	return box(
+		"MuseumSign",
+		museum.signSize,
+		museum.signSize,
+		museum.signSize,
+		museum.signX,
+		museum.signSize / 2,
+		museum.signZ
+	)
+end
+
 -- Hands out plots 1..count to owners (user ids). Not thread-safe by design: the
 -- server runs it from a single place without yielding between check and claim.
 function PlotLogic.newAllocator(count: number): Allocator
@@ -174,6 +232,9 @@ function PlotLogic.newAllocator(count: number): Allocator
 	return {
 		claim = claim,
 		release = release,
+		ownerOf = function(slot: number): number?
+			return ownerBySlot[slot]
+		end,
 		slotOf = function(owner: number): number?
 			return slotByOwner[owner]
 		end,

@@ -18,6 +18,13 @@ local Remotes = {
 		buyUpgrade = "BuyUpgrade", -- client -> server event: one argument, the upgrade id (string)
 		upgradeResult = "UpgradeResult", -- server -> client event: outcome, upgrades and new state
 		getUpgrades = "GetUpgrades", -- client -> server function: upgrade entries, nil while loading
+		museumOpen = "MuseumOpen", -- server -> client event: open the museum panel with this view
+		museumDisplay = "MuseumDisplay", -- client -> server event: (find id, showcase number)
+		museumRemove = "MuseumRemove", -- client -> server event: (showcase number)
+		museumCollect = "MuseumCollect", -- client -> server event: collect the visitor income
+		museumResult = "MuseumResult", -- server -> client event: outcome, message data and new view
+		getMuseum = "GetMuseum", -- client -> server function: own museum view, nil while loading
+		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},
 }
 

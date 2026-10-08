@@ -8,8 +8,9 @@ local Onboarding = require("./Onboarding")
 local Upgrades = require("./Upgrades")
 
 -- Level definitions as in Config/Shovel and Config/Backpack: the price is
--- required, id (shovel) and capacity (backpack) are only used for display.
-export type Level = { price: number, id: string?, capacity: number? }
+-- required, id (shovel), capacity (backpack) and blocksPerHour (digger) are only
+-- used for display.
+export type Level = { price: number, id: string?, capacity: number?, blocksPerHour: number? }
 export type Tracks = { [string]: { levels: { Level } } }
 
 -- Structural subset of ProfileData.Profile (the profile is changed in place).
@@ -36,6 +37,7 @@ export type Entry = {
 	nextPrice: number?, -- nil when maxed
 	nextId: string?,
 	nextCapacity: number?,
+	nextBlocksPerHour: number?,
 	canAfford: boolean,
 }
 
@@ -72,6 +74,7 @@ function UpgradeAction.snapshot(profile: UpgraderProfile, tracks: Tracks, order:
 				nextPrice = if nextLevel ~= nil then nextLevel.price else nil,
 				nextId = if nextLevel ~= nil then nextLevel.id else nil,
 				nextCapacity = if nextLevel ~= nil then nextLevel.capacity else nil,
+				nextBlocksPerHour = if nextLevel ~= nil then nextLevel.blocksPerHour else nil,
 				canAfford = nextLevel ~= nil and profile.coins >= nextLevel.price,
 			})
 		end

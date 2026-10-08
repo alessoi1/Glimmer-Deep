@@ -26,6 +26,7 @@ local log = Log.new("Data")
 export type Profile = ProfileData.Profile
 
 type LoadedListener = (player: Player, data: ProfileData.Profile) -> ()
+type LeavingListener = (player: Player, data: ProfileData.Profile) -> ()
 
 local DataService = {}
 
@@ -34,6 +35,7 @@ local rules: ProfileData.Rules = nil :: any
 local random = Random.new()
 local profiles: { [Player]: any } = {}
 local loadedListeners: { LoadedListener } = {}
+local leavingListeners: { LeavingListener } = {}
 local started = false
 
 local function kick(player: Player, message: string)
@@ -123,6 +125,12 @@ local function releasePlayer(player: Player)
 		return
 	end
 	log.info("saving and releasing profile", { userId = player.UserId })
+	for _, listener in leavingListeners do
+		local ok, err = pcall(listener, player, profile.Data)
+		if not ok then
+			log.error("leaving listener failed", { userId = player.UserId, error = tostring(err) })
+		end
+	end
 	profiles[player] = nil
 	profile:EndSession()
 end
@@ -135,6 +143,12 @@ function DataService.getData(player: Player): ProfileData.Profile?
 		return nil
 	end
 	return profile.Data
+end
+
+-- Registers a callback that runs just before a leaving player's profile is
+-- saved and released (the last chance to change it).
+function DataService.onLeaving(listener: LeavingListener)
+	table.insert(leavingListeners, listener)
 end
 
 -- Registers a callback that runs once a player's profile is ready.

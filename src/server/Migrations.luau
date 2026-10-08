@@ -11,6 +11,7 @@
 --           onboarding (step 7, first find counted as given).
 --   3 -> 4: house (level 1) and museum (no showcases yet; the visitor income
 --           counts from the profile creation, which pays nothing without finds).
+--   4 -> 5: depot (offline yield), digger (absence time) and digger level 1.
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -43,6 +44,14 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 			week = 0,
 			weekAdmires = 0,
 		}
+		return data
+	end,
+	function(data)
+		data.depot = { ores = {}, finds = {} }
+		data.digger = {}
+		if type(data.upgradeLevels) == "table" then
+			data.upgradeLevels.digger = 1
+		end
 		return data
 	end,
 }

@@ -228,6 +228,7 @@ test("snapshot describes depth, layer, backpack, coins and dig cooldown", functi
 	assertEquals(state.layerId, "rock")
 	assertEquals(state.coins, 321)
 	assertEquals(state.onboardingStep, 1)
+	assertEquals(state.depotUsed, 0)
 	assertEquals(state.used, 4)
 	assertEquals(state.capacity, BackpackConfig.levels[1].capacity)
 	assertEquals(state.digCooldown, ShovelConfig.levels[2].digCooldown)
@@ -238,4 +239,73 @@ test("snapshot does not change the profile", function()
 	DigAction.snapshot(snapshotParams(profile))
 	assertEquals(profile.depth, 0)
 	assertEquals(next(profile.backpack.ores), nil)
+end)
+
+-- Modifiers ----------------------------------------------------------------------
+
+local function modifiers(changes: { [string]: number }): DigAction.DigModifiers
+	local result = { luck = 1, rareFindMultiplier = 1, speedMultiplier = 1, capacityMultiplier = 1 }
+	for key, value in changes do
+		(result :: any)[key] = value
+	end
+	return result
+end
+
+test("a speed multiplier shortens the cooldown", function()
+	local profile = freshProfile()
+	local gap = 0.4 -- below the level 1 cooldown tolerance, above half of it
+	assertEquals(DigAction.perform(params(profile, failingRng, 100 - gap, 100)).reason, "cooldown")
+	local fast = params(profile, scriptedRng(ORE_DRAWS), 100 - gap, 100)
+	fast.modifiers = modifiers({ speedMultiplier = 2 })
+	assertTrue(DigAction.perform(fast).ok)
+end)
+
+test("a capacity multiplier makes room for more blocks", function()
+	local profile = freshProfile()
+	profile.backpack.ores.coal = BackpackConfig.levels[1].capacity
+	local boosted = params(profile, scriptedRng(ORE_DRAWS))
+	boosted.modifiers = modifiers({ capacityMultiplier = 1.2 })
+	local result = DigAction.perform(boosted)
+	assertTrue(result.ok, tostring(result.reason))
+	assertEquals(result.capacity, math.floor(BackpackConfig.levels[1].capacity * 1.2))
+end)
+
+test("a rare find multiplier raises the chance of a rare find", function()
+	local draws = { 0.03, 0.0, 0.0, 0.99 } -- 3 percent: no rare find at 2 percent, a rare find at 4
+	local plain = freshProfile()
+	assertEquals(DigAction.perform(params(plain, scriptedRng({ 0.03, 0.0 }))).block.kind, "ore")
+	local boosted = freshProfile()
+	local boostedParams = params(boosted, scriptedRng(draws))
+	boostedParams.modifiers = modifiers({ rareFindMultiplier = 2 })
+	assertEquals(DigAction.perform(boostedParams).block.kind, "rare")
+end)
+
+test("luck shifts rare finds towards higher rarities", function()
+	local draws = { 0.0, 0.7, 0.0, 0.99 } -- rare find, rarity roll 0.7, first find, no mutation
+	local plain = freshProfile()
+	assertEquals(DigAction.perform(params(plain, scriptedRng(draws))).block.rarityId, "rare")
+	local lucky = freshProfile()
+	local luckyParams = params(lucky, scriptedRng(draws))
+	luckyParams.modifiers = modifiers({ luck = 10 })
+	assertEquals(DigAction.perform(luckyParams).block.rarityId, "epic")
+end)
+
+test("the snapshot shows the boosted capacity and cooldown", function()
+	local profile = freshProfile()
+	local snapshot = snapshotParams(profile)
+	snapshot.modifiers = modifiers({ speedMultiplier = 2, capacityMultiplier = 2 })
+	local state = DigAction.snapshot(snapshot)
+	assertEquals(state.capacity, BackpackConfig.levels[1].capacity * 2)
+	assertNear(state.digCooldown, ShovelConfig.levels[1].digCooldown / 2, 1e-9)
+end)
+
+test("the snapshot counts the items in the depot", function()
+	local profile = freshProfile()
+	profile.depot.ores.coal = 7
+	table.insert(
+		profile.depot.finds,
+		{ id = 1, findId = "shard", layerId = "sand_clay", rarityId = "common", value = 10 }
+	)
+	profile.nextFindId = 2
+	assertEquals(DigAction.snapshot(snapshotParams(profile)).depotUsed, 8)
 end)
