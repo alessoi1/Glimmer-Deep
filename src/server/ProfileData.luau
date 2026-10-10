@@ -87,6 +87,14 @@ export type GearData = {
 	nextId: number,
 }
 
+-- Potions as saved (see Potions): counts per potion, running effects (id ->
+-- end time) and the drink cooldowns (id -> time).
+export type PotionData = {
+	owned: { [string]: number },
+	active: { [string]: number },
+	cooldownUntil: { [string]: number },
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -98,6 +106,7 @@ export type Profile = {
 	cave: CaveData,
 	gear: GearData,
 	stash: { ores: { [string]: number } }, -- ore kept for crafting (the forge stash)
+	potions: PotionData,
 	onboarding: Onboarding,
 	house: { level: number, decor: { owned: { [string]: boolean }, placed: { { slot: number, id: string } } } },
 	museum: Museum,
@@ -182,6 +191,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		cave = { seed = math.floor(rng() * SEED_RANGE) + 1, deepestRow = 0, preDugRow = 0, slices = {}, chests = {} },
 		gear = { owned = {}, equipped = {}, nextId = 1 },
 		stash = { ores = {} },
+		potions = { owned = {}, active = {}, cooldownUntil = {} },
 		onboarding = { step = 1, firstFindGiven = false },
 		house = { level = 1, decor = { owned = {}, placed = {} } },
 		depot = { ores = {}, finds = {} },
@@ -335,6 +345,24 @@ local function validateGear(gear: any): (boolean, string?)
 	return true, nil
 end
 
+local function validatePotions(potions: any): (boolean, string?)
+	if type(potions) ~= "table" then
+		return false, "potions must be a table"
+	end
+	for _, field in { "owned", "active", "cooldownUntil" } do
+		local map = potions[field]
+		if type(map) ~= "table" then
+			return false, "potions." .. field .. " must be a table"
+		end
+		for id, value in map do
+			if type(id) ~= "string" or not isInteger(value) or value < 0 then
+				return false, "potions." .. field .. " needs potion ids and non-negative integers"
+			end
+		end
+	end
+	return true, nil
+end
+
 local function validateForgeStash(stash: any): (boolean, string?)
 	if type(stash) ~= "table" or type(stash.ores) ~= "table" then
 		return false, "stash.ores must be a table"
@@ -397,6 +425,10 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	local stashOk, stashReason = validateForgeStash(profile.stash)
 	if not stashOk then
 		return false, stashReason
+	end
+	local potionsOk, potionsReason = validatePotions(profile.potions)
+	if not potionsOk then
+		return false, potionsReason
 	end
 
 	local onboarding = profile.onboarding

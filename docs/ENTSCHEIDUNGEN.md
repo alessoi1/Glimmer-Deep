@@ -151,3 +151,17 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Prüfung | `ProfileData` prüft nur die Form (Server-Module laden nur Geschwister); `Equipment.validate` prüft die Regeln (Plätze, Stufen, Quelle, Shop-Grenze, getragene Teile) beim Laden durch den Dienst. | Wie bei der Höhle. |
 | Rebirth | Ausrüstung und Erzlager bleiben (Entscheidung 6). | Das Lager enthält bewusst eingelagertes Erz. |
 | Testfund | Beim Schreiben der Migration überdeckte eine neue Funktion `validateStash` eine gleichnamige bestehende; der bestehende Profil-Test fing es sofort ab. | Zeigt den Wert der Tests; umbenannt in `validateForgeStash`. |
+
+## Umbau U2b: Tränke und Truhen-Loot (Profilversion 16)
+
+`src/shared/Potions.luau`, `Config/Potions.luau`, `ChestLoot.luau`, `Config/Chests.luau`, dazu `potions` im Profil. In Lune getestet, noch nicht an das Spiel angeschlossen. Alle Zahlen sind Startwerte.
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Tränke | Heilung, Stärke, Tempo, Nachtsicht, Glück. Rezepte aus Kräutern; höchstens 20 je Trank, 5 pro Brauvorgang, Wirkung höchstens 600 s. Heilung gibt 40 % Leben zurück mit 20 s Abklingzeit, die anderen wirken 300 s. | Konzept: Tränke aus Kräutern, nicht für Robux. |
+| Zustand | `potions = { owned, active, cooldownUntil }` mit Serverzeit; abgelaufene Wirkungen werden beim Laden entfernt (`prune`), keine Hintergrund-Timer. | Wie beim Offline-Einkommen. |
+| Handel | Tränke sind handelbar (`Potions.tradable`), sie sind nie für Robux erhältlich. | Konzept Handelswelt. |
+| Rebirth | Tränke bleiben. | Wie Ausrüstung und Lager. |
+| Truhen-Loot | 2 bis 3 Einträge je Truhe: Ausrüstung 25 %, Trank 25 %, Kraut 20 %, Münzen 20 %, Fund 10 %. Ausrüstung hat die Stufe des Bioms, mit 20 % eine Stufe mehr (höchstens beste Stufe). Münzen wachsen mit Faktor 3 je Biom. Die Chancen sind als Prozent abrufbar (`ChestLoot.chances`). | Truhen werden nie mit Robux gekauft, daher keine Zufallsregel für bezahlte Objekte. |
+| Voller Speicher | Passt ein Eintrag nicht mehr (Obergrenze Ausrüstung/Trank), wird er in Münzen ausgezahlt, nichts geht verloren; gezählt in `converted`. | Jede Truhe gibt immer etwas. |
+| Würfe | Reihenfolge der Ziehungen ist dokumentiert und per Test festgelegt; Funde laufen über `DigRoll` im Dienst. | Server-Autorität. |

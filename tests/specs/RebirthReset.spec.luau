@@ -112,10 +112,12 @@ test("equipment and the stash stay through a rebirth", function()
 		nextId = 2,
 	}
 	profile.stash = { ores = { iron = 9 } }
+	profile.potions.owned = { heal = 3 }
 	RebirthReset.apply(profile, rules, Framework.seededRng(9), NOW)
 	assertEquals(#profile.gear.owned, 1)
 	assertEquals(profile.gear.equipped.weapon, 1)
 	assertEquals(profile.stash.ores.iron, 9)
+	assertEquals(profile.potions.owned.heal, 3)
 end)
 
 test("a reset profile is still valid", function()

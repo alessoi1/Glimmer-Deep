@@ -997,6 +997,38 @@ test("a version 14 profile migrates to version 15 with empty equipment and stash
 	assertTrue(ok, why)
 end)
 
+test("potions must have the right shape", function()
+	expectInvalid(function(p)
+		p.potions = nil
+	end, "potions")
+	expectInvalid(function(p)
+		p.potions.owned = { heal = 1.5 }
+	end, "potions.owned")
+	expectInvalid(function(p)
+		p.potions.active = { speed = -1 }
+	end, "potions.active")
+	expectInvalid(function(p)
+		p.potions.cooldownUntil = "x"
+	end, "potions.cooldownUntil")
+end)
+
+test("a version 15 profile migrates to version 16 without potions", function()
+	local profile: any = fresh()
+	profile.version = 15
+	profile.potions = nil
+	profile.coins = 77
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.coins, 77)
+	assertEquals(next(migrated.potions.owned), nil)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)
