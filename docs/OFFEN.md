@@ -9,7 +9,7 @@ Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt um
 - [x] **Entscheidungen:** alle zehn Punkte sind am 10. Oktober 2026 entschieden (siehe `docs/KONZEPT.md`, Abschnitt „Entscheidungen“).
 - [ ] **Studio-Testphase des bisherigen Spiels** (`docs/TESTLISTE.md`) abschließen, damit der Umbau auf einem geprüften Stand beginnt.
 - [x] **U1a Höhlenmodell** (reine Logik, in Lune getestet): `Cave`, `CaveCodec`, `Config/Cave`: Raster, Inhalt aus dem Seed, Abbau mit Hieb-Fläche, Nachwuchs, Truhen, Speicherformat (Entscheidungen in `docs/ENTSCHEIDUNGEN.md`).
-- [ ] **U1b Profil:** Migration auf das Höhlenformat (`cave` statt `depth`/`layerSeeds`), Umgang mit der Tiefe bestehender Spieler, `DataService` und `ProfileData` anpassen.
+- [x] **U1b Profil:** Profilversion 14 mit `cave` (Migration, Vorgrab-Gang für bestehende Spieler, Rebirth setzt die Höhle zurück). `depth` und `layerSeeds` bleiben bis U1c.
 - [ ] **U1c Spiel:** `CaveService` (Blöcke bauen und streamen, Treffer-Remote mit Prüfungen, Rucksack-Anbindung, Truhen-Loot), Schacht ersetzen, Schichten zu Biomen umbenennen, Handy-Messung in Studio. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
 - [ ] **U2 Ausrüstung:** Schmiede, Rüstung und Waffen, Kräuter, Tränke.
 - [ ] **U3 Oberwelt:** Portal, Stufenzonen, PvP, Kopfgeld.

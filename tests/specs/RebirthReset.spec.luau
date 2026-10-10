@@ -94,6 +94,16 @@ test("museum, house, pets, boosters, passes, onboarding and stats stay", functio
 	assertEquals(profile.onboarding.step, 7)
 end)
 
+test("the reset gives a new, untouched cave", function()
+	local profile = playedProfile()
+	profile.cave = { seed = 4242, deepestRow = 300, preDugRow = 120, slices = {}, chests = { ["1"] = 5 } }
+	RebirthReset.apply(profile, rules, Framework.seededRng(8), NOW)
+	assertEquals(profile.cave.deepestRow, 0)
+	assertEquals(profile.cave.preDugRow, 0)
+	assertTrue(profile.cave.seed ~= 4242)
+	assertEquals(next(profile.cave.chests), nil)
+end)
+
 test("a reset profile is still valid", function()
 	local profile = playedProfile()
 	RebirthReset.apply(profile, rules, Framework.seededRng(4), NOW)

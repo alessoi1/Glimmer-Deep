@@ -97,3 +97,14 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Speicherformat | `{ seed, deepestRow, slices = { ["3"] = { bits, harvestedAt } }, chests = { ["3"] = openedAt } }`, Bits zu 6 je Zeichen. Zeiten werden beim Speichern abgerundet. | DataStores mögen nur Text-Schlüssel; abgerundete Zeiten verhindern, dass gültige Daten beim Laden als beschädigt gelten. |
 | Prüfung beim Laden | `deserialize` lehnt falsche Längen, fremde Zeichen, negative oder gebrochene Zeiten und ungültige Schlüssel ab. | Beschädigte Daten dürfen nie still ein falsches Spiel ergeben. |
 | Biome | Herkunft von Erz und Kraut aus `Config/Layers` (jetzt mit `herbs`); Umbenennung der Schichten in Biome folgt mit U1c. | Kein doppeltes Datenformat. |
+
+## Umbau U1b: Höhle im Profil (Profilversion 14)
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Neues Feld | `profile.cave` im Speicherformat von `Cave.serialize` (`seed`, `deepestRow`, `preDugRow`, `slices`, `chests`). `ProfileData` prüft nur die Form (Typen, Schlüssel, Bereiche); die Bits prüft `Cave.deserialize` beim Laden der Höhle. | Server-Module dürfen nur Geschwister laden (keine Verbindung zum Shared-Ordner); die Form-Prüfung fängt beschädigte Profile trotzdem ab. |
+| Bestehende Spieler | Migration 13 auf 14: `deepestRow` und `preDugRow` sind die bisherige Tiefe in ganzen Metern (eine Zeile je Meter, für diese Version eingefroren); der Seed ist der Seed der ersten Schicht (nach Id sortiert). | Spieler behalten ihre Tiefe. Der Gang ist berechnet (keine Bits), kostet also keinen Speicher. |
+| Vorgrab-Gang | Zeilen von der Halle bis `preDugRow` sind für `|x| ≤ 1` und Höhe 3 offen (`corridorHalfWidth`, `corridorHeight`). Die Wand daneben und die Zelle hinter dem Ende sind erreichbar. | Eine Spielfigur passt hindurch, und es geht ohne Sonderfall weiter. |
+| Alte Felder | `depth` und `layerSeeds` bleiben, bis der Grab-Dienst auf der Höhle arbeitet (U1c); dann folgt eine Migration, die sie entfernt. | Kleinster sicherer Schritt, nichts bricht. |
+| Neue Spieler | `ProfileData.new` zieht den Seed aus dem Zufallsstrom. | Jede Burg hat eine andere Höhle. |
+| Rebirth | `RebirthReset` setzt die Höhle zurück (neuer Seed, nichts abgebaut), wie schon Tiefe und Lochform. | Konzept: Rebirth setzt die Höhle zurück. |

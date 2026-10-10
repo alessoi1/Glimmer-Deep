@@ -822,6 +822,105 @@ test("a version 12 profile migrates to version 13 and keeps its prestige", funct
 	assertTrue(ok, why)
 end)
 
+test("a new profile has an untouched cave with a seed", function()
+	local profile = fresh()
+	assertEquals(profile.cave.deepestRow, 0)
+	assertEquals(profile.cave.preDugRow, 0)
+	assertTrue(profile.cave.seed >= 1 and profile.cave.seed % 1 == 0)
+	assertEquals(next(profile.cave.slices), nil)
+	assertEquals(next(profile.cave.chests), nil)
+end)
+
+test("a new profile's cave seed is different from stream to stream", function()
+	local a = ProfileData.new(rules, Framework.seededRng(1), 0)
+	local b = ProfileData.new(rules, Framework.seededRng(2), 0)
+	assertTrue(a.cave.seed ~= b.cave.seed)
+end)
+
+test("validate accepts a cave with slices and chests", function()
+	local profile: any = fresh()
+	profile.cave = {
+		seed = 777,
+		deepestRow = 40,
+		preDugRow = 12,
+		slices = { ["0"] = { bits = "AAAA", harvestedAt = 5 }, ["3"] = { bits = "BBBB" } },
+		chests = { ["2"] = 99 },
+	}
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+end)
+
+test("validate rejects bad cave data", function()
+	expectInvalid(function(p)
+		p.cave = nil
+	end, "cave")
+	expectInvalid(function(p)
+		p.cave.seed = 0
+	end, "cave.seed")
+	expectInvalid(function(p)
+		p.cave.seed = 1.5
+	end, "cave.seed")
+	expectInvalid(function(p)
+		p.cave.deepestRow = -1
+	end, "cave.deepestRow")
+	expectInvalid(function(p)
+		p.cave.preDugRow = 5
+	end, "cave.preDugRow")
+	expectInvalid(function(p)
+		p.cave.slices = { x = { bits = "A" } }
+	end, "cave.slices")
+	expectInvalid(function(p)
+		p.cave.slices = { ["1"] = { bits = 5 } }
+	end, "cave.slices")
+	expectInvalid(function(p)
+		p.cave.slices = { ["1"] = { bits = "A", harvestedAt = -3 } }
+	end, "cave.slices")
+	expectInvalid(function(p)
+		p.cave.chests = { ["1"] = "later" }
+	end, "cave.chests")
+	expectInvalid(function(p)
+		p.cave.chests = { y = 5 }
+	end, "cave.chests")
+end)
+
+test("a version 13 profile migrates to version 14 with a cave dug down to its old depth", function()
+	local profile: any = fresh()
+	profile.version = 13
+	profile.cave = nil
+	profile.depth = 312.5
+	profile.layerSeeds = { sand_clay = 111, rock = 222, crystal = 333 }
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.cave.deepestRow, 312)
+	assertEquals(migrated.cave.preDugRow, 312)
+	assertTrue(migrated.cave.seed >= 1)
+	assertEquals(migrated.depth, 312.5, "the old depth stays until the dig service uses the cave")
+	assertEquals(next(migrated.cave.slices), nil)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
+test("migrating to the cave format is deterministic and keeps a fresh player at the start", function()
+	local function migrate(depth: number): any
+		local profile: any = fresh()
+		profile.version = 13
+		profile.cave = nil
+		profile.depth = depth
+		profile.layerSeeds = { sand_clay = 5, rock = 6, crystal = 7 }
+		local migrated = ProfileData.migrate(profile, Migrations)
+		return migrated
+	end
+	local a, b = migrate(50), migrate(50)
+	assertEquals(a.cave.seed, b.cave.seed)
+	local start = migrate(0)
+	assertEquals(start.cave.deepestRow, 0)
+	assertEquals(start.cave.preDugRow, 0)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

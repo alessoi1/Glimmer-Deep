@@ -24,6 +24,8 @@ export type Config = {
 	sliceRows: number,
 	metersPerRow: number,
 	entranceRows: number,
+	corridorHalfWidth: number,
+	corridorHeight: number,
 	startRadius: number,
 	maxRadius: number,
 	radiusByLevel: { number },
@@ -46,6 +48,7 @@ export type Slice = {
 export type State = {
 	seed: number,
 	deepestRow: number,
+	preDugRow: number, -- rows up to here are an open corridor (players from before the cave); 0 = none
 	slices: { [number]: Slice },
 	chests: { [number]: number }, -- slice index -> server time the chest was opened
 }
@@ -83,6 +86,7 @@ export type SavedSlice = { bits: string, harvestedAt: number? }
 export type SavedCave = {
 	seed: number,
 	deepestRow: number,
+	preDugRow: number,
 	slices: { [string]: SavedSlice },
 	chests: { [string]: number },
 }
@@ -204,7 +208,7 @@ function Cave.new(seed: number): State
 	if not isInteger(seed) or seed < 1 or seed > SEED_LIMIT then
 		error("cave seed must be an integer from 1 to " .. SEED_LIMIT, 2)
 	end
-	return { seed = seed, deepestRow = 0, slices = {}, chests = {} }
+	return { seed = seed, deepestRow = 0, preDugRow = 0, slices = {}, chests = {} }
 end
 
 function Cave.depth(state: State, config: Config): number
@@ -218,6 +222,13 @@ end
 
 local function isEntrance(config: Config, row: number, x: number, y: number): boolean
 	return row < config.entranceRows and math.abs(x) <= config.startRadius and y >= 0 and y < config.height
+end
+
+local function isCorridor(state: State, config: Config, row: number, x: number, y: number): boolean
+	return row >= config.entranceRows
+		and row <= state.preDugRow
+		and math.abs(x) <= config.corridorHalfWidth
+		and y < config.corridorHeight
 end
 
 local function isMinedBit(state: State, config: Config, row: number, x: number, y: number): boolean
@@ -286,7 +297,7 @@ function Cave.isOpen(state: State, config: Config, row: number, x: number, y: nu
 	if not inStructure(config, row, x, y) then
 		return false
 	end
-	if isEntrance(config, row, x, y) then
+	if isEntrance(config, row, x, y) or isCorridor(state, config, row, x, y) then
 		return true
 	end
 	if isMinedBit(state, config, row, x, y) then
@@ -479,7 +490,10 @@ function Cave.regrow(state: State, config: Config, sliceIndex: number, now: numb
 	local back: { number } = {}
 	for index in slice.mined do
 		local position = positionOf(config, sliceIndex, index)
-		if not isEntrance(config, position.row, position.x, position.y) then
+		if
+			not isEntrance(config, position.row, position.x, position.y)
+			and not isCorridor(state, config, position.row, position.x, position.y)
+		then
 			local content = seedContent(state, config, position.row, position.x, position.y)
 			if
 				isResource(content.kind)
@@ -526,7 +540,13 @@ function Cave.serialize(state: State, config: Config): SavedCave
 	for sliceIndex, openedAt in state.chests do
 		chests[tostring(sliceIndex)] = math.floor(openedAt)
 	end
-	return { seed = state.seed, deepestRow = state.deepestRow, slices = slices, chests = chests }
+	return {
+		seed = state.seed,
+		deepestRow = state.deepestRow,
+		preDugRow = state.preDugRow,
+		slices = slices,
+		chests = chests,
+	}
 end
 
 local function parseIndex(key: any): number?
@@ -552,6 +572,9 @@ function Cave.deserialize(data: any, config: Config): (State?, string?)
 	if not isInteger(data.deepestRow) or data.deepestRow < 0 then
 		return nil, "deepestRow is invalid"
 	end
+	if data.preDugRow ~= nil and (not isInteger(data.preDugRow) or data.preDugRow < 0) then
+		return nil, "preDugRow is invalid"
+	end
 	if type(data.slices) ~= "table" or type(data.chests) ~= "table" then
 		return nil, "cave slices and chests must be tables"
 	end
@@ -559,6 +582,7 @@ function Cave.deserialize(data: any, config: Config): (State?, string?)
 	local total = cellsPerSlice(config)
 	local state = Cave.new(seed)
 	state.deepestRow = data.deepestRow
+	state.preDugRow = data.preDugRow or 0
 	for key, saved in data.slices do
 		local sliceIndex = parseIndex(key)
 		if sliceIndex == nil then
@@ -605,6 +629,16 @@ function Cave.validateConfig(config: Config): (boolean, string?)
 	end
 	if config.startRadius < 1 or config.startRadius > config.maxRadius then
 		return false, "startRadius must be from 1 to maxRadius"
+	end
+	if
+		not isInteger(config.corridorHalfWidth)
+		or config.corridorHalfWidth < 0
+		or config.corridorHalfWidth > config.maxRadius
+	then
+		return false, "corridorHalfWidth must be an integer from 0 to maxRadius"
+	end
+	if not isInteger(config.corridorHeight) or config.corridorHeight < 1 or config.corridorHeight > config.height then
+		return false, "corridorHeight must be an integer from 1 to height"
 	end
 	if not (config.metersPerRow > 0) then
 		return false, "metersPerRow must be positive"
