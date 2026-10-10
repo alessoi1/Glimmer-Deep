@@ -154,9 +154,9 @@ Reihenfolge wie in `docs/OFFEN.md` unter den gleichnamigen Punkten. Vorab ein Pr
 - [ ] Zusätzlich offen aus der Technik: `luau-analyze` lokal ausführen (Typprüfung).
 
 
-## Höhle (nach Einschalten von `Config/Cave.enabled = true`)
+## Höhle (`Config/Cave.enabled = true`)
 
-Nur in Studio prüfbar. Erst im Studio-Test einschalten, nicht committen.
+Nur in Studio prüfbar. Der Schalter steht seit dem Studio-Test auf `true`; bei groben Fehlern wieder auf `false` setzen, dann läuft der alte Schacht.
 
 - [ ] Knopf „In die Höhle“ (oben links) bringt den Spieler in einen Gang nach unten; „Zur Burg“ bringt ihn zurück auf das Grundstück.
 - [ ] Der Gang hat Boden, Decke und Wände (graues Gestein, Erz farbig); man fällt nirgends durch.

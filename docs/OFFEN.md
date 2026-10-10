@@ -11,7 +11,7 @@ Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt um
 - [x] **U1a Höhlenmodell** (reine Logik, in Lune getestet): `Cave`, `CaveCodec`, `Config/Cave`: Raster, Inhalt aus dem Seed, Abbau mit Hieb-Fläche, Nachwuchs, Truhen, Speicherformat (Entscheidungen in `docs/ENTSCHEIDUNGEN.md`).
 - [x] **U1b Profil:** Profilversion 14 mit `cave` (Migration, Vorgrab-Gang für bestehende Spieler, Rebirth setzt die Höhle zurück). `depth` und `layerSeeds` bleiben bis U1c.
 - [x] **U1c-1 Grabaktion** (reine Logik, `CaveAction`, `Cave.flush`, Kräuterpreise).
-- [x] **U1c-2b Höhle in der Welt** (`CaveSession`, `CaveService`, `CaveUI`, hinter dem Schalter `Cave.enabled = false`; Studio-Test: `docs/TESTLISTE.md`, Abschnitt Höhle).
+- [x] **U1c-2b Höhle in der Welt** (`CaveSession`, `CaveService`, `CaveUI`, Schalter `Cave.enabled = true` für den Studio-Test; Studio-Test: `docs/TESTLISTE.md`, Abschnitt Höhle).
 - [ ] **U1c-2 Rest:** (erledigt: `CaveService`; offen: Licht, Gäste, Schichten zu Biomen, `depth` entfernen) `CaveService` (Blöcke bauen und streamen, Treffer-Remote mit Prüfungen, Rucksack-Anbindung, Truhen-Loot), Schacht ersetzen, Schichten zu Biomen umbenennen, Handy-Messung in Studio. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
 - [x] **U2a Ausrüstung** (reine Logik, Profilversion 15): `Equipment`, `Config/Equipment`, Erzlager.
 - [x] **U2b Tränke und Truhen-Loot** (reine Logik, Profilversion 16, in Lune getestet).

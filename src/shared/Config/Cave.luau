@@ -59,9 +59,10 @@ return {
 		},
 		oreFallback = { r = 140, g = 140, b = 140 },
 	},
-	-- Master switch: while false the game keeps using the old shaft. Turn it on
-	-- only after the cave was tested in Roblox Studio.
-	enabled = false,
+	-- Master switch: while false the game keeps using the old shaft. Switched on
+	-- for the Studio test (docs/TESTLISTE.md, section Höhle); set it back to false
+	-- if the cave breaks the game.
+	enabled = true,
 	-- Where and how the caves stand in the world. Every player's cave lies in
 	-- its own slot, side by side, far below and away from the town.
 	world = {
