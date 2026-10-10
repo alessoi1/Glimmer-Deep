@@ -22,7 +22,15 @@ export type World = {
 export type Axes = { forward: Vec, up: Vec, right: Vec }
 
 -- "bedrock" marks the shell outside the grid (floor, ceiling and side walls).
-export type VisibleCell = { row: number, x: number, y: number, kind: Cave.CellKind | "bedrock", itemId: string? }
+-- "cap" marks the wall that closes the built window at its two ends.
+export type VisibleCell = {
+	row: number,
+	x: number,
+	y: number,
+	kind: Cave.CellKind | "bedrock",
+	itemId: string?,
+	cap: boolean?,
+}
 
 export type Diff = { add: { VisibleCell }, remove: { string } }
 
@@ -116,13 +124,42 @@ function CaveView.visibleCells(
 	return cells
 end
 
+-- The key of a visible cell; caps get their own keys so they never clash with
+-- the real cell of the same row when the window moves on.
+function CaveView.cellKey(cell: VisibleCell): string
+	local key = CaveView.key(cell.row, cell.x, cell.y)
+	if cell.cap then
+		return "cap:" .. key
+	end
+	return key
+end
+
+-- Bedrock walls just outside the built rows, so that nobody looks out of the
+-- window into the void (the cave itself has no end).
+function CaveView.capCells(config: Cave.Config, fromRow: number, toRow: number): { VisibleCell }
+	local cells: { VisibleCell } = {}
+	local sideLimit = config.maxRadius + 1
+	local rows = { toRow + 1 }
+	if fromRow > 0 then
+		table.insert(rows, fromRow - 1)
+	end
+	for _, row in rows do
+		for x = -sideLimit, sideLimit do
+			for y = -1, config.height do
+				table.insert(cells, { row = row, x = x, y = y, kind = "bedrock", cap = true })
+			end
+		end
+	end
+	return cells
+end
+
 -- What to build and what to take down to get from the set of built cells
 -- (keys) to the wanted cells.
 function CaveView.diff(built: { [string]: boolean }, wanted: { VisibleCell }): Diff
 	local wantedKeys: { [string]: boolean } = {}
 	local add: { VisibleCell } = {}
 	for _, cell in wanted do
-		local key = CaveView.key(cell.row, cell.x, cell.y)
+		local key = CaveView.cellKey(cell)
 		wantedKeys[key] = true
 		if not built[key] then
 			table.insert(add, cell)

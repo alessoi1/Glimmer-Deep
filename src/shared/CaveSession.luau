@@ -170,12 +170,15 @@ function CaveSession.refresh(session: Session, position: CaveView.Vec, time: num
 	row = math.max(row, 0)
 	local fromRow, toRow = CaveView.windowRows(session.world, row)
 	local wanted = CaveView.visibleCells(session.cave, session.config, fromRow, toRow, time)
+	for _, cap in CaveView.capCells(session.config, fromRow, toRow) do
+		table.insert(wanted, cap)
+	end
 	local diff = CaveView.diff(session.built, wanted)
 	for _, key in diff.remove do
 		session.built[key] = nil
 	end
 	for _, cell in diff.add do
-		session.built[CaveView.key(cell.row, cell.x, cell.y)] = true
+		session.built[CaveView.cellKey(cell)] = true
 	end
 	return { diff = diff, count = #wanted, row = row, overBudget = #wanted > session.world.maxParts }
 end
