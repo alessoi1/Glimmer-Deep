@@ -141,6 +141,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/SeasonMessages.spec")
 	end,
+	function()
+		require("./specs/CaveCodec.spec")
+	end,
 }
 
 local passed = 0
