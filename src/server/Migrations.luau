@@ -24,6 +24,7 @@
 --             per meter, frozen at this version); depth and layerSeeds stay until
 --             the dig service works on the cave.
 --   14 -> 15: equipment (nothing owned or worn) and the forge stash (empty).
+--   15 -> 16: potions (none owned, no effect running, no cooldown).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -130,6 +131,10 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
 		data.gear = { owned = {}, equipped = {}, nextId = 1 }
 		data.stash = { ores = {} }
+		return data
+	end,
+	function(data)
+		data.potions = { owned = {}, active = {}, cooldownUntil = {} }
 		return data
 	end,
 }
