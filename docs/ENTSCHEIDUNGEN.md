@@ -196,3 +196,13 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Noch nicht | Gäste in der Höhle, Burg-Modell und Portal, Licht in der Höhle (Fackeln, Nachtsicht), Auto-Graben, Umbenennen der Schichten zu Biomen, Entfernen von `depth`/`layerSeeds`. | Kommen in eigenen Schritten. |
 
 **Fehlerbericht aus dem ersten Studio-Test (10. Oktober 2026):** Der Spieler starb sofort nach dem Betreten der Höhle. Ursache (wahrscheinlich): Der Ursprung lag bei y = -600, Roblox zerstört Teile unter `Workspace.FallenPartsDestroyHeight` (Standard -500). Behebung: Ursprung auf y = 200, und der Dienst setzt die Zerstörungshöhe auf -5000 (falls Roblox das zulässt, sonst Warnung im Log). Die Knöpfe „In die Höhle“ und „Zur Burg“ liegen jetzt am linken Rand in der Mitte, weil oben links das Roblox-Menü liegt.
+
+**Rückmeldung aus dem Studio-Test (10. Oktober 2026), Höhle läuft:**
+
+| Beobachtung | Änderung |
+| --- | --- |
+| Graben-Knopf ohne Funktion | Mit eingeschalteter Höhle ist der alte Knopf (und Taste E) ausgeblendet; abgebaut wird durch Antippen der Blöcke. |
+| Schräger Gang mit Treppen, man läuft an Wänden | Die Höhle verläuft jetzt waagerecht (`slopeDegrees = 0`). Die Tiefe ist nur die Reihenzahl. Das Prüfen der Neigung erlaubt weiterhin 0 bis 60 Grad. |
+| Höhle sollte geschlossen sein | Hinter der Eingangshalle steht eine Rückwand aus Grundgestein (Zeile -1). |
+| Seitenwände am Rand nicht abbaubar, aber nicht erkennbar | Blöcke, die die Spitzhacke seitlich nicht erreicht (und die Hülle), haben die Farbe des Bodens; Antippen zeigt „Nicht abbaubar“. Mit besserer Spitzhacke wird die Ansicht neu gefärbt. |
+| Es wird manchmal der Block darüber abgebaut | Wahrscheinlich Eingabefehler: `input.Position` enthält die Leiste oben nicht, ich nutzte `ViewportPointToRay` (ca. 36 px zu hoch). Jetzt `ScreenPointToRay`. In Studio prüfen. |

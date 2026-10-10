@@ -61,6 +61,7 @@ local sessions: { [Player]: CaveSession.Session } = {}
 local inCave: { [Player]: boolean } = {}
 local folders: { [Player]: Folder } = {}
 local parts: { [Player]: { [string]: BasePart } } = {}
+local radii: { [Player]: number } = {} -- sideways reach of the pickaxe the view was built for
 
 local function warnRejected(player: Player, remote: string, reason: string)
 	rejects.reject(player.UserId, remote, reason)
@@ -82,8 +83,17 @@ local function rootPart(player: Player): BasePart?
 	return character:FindFirstChild("HumanoidRootPart") :: BasePart?
 end
 
-local function colorFor(cell: CaveView.VisibleCell): Color3
+-- Cells the player cannot mine (the shell, and the side walls beyond the
+-- pickaxe's reach) look and count as bedrock.
+local function isUnbreakable(cell: CaveView.VisibleCell, radius: number): boolean
+	return cell.kind == "bedrock" or math.abs(cell.x) > radius
+end
+
+local function colorFor(cell: CaveView.VisibleCell, radius: number): Color3
 	local look = CaveConfig.look
+	if isUnbreakable(cell, radius) then
+		return Color3.fromRGB(look.bedrock.r, look.bedrock.g, look.bedrock.b)
+	end
 	local rgb = look[cell.kind]
 	if cell.kind == "ore" then
 		rgb = look.ore[cell.itemId or ""] or look.oreFallback
@@ -104,12 +114,13 @@ local function buildPart(player: Player, session: CaveSession.Session, cell: Cav
 	part.Size = Vector3.one * session.blockSize
 	part.CFrame = CFrame.fromMatrix(toVec3(center), right, up)
 	part.Anchored = true
-	part.Color = colorFor(cell)
-	part.Material = if cell.kind == "bedrock" then Enum.Material.Slate else Enum.Material.Rock
+	local unbreakable = isUnbreakable(cell, radii[player] or 0)
+	part.Color = colorFor(cell, radii[player] or 0)
+	part.Material = if unbreakable then Enum.Material.Slate else Enum.Material.Rock
 	part.TopSurface = Enum.SurfaceType.Smooth
 	part.BottomSurface = Enum.SurfaceType.Smooth
 	-- Read by the client only to choose between swing and chest; the server never trusts it.
-	part:SetAttribute("Kind", cell.kind)
+	part:SetAttribute("Kind", if unbreakable then "bedrock" else cell.kind)
 	part.Parent = folder
 	parts[player][part.Name] = part
 end
@@ -135,10 +146,32 @@ local function applyDiff(player: Player, session: CaveSession.Session, refresh: 
 	end
 end
 
+local function pickaxeRadius(profile: DataService.Profile): number
+	return Cave.radiusFor(caveConfig, profile.upgradeLevels.shovel)
+end
+
+local function clearParts(player: Player, session: CaveSession.Session)
+	local built = parts[player]
+	if built ~= nil then
+		for _, part in built do
+			part:Destroy()
+		end
+	end
+	parts[player] = {}
+	CaveSession.clearBuilt(session)
+end
+
 local function updateView(player: Player, session: CaveSession.Session)
 	local root = rootPart(player)
-	if root == nil then
+	local profile = DataService.getData(player)
+	if root == nil or profile == nil then
 		return
+	end
+	-- A better pickaxe reaches further sideways: color the walls again.
+	local radius = pickaxeRadius(profile)
+	if radii[player] ~= radius then
+		radii[player] = radius
+		clearParts(player, session)
 	end
 	local refresh = CaveSession.refresh(session, toVec(root.Position), os.time())
 	applyDiff(player, session, refresh)
@@ -157,6 +190,7 @@ local function removeView(player: Player)
 	end
 	folders[player] = nil
 	parts[player] = nil
+	radii[player] = nil
 	local session = sessions[player]
 	if session ~= nil then
 		CaveSession.clearBuilt(session)
@@ -224,6 +258,8 @@ local function handleEnter(player: Player, ...: any)
 	folder.Parent = worldFolder
 	folders[player] = folder
 	parts[player] = {}
+	local profile = DataService.getData(player)
+	radii[player] = if profile ~= nil then pickaxeRadius(profile) else caveConfig.startRadius
 
 	local entry = CaveSession.entryPoint(session)
 	local axes = CaveView.axes(session.world)

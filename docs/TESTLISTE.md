@@ -170,3 +170,4 @@ Nur in Studio prüfbar. Der Schalter steht seit dem Studio-Test auf `true`; bei 
 - [ ] Mit eingeschaltetem Schalter tut der alte Graben-Knopf nichts (Log `cave_active`).
 - [ ] Logs: `entered the cave`, `left the cave`, `chest opened`, keine `error`-Zeilen.
 - [ ] Bekannte Lücke: Die Höhle ist dunkel (Licht fehlt noch).
+- [ ] (Nach dem ersten Test) Die Höhle ist waagerecht und hinten geschlossen; kein Graben-Knopf mehr; seitliche Grenzwände haben die Bodenfarbe und zeigen „Nicht abbaubar“; der angetippte Block wird abgebaut, nicht der darüber; bessere Spitzhacke färbt die Seitenwände neu.

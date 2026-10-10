@@ -65,15 +65,15 @@ return {
 	-- for the Studio test (docs/TESTLISTE.md, section Höhle); set it back to false
 	-- if the cave breaks the game.
 	enabled = true,
-	-- Where and how the caves stand in the world. The origin is high on purpose:
-	-- the cave descends about 1.7 studs per row and Roblox destroys anything below
+	-- Where and how the caves stand in the world. The cave runs level (depth is only
+	-- the row count). The origin stays high because Roblox destroys anything below
 	-- Workspace.FallenPartsDestroyHeight (-500 by default), which killed the player
-	-- at once when the origin was at -600. Every player's cave lies in
+	-- at once when an earlier version had its origin at -600. Every player's cave lies in
 	-- its own slot, side by side, far below and away from the town.
 	world = {
 		origin = { x = 3000, y = 200, z = 1500 },
 		slotSpacing = 160, -- studs between two caves; more than the cave width
-		slopeDegrees = 25, -- how steeply the cave descends
+		slopeDegrees = 0, -- 0 = the cave runs level (a slope made the floor tilted and the walls walkable)
 		windowAhead = 24, -- rows built in front of the player
 		windowBehind = 12, -- rows kept behind the player
 		reachStuds = 16, -- how far the player may be from a cell and still hit it

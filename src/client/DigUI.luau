@@ -144,6 +144,8 @@ function DigUI.start()
 	button.TextSize = TEXT_SIZE + 2
 	button.Text = Strings.dig.button
 	button.AutoButtonColor = true
+	-- With the cave on, mining happens by tapping blocks (CaveUI).
+	button.Visible = not CaveConfig.enabled
 	button.Parent = gui
 	local buttonCorner = Instance.new("UICorner")
 	buttonCorner.CornerRadius = UDim.new(0.5, 0)
@@ -181,6 +183,9 @@ function DigUI.start()
 	end
 
 	local function tryDig()
+		if CaveConfig.enabled then
+			return
+		end
 		local cooldown = if state then state.digCooldown else FALLBACK_COOLDOWN
 		local now = os.clock()
 		if now - lastFireAt < cooldown * COOLDOWN_SAFETY then
