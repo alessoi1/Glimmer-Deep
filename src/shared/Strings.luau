@@ -27,6 +27,9 @@ return {
 		silver = "Silber",
 		gold = "Gold",
 		crystal = "Kristall",
+		moss_fern = "Moosfarn",
+		shadow_mushroom = "Schattenpilz",
+		glimmer_flower = "Glimmerblume",
 	},
 	find = {
 		shard = "Scherbe",

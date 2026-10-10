@@ -71,19 +71,24 @@ function Selling.sellAll(backpack: Sellable, oreValues: OreValues, oreMultiplier
 	}
 end
 
--- Every ore that can be dug in any layer needs a non-negative integer price.
+-- Every ore and herb that can be found in any layer needs a non-negative integer price.
 function Selling.validateOreValues(
-	layers: { { id: string, ores: { string } } },
+	layers: { { id: string, ores: { string }, herbs: { string }? } },
 	oreValues: OreValues
 ): (boolean, string?)
 	for _, layer in layers do
-		for _, oreId in layer.ores do
+		-- Herbs are stored and sold like ore.
+		local itemIds = table.clone(layer.ores)
+		for _, herbId in layer.herbs or {} do
+			table.insert(itemIds, herbId)
+		end
+		for _, oreId in itemIds do
 			local price = oreValues[oreId]
 			if price == nil then
-				return false, string.format("ore %s (layer %s) has no price", oreId, layer.id)
+				return false, string.format("item %s (layer %s) has no price", oreId, layer.id)
 			end
 			if price ~= price or price < 0 or price % 1 ~= 0 then
-				return false, string.format("ore %s needs a non-negative integer price", oreId)
+				return false, string.format("item %s needs a non-negative integer price", oreId)
 			end
 		end
 	end

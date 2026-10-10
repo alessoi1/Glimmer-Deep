@@ -108,3 +108,17 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Alte Felder | `depth` und `layerSeeds` bleiben, bis der Grab-Dienst auf der Höhle arbeitet (U1c); dann folgt eine Migration, die sie entfernt. | Kleinster sicherer Schritt, nichts bricht. |
 | Neue Spieler | `ProfileData.new` zieht den Seed aus dem Zufallsstrom. | Jede Burg hat eine andere Höhle. |
 | Rebirth | `RebirthReset` setzt die Höhle zurück (neuer Seed, nichts abgebaut), wie schon Tiefe und Lochform. | Konzept: Rebirth setzt die Höhle zurück. |
+
+## Umbau U1c-1: Grabaktion in der Höhle (reine Logik)
+
+`src/shared/CaveAction.luau` ist das Gegenstück zu `DigAction` für die Höhle, `Cave.flush` schreibt Änderungen ins Profil. In Lune getestet, noch nicht an das Spiel angeschlossen.
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Ablauf eines Hiebs | Abklingzeit prüfen, Hieb-Fläche (nach Spitzhacken-Stufe) bilden, jede Zelle einzeln abbauen. Zellen ohne Beute (Fels) kosten keinen Platz. Bei vollem Rucksack bleiben Beute-Zellen stehen, Fels der Fläche wird trotzdem abgebaut (`stoppedFull`). Ohne etwas Abgebautes: `backpack_full` oder `nothing_mined`. | Der Spieler soll bei vollem Rucksack nicht blockiert sein, aber nie Beute verlieren. |
+| Beute | Erz und Kraut gehen unter ihrer Id in den Rucksack (Kräuter in derselben Tabelle wie Erz, mit Preisen in `Config/Ores`, also verkaufbar). Eine Fundstelle würfelt mit `DigRoll` einen seltenen Fund (mit eindeutiger Id). | Kein neues Profilfeld, Verkauf funktioniert sofort. Tränke (U2) holen sich die Kräuter später aus derselben Tabelle. |
+| Erzspürer | Der Bonus auf die Chance seltener Funde macht beim Abbau einzelner Erz-Zellen mit zusätzlicher Wahrscheinlichkeit eine Fundstelle daraus. Der Würfel wird nur dann gezogen, wenn der Bonus über 1 liegt. | Der Seed legt die sichtbaren Fundstellen fest und kann den Bonus nicht kennen. |
+| Onboarding | `stats.blocksDug` zählt jetzt abgebaute Zellen; die Zelle, mit der der Zähler 30 erreicht, macht das nächste Erz zum garantierten goldenen Fund (einmalig). Kräuter werden nie dazu. | Gleiche Regel wie früher, nur mit Zellen statt Dig-Aufrufen. |
+| Tiefe | `profile.depth` bleibt als Altwert erhalten und folgt `max(depth, Cave.depth)`, damit Rebirth, Bagger und Schicht-Logik weiterlaufen. | Kleinster sicherer Schritt, bis `depth` mit einer eigenen Migration entfällt. |
+| Zeiten | Die Abklingzeit nutzt die Uhr (`os.clock`), Ernte und Nachwuchs die Serverzeit (`os.time`); gespeichert wird abgerundet. | Wie bisher: Sekundenbruchteile nur für die Abklingzeit. |
+| Speichern | `Cave.flush` schreibt nur Abschnitte, die sich seit dem letzten Flush geändert haben (Markierung `dirty`), und entfernt Abschnitte, die wieder leer sind. Das Ergebnis ist gleich dem von `serialize`. | Ein Hieb darf nicht jedes Mal die ganze Höhle kodieren. |
