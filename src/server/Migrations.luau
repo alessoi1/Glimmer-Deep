@@ -20,6 +20,9 @@
 --   10 -> 11: house decoration (nothing owned, nothing placed).
 --   11 -> 12: prestige (no points, no rebirths, no bonus levels).
 --   12 -> 13: season progress (no season yet, no points, nothing claimed).
+--   13 -> 14: the cave. Players keep their depth as a pre-dug corridor (one row
+--             per meter, frozen at this version); depth and layerSeeds stay until
+--             the dig service works on the cave.
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -99,6 +102,28 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	end,
 	function(data)
 		data.season = { id = 0, xp = 0, claimedFree = {}, claimedPremium = {} }
+		return data
+	end,
+	function(data)
+		local depth = 0
+		if type(data.depth) == "number" and data.depth > 0 and data.depth < math.huge then
+			depth = data.depth
+		end
+		local rows = math.floor(depth)
+		-- The seed comes from the first layer seed (by id), so it is the same on every migration.
+		local seed = 1
+		if type(data.layerSeeds) == "table" then
+			local ids = {}
+			for id in data.layerSeeds do
+				table.insert(ids, id)
+			end
+			table.sort(ids)
+			local first = if ids[1] ~= nil then data.layerSeeds[ids[1]] else nil
+			if type(first) == "number" and first >= 1 then
+				seed = first
+			end
+		end
+		data.cave = { seed = seed, deepestRow = rows, preDugRow = rows, slices = {}, chests = {} }
 		return data
 	end,
 }

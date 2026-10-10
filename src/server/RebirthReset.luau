@@ -1,7 +1,7 @@
 --!strict
 -- The profile reset of a rebirth, as pure logic (no Roblox services). A fresh
 -- profile is created with the same rules as a new player; from it the profile
--- takes coins, tools, depth and the hole shape. Museum, house, pets, boosters,
+-- takes coins, tools, depth, the hole shape and the cave. Museum, house, pets, boosters,
 -- passes, quests, login chain, onboarding, prestige and all rare finds stay.
 -- Ore is lost, but rare finds in the backpack and depot are kept: they cannot
 -- be earned again like ore.
@@ -25,6 +25,7 @@ function RebirthReset.apply(
 	profile.depth = fresh.depth
 	profile.upgradeLevels = fresh.upgradeLevels
 	profile.layerSeeds = fresh.layerSeeds
+	profile.cave = fresh.cave
 	profile.backpack.ores = {}
 	profile.depot.ores = {}
 	profile.digger.leftAt = nil

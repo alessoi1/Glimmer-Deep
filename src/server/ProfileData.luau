@@ -69,6 +69,16 @@ export type SeasonState = {
 	claimedPremium: { number },
 }
 
+-- The cave as saved (see Cave.serialize). ProfileData only checks the shape;
+-- the Cave module checks the bits when the cave is loaded.
+export type CaveData = {
+	seed: number,
+	deepestRow: number,
+	preDugRow: number,
+	slices: { [string]: { bits: string, harvestedAt: number? } },
+	chests: { [string]: number },
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -76,7 +86,8 @@ export type Profile = {
 	nextFindId: number, -- next free find id
 	upgradeLevels: { [string]: number }, -- upgrade id -> level, starting at 1
 	depth: number, -- meters
-	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape
+	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape (legacy, replaced by cave)
+	cave: CaveData,
 	onboarding: Onboarding,
 	house: { level: number, decor: { owned: { [string]: boolean }, placed: { { slot: number, id: string } } } },
 	museum: Museum,
@@ -158,6 +169,7 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		upgradeLevels = upgradeLevels,
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
+		cave = { seed = math.floor(rng() * SEED_RANGE) + 1, deepestRow = 0, preDugRow = 0, slices = {}, chests = {} },
 		onboarding = { step = 1, firstFindGiven = false },
 		house = { level = 1, decor = { owned = {}, placed = {} } },
 		depot = { ores = {}, finds = {} },
@@ -233,6 +245,48 @@ local function validateStash(
 	return true, nil
 end
 
+local function isIndexKey(key: any): boolean
+	return type(key) == "string" and string.match(key, "^%d+$") ~= nil
+end
+
+local function validateCave(cave: any): (boolean, string?)
+	if type(cave) ~= "table" then
+		return false, "cave must be a table"
+	end
+	if not isInteger(cave.seed) or cave.seed < 1 or cave.seed > SEED_RANGE then
+		return false, "cave.seed must be a positive integer"
+	end
+	if not isNonNegativeInteger(cave.deepestRow) then
+		return false, "cave.deepestRow must be a non-negative integer"
+	end
+	if not isNonNegativeInteger(cave.preDugRow) or cave.preDugRow > cave.deepestRow then
+		return false, "cave.preDugRow must be a non-negative integer not above deepestRow"
+	end
+	if type(cave.slices) ~= "table" then
+		return false, "cave.slices must be a table"
+	end
+	for key, slice in cave.slices do
+		if
+			not isIndexKey(key)
+			or type(slice) ~= "table"
+			or type(slice.bits) ~= "string"
+			or slice.bits == ""
+			or (slice.harvestedAt ~= nil and not isNonNegativeInteger(slice.harvestedAt))
+		then
+			return false, "cave.slices." .. tostring(key) .. " is invalid"
+		end
+	end
+	if type(cave.chests) ~= "table" then
+		return false, "cave.chests must be a table"
+	end
+	for key, openedAt in cave.chests do
+		if not isIndexKey(key) or not isNonNegativeInteger(openedAt) then
+			return false, "cave.chests." .. tostring(key) .. " is invalid"
+		end
+	end
+	return true, nil
+end
+
 -- Returns true when `profile` has the current format with sane values,
 -- otherwise false and a reason (for logging).
 function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
@@ -270,6 +324,11 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 		if not isInteger(seed) or seed < 1 then
 			return false, string.format("layerSeeds.%s must be a positive integer", layerId)
 		end
+	end
+
+	local caveOk, caveReason = validateCave(profile.cave)
+	if not caveOk then
+		return false, caveReason
 	end
 
 	local onboarding = profile.onboarding
