@@ -40,4 +40,18 @@ return {
 	chestMinRow = 6,
 	-- A chest comes back this many seconds after it was opened.
 	chestRespawnSeconds = 21600,
+	-- Master switch: while false the game keeps using the old shaft. Turn it on
+	-- only after the cave was tested in Roblox Studio.
+	enabled = false,
+	-- Where and how the caves stand in the world. Every player's cave lies in
+	-- its own slot, side by side, far below and away from the town.
+	world = {
+		origin = { x = 3000, y = -600, z = 1500 },
+		slotSpacing = 160, -- studs between two caves; more than the cave width
+		slopeDegrees = 25, -- how steeply the cave descends
+		windowAhead = 24, -- rows built in front of the player
+		windowBehind = 12, -- rows kept behind the player
+		reachStuds = 16, -- how far the player may be from a cell and still hit it
+		maxParts = 3000, -- upper bound of parts one window may need (phones)
+	},
 }
