@@ -43,6 +43,7 @@ export type Config = {
 export type Slice = {
 	mined: { [number]: boolean }, -- local index -> true
 	harvestedAt: number?, -- server time of the last ore or herb harvest here
+	dirty: boolean?, -- changed since the last flush into the profile
 }
 
 export type State = {
@@ -395,6 +396,7 @@ function Cave.mine(
 	local cell = seedContent(state, config, row, x, y)
 	local slice = sliceFor(state, Cave.sliceOf(config, row))
 	slice.mined[Cave.localIndex(config, row, x, y)] = true
+	slice.dirty = true
 	if isResource(cell.kind) then
 		slice.harvestedAt = now
 	end
@@ -507,6 +509,7 @@ function Cave.regrow(state: State, config: Config, sliceIndex: number, now: numb
 		slice.mined[index] = nil
 	end
 	slice.harvestedAt = nil
+	slice.dirty = true
 	return #back
 end
 
@@ -547,6 +550,40 @@ function Cave.serialize(state: State, config: Config): SavedCave
 		slices = slices,
 		chests = chests,
 	}
+end
+
+-- Writes everything that changed since the last flush into `saved` (the cave
+-- table of the profile) and returns how many slices were written. Cheap enough
+-- to call after every swing and before saving; unchanged slices are not encoded.
+function Cave.flush(state: State, config: Config, saved: SavedCave): number
+	saved.seed = state.seed
+	saved.deepestRow = state.deepestRow
+	saved.preDugRow = state.preDugRow
+	for key in saved.chests do
+		saved.chests[key] = nil
+	end
+	for sliceIndex, openedAt in state.chests do
+		saved.chests[tostring(sliceIndex)] = math.floor(openedAt)
+	end
+
+	local total = cellsPerSlice(config)
+	local written = 0
+	for sliceIndex, slice in state.slices do
+		if slice.dirty then
+			local key = tostring(sliceIndex)
+			if next(slice.mined) == nil then
+				saved.slices[key] = nil
+			else
+				saved.slices[key] = {
+					bits = CaveCodec.encode(slice.mined, total),
+					harvestedAt = if slice.harvestedAt then math.floor(slice.harvestedAt) else nil,
+				}
+			end
+			slice.dirty = nil
+			written += 1
+		end
+	end
+	return written
 end
 
 local function parseIndex(key: any): number?

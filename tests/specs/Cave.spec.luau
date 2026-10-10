@@ -759,3 +759,75 @@ test("deserialize rejects corrupted data", function()
 	local notTable = Cave.deserialize(5 :: any, config)
 	assertEquals(notTable, nil)
 end)
+
+-- Flush (write only the changed slices into the profile) ----------------------------------
+
+local function emptySaved(state: Cave.State): Cave.SavedCave
+	return { seed = state.seed, deepestRow = 0, preDugRow = 0, slices = {}, chests = {} }
+end
+
+test("flush writes only the slices that changed since the last flush", function()
+	local state = Cave.new(SEED)
+	local saved = emptySaved(state)
+	assertEquals(Cave.flush(state, config, saved), 0)
+
+	digCorridor(state, 10)
+	assertEquals(Cave.flush(state, config, saved), 1)
+	assertTrue(saved.slices["0"] ~= nil)
+	assertEquals(saved.deepestRow, 10)
+	local firstBits = saved.slices["0"].bits
+
+	assertEquals(Cave.flush(state, config, saved), 0, "nothing changed")
+
+	for row = 11, 20 do
+		assertTrue(Cave.mine(state, config, 10, row, 0, 0, NOW + 1).ok)
+	end
+	assertEquals(Cave.flush(state, config, saved), 2, "slice 0 and 1 changed")
+	assertTrue(saved.slices["1"] ~= nil)
+	assertTrue(saved.slices["0"].bits ~= firstBits, "slice 0 got more mined cells")
+end)
+
+test("a flushed profile loads into the same cave as serialize gives", function()
+	local state = Cave.new(SEED)
+	local saved = emptySaved(state)
+	digCorridor(state, 40)
+	local resource = findExposedResource(state, config.entranceRows, 30)
+	Cave.mine(state, config, 10, resource.row, resource.x, resource.y, NOW + 3)
+	local _, chestPos = firstChest(state, 1, 200)
+	openNeighbors(state, chestPos.row, chestPos.x, chestPos.y)
+	Cave.openChest(state, config, 10, chestPos.row, chestPos.x, chestPos.y, NOW + 4)
+	Cave.flush(state, config, saved)
+	assertDeepEquals(saved, Cave.serialize(state, config))
+end)
+
+test("mining and regrowth mark a slice as changed", function()
+	local state = Cave.new(SEED)
+	local saved = emptySaved(state)
+	local resource = findExposedResource(state, config.entranceRows, config.entranceRows + 8)
+	-- The corridor is not needed: the resource is next to the hall's wall.
+	assertTrue(Cave.mine(state, config, 10, resource.row, resource.x, resource.y, NOW).ok)
+	Cave.flush(state, config, saved)
+	assertEquals(Cave.flush(state, config, saved), 0)
+	assertTrue(Cave.regrow(state, config, Cave.sliceOf(config, resource.row), NOW + config.regrowSeconds) >= 1)
+	assertEquals(Cave.flush(state, config, saved), 1, "regrowth changed the slice")
+end)
+
+test("a slice that became empty again is removed from the profile", function()
+	local state = Cave.new(SEED)
+	local saved = emptySaved(state)
+	local resource = findExposedResource(state, config.entranceRows, config.entranceRows + 8)
+	Cave.mine(state, config, 10, resource.row, resource.x, resource.y, NOW)
+	Cave.flush(state, config, saved)
+	assertTrue(saved.slices[tostring(Cave.sliceOf(config, resource.row))] ~= nil)
+	Cave.regrow(state, config, Cave.sliceOf(config, resource.row), NOW + config.regrowSeconds)
+	Cave.flush(state, config, saved)
+	assertEquals(next(saved.slices), nil)
+end)
+
+test("a loaded cave starts clean", function()
+	local state = Cave.new(SEED)
+	digCorridor(state, 30)
+	local restored = Cave.deserialize(Cave.serialize(state, config), config) :: Cave.State
+	local saved = emptySaved(restored)
+	assertEquals(Cave.flush(restored, config, saved), 0)
+end)
