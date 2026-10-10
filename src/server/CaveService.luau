@@ -47,6 +47,10 @@ local RETURN_LIFT = 4 -- studs above the respawn point when going back up
 local VALID_AXES: { [string]: boolean } = { row = true, x = true, y = true }
 local PARTS_PER_STEP = 250 -- parts built per frame; the rest follows on the next frames
 local FOLLOW_SECONDS = 0.25 -- how often the view follows a walking player
+local HEAD_CHECK_SECONDS = 0.1 -- how often the server looks for a head stuck in a block
+local HEAD_OFFSET = 2.4 -- studs from the root part up to the middle of the head
+local HEAD_BOX = Vector3.new(1.6, 1, 1.6) -- studs; smaller than the character so a wall beside it does not count
+local SAFE_LIFT = 1 -- studs above the last safe spot when putting a player back
 
 local settings: CaveSession.Settings
 local caveConfig: Cave.Config
@@ -65,6 +69,7 @@ local folders: { [Player]: Folder } = {}
 local parts: { [Player]: { [string]: BasePart } } = {}
 local radii: { [Player]: number } = {} -- sideways reach of the pickaxe the view was built for
 local lastRow: { [Player]: number } = {} -- row the view was last built around
+local lastSafe: { [Player]: CFrame } = {} -- last place where the head was free and the feet on the ground
 
 local function warnRejected(player: Player, remote: string, reason: string)
 	rejects.reject(player.UserId, remote, reason)
@@ -230,6 +235,7 @@ local function removeView(player: Player)
 	parts[player] = nil
 	radii[player] = nil
 	lastRow[player] = nil
+	lastSafe[player] = nil
 	local session = sessions[player]
 	if session ~= nil then
 		CaveSession.clearBuilt(session)
@@ -311,6 +317,7 @@ local function handleEnter(player: Player, ...: any)
 		lastRow[player] = refresh.row
 		applyDiff(player, session, refresh)
 		root.CFrame = CFrame.lookAt(position, position + toVec3(axes.forward))
+		lastSafe[player] = root.CFrame
 	end)
 	if not ok then
 		-- Never stay half inside: otherwise every later try ends in "already_in_cave".
@@ -556,6 +563,39 @@ local function followLoop()
 	end
 end
 
+-- A head inside a block (for example standing on a single block under the
+-- ceiling) lets the camera look out of the cave. Remember the last good spot
+-- and put the player back there when the head is stuck.
+local function headCheckLoop()
+	while true do
+		task.wait(HEAD_CHECK_SECONDS)
+		for player in sessions do
+			local root = if inCave[player] then rootPart(player) else nil
+			local folder = folders[player]
+			if root ~= nil and folder ~= nil then
+				local params = OverlapParams.new()
+				params.FilterType = Enum.RaycastFilterType.Include
+				params.FilterDescendantsInstances = { folder }
+				local headCFrame = CFrame.new(root.Position + Vector3.new(0, HEAD_OFFSET, 0))
+				if #Workspace:GetPartBoundsInBox(headCFrame, HEAD_BOX, params) > 0 then
+					local safe = lastSafe[player]
+					if safe ~= nil then
+						root.AssemblyLinearVelocity = Vector3.zero
+						root.CFrame = safe + Vector3.new(0, SAFE_LIFT, 0)
+						log.debug("head was stuck in a block, player put back", { userId = player.UserId })
+					end
+				else
+					local character = player.Character
+					local humanoid = if character ~= nil then character:FindFirstChildOfClass("Humanoid") else nil
+					if humanoid ~= nil and humanoid.FloorMaterial ~= Enum.Material.Air then
+						lastSafe[player] = root.CFrame
+					end
+				end
+			end
+		end
+	end
+end
+
 function CaveService.isInCave(player: Player): boolean
 	return inCave[player] == true
 end
@@ -648,6 +688,7 @@ function CaveService.start()
 
 	task.spawn(refreshLoop)
 	task.spawn(followLoop)
+	task.spawn(headCheckLoop)
 	log.info("started", { slots = PlotService.getSlotCount() })
 end
 
