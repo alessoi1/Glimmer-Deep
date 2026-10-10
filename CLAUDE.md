@@ -1,13 +1,13 @@
 # Glimmer Deep (Arbeitstitel)
 
-Roblox-Spiel in Luau: Spieler bekommen ein Grundstück mit einem Loch, graben Erz und seltene Funde, stellen Funde im Museum aus, bauen ihr Haus aus. Später: Auktionshaus (Update 1), Haus-Ausbau (Update 2), Koop-Expedition (Update 3).
+Roblox-Spiel in Luau: Spieler besitzen eine private Burg mit einer Höhle in der Mitte, bauen Blöcke ab, finden Erz, Kräuter, Truhen und seltene Funde, stellen Funde im Museum aus, schmieden Rüstung und Waffen und kämpfen in der Oberwelt (PvP in Stufenzonen). Später: Handelswelt (Update 1), Burg-Ausbau (Update 2), Koop-Expedition (Update 3).
 Das ausführliche Konzept steht in `docs/KONZEPT.md`. Bei Widersprüchen zwischen diesem File und dem Konzept: nachfragen, nicht raten.
 
 ## Zusammenarbeit
 
 - Antworte auf Deutsch. Code, Kommentare, Variablennamen und Commit-Messages sind Englisch. Texte, die Spieler sehen, stehen in `src/shared/Strings.luau` (Deutsch).
 - Arbeite in kleinen Schritten: erst kurzer Plan mit Dateiliste, dann Umsetzung. Eine Funktion pro Branch.
-- Schreibe Tests zuerst für Fundwurf, Offline-Berechnung, Preise, Käufe (später Auktionsabrechnung).
+- Schreibe Tests zuerst für Fundwurf, Offline-Berechnung, Preise, Käufe, Kampfrechnung (später Handelsabrechnung).
 - Frage nach, bevor du Preise, Wahrscheinlichkeiten, Datenformate oder Monetarisierung änderst.
 - Sage offen, wenn etwas nur in Roblox Studio getestet werden kann. Behaupte nie, etwas laufe, wenn du es nicht ausgeführt hast.
 
@@ -37,7 +37,7 @@ Vor jedem Commit: `stylua --check`, `selene`, Tests. Schlägt etwas fehl, erst b
 
 ## Projektstruktur
 
-- `src/server` wird zu ServerScriptService (Dienste: Data, Plot, Dig, Offline, Museum, House, Shop, Quest; später Auction).
+- `src/server` wird zu ServerScriptService (Dienste: Data, Castle, Cave, Dig, Offline, Crafting, Combat, Museum, Shop, Quest; später Potion, Trade).
 - `src/client` wird zu StarterPlayerScripts (UI, Eingabe, Effekte, keine Spielwerte).
 - `src/shared` wird zu ReplicatedStorage (Config, Typen, Strings, reine Hilfsfunktionen).
 - `tests/` Tests, `assets/models/` exportierte `.rbxm`, `docs/` Konzept und Entscheidungen.
@@ -66,10 +66,11 @@ Alles wird mit Logs versehen, damit Fehler leicht nachvollziehbar sind.
 
 ## Server-Autorität und Sicherheit (harte Regeln)
 
-- Der Server entscheidet über Funde, Münzen, Mutationen, Käufe, Auktionen. Der Client sendet nur Absichten (zum Beispiel eine Upgrade-ID), nie Preise oder Mengen.
+- Der Server entscheidet über Funde, Münzen, Mutationen, Käufe, Treffer, Schaden, Leben und Handel. Der Client sendet nur Absichten (zum Beispiel eine Upgrade-ID), nie Preise oder Mengen.
 - Jeder RemoteEvent/RemoteFunction-Handler prüft Typ, Wertebereich, Berechtigung und Cooldown. Ratenlimit pro Spieler.
 - Würfe laufen nur im Server. Zeitwerte nur aus der Serverzeit (`os.time()` im Server, kein Clientwert).
 - Vertraue nie Daten aus `RemoteEvent`-Argumenten, Attributen oder Instanzen, die der Client verändern kann.
+- Kampf: Treffer (Position, Abstand, Takt), Schaden und Leben nur im Server, Werte aus Config und Profil. PvP-Schaden ist nur in der Oberwelt an; in Burg, Höhle und Handelswelt ist er serverseitig aus.
 - Keine Skripte oder Modelle aus der Roblox-Toolbox übernehmen. Eigene oder geprüfte Assets nur.
 - Keine Schlüssel, Tokens oder Open-Cloud-Keys im Repo oder in Chat-Ausgaben.
 
@@ -77,15 +78,16 @@ Alles wird mit Logs versehen, damit Fehler leicht nachvollziehbar sind.
 
 - Laden und Speichern nur über DataService (ProfileStore). Kein direkter DataStore-Zugriff im Spielcode.
 - Das Profil hat eine `version`-Nummer. Jede Änderung am Format bekommt eine Migration und einen Test.
-- Das Loch wird als Tiefe plus Zufallswert je Schicht gespeichert, nicht als Blöcke.
+- Die Höhle wird als Seed plus komprimierte Liste der abgebauten Blöcke je Abschnitt gespeichert (mit Obergrenze für die Höhlengröße), nie als alle Blöcke. Erze, Kräuter und Truhen werden aus dem Seed berechnet, der Nachwuchs beim Laden aus Zeitstempeln.
+- Jedes handelbare Item (Fund, Ausrüstung) hat eine eindeutige ID.
 - Offline-Einkommen: Startzeit und Stufe speichern, beim Betreten berechnen, auf das Offline-Maximum begrenzen. Keine Hintergrund-Timer.
 
 ## Käufe, Zufall und Roblox-Regeln
 
 - Käufe nur über `MarketplaceService`. `ProcessReceipt` bestätigt erst nach erfolgreichem Speichern und ist idempotent (doppelte Belege abfangen).
 - Eier und Glücks-Booster sind bezahlte Zufallsobjekte: alle Chancen als Prozent anzeigen (Summe 100 %), für eingeschränkte Spieler per `PolicyService` (`ArePaidRandomItemsRestricted`) ausblenden und dort erspielbar machen. Jedes Ei gibt immer etwas.
-- Handel (Auktionshaus, ab Update 1) nur nach `PolicyService`-Prüfung (`IsPaidItemTradingAllowed`); sonst für den Spieler gesperrt. Nur gegrabene Funde sind handelbar. Game Passes, Developer Products und Eier-Haustiere nie.
-- Nur Spielmünzen, nie Robux im Auktionshaus. Keine Münzpakete gegen Robux. Keine Chancenspiele mit handelbaren Funden.
+- Handel (Handelswelt, ab Update 1) nur nach `PolicyService`-Prüfung (`IsPaidItemTradingAllowed`); sonst für den Spieler gesperrt. Handelbar sind nur erspielte Dinge (Erze, Funde, Kräuter, Tränke, geschmiedete oder gefundene Ausrüstung). Nichts, was mit Robux gekauft wurde: Game Passes, Developer Products, Eier-Haustiere und Ausrüstung aus Robux-Paketen nie.
+- Nur Spielmünzen, nie Robux in der Handelswelt. Keine Münzpakete gegen Robux. Keine Chancenspiele mit handelbaren Items. Truhen und Tränke gibt es nie gegen Robux.
 - Kauftexte neutral („Angebot ansehen“), nie drängend („Letzte Chance“).
 - Die Regeln ändern sich. Vor Launch und vor Update 1 gegen die aktuelle Roblox-Dokumentation prüfen (siehe `docs/KONZEPT.md`, Abschnitt Roblox-Regeln).
 
@@ -106,4 +108,4 @@ Code formatiert, Lint sauber, Tests grün, Regeln oben eingehalten, kurze Notiz,
 
 ## Aktueller Stand
 
-(Von Hand pflegen.) Launch-Umfang gebaut (Grundstück, Graben, Verkauf, Upgrades, Museum, Bagger, Quests, Shop, Booster, Haustiere, Haus bis Stufe 2, Gäste, Rebirth, Events, Saison). Nächster Schritt: Testphase in Studio (`docs/TESTLISTE.md`). Noch nicht bauen: Auktionshaus (Update 1), Haus-Stufen 3 und 4 (Update 2), Koop-Expedition (Update 3).
+(Von Hand pflegen.) Gebaut ist der Umfang des alten Konzepts (Grundstück mit Schacht, Graben, Verkauf, Upgrades, Museum, Bagger, Quests, Shop, Booster, Haustiere, Haus bis Stufe 2, Gäste, Rebirth, Events, Saison, Stadt). Das Konzept wurde am 10. Oktober 2026 auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt umgestellt (`docs/KONZEPT.md`, Abschnitt „Umbau des bestehenden Spiels“; offene Entscheidungen unter „Zu bestätigen“). Noch nicht umgebaut: Höhle, Schmiede, Tränke, Oberwelt, Handelswelt. Nicht bauen, bevor die Punkte unter „Zu bestätigen“ entschieden sind: Oberwelt/PvP, Kopfgeld, Ausrüstung gegen Robux. Später: Handelswelt (Update 1), Burg-Stufen 3 und 4 (Update 2), Koop-Expedition (Update 3).

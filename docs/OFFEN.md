@@ -2,9 +2,21 @@
 
 Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht vergessen werden dürfen.
 
+## Konzeptumbau (10. Oktober 2026)
+
+Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt umgestellt (`docs/KONZEPT.md`). Die Umbau-Schritte U1 bis U3 stehen dort in der Roadmap.
+
+- [ ] **Zu bestätigen:** zehn Punkte am Ende von `docs/KONZEPT.md` (Robux-Ausrüstung, Kopfgeld, Auto-Graben, Freunde in der Höhle, Stadtlayout, Rebirth, Reihenfolge, Namen, handelbare Truhen-Ausrüstung, Roblox-Regeln zu PvP).
+- [ ] **Studio-Testphase des bisherigen Spiels** (`docs/TESTLISTE.md`) abschließen, damit der Umbau auf einem geprüften Stand beginnt.
+- [ ] **U1 Höhle:** Datenformat (Seed plus abgebaute Blöcke), Profil-Migration, Schacht ersetzen, Handy-Messung. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
+- [ ] **U2 Ausrüstung:** Schmiede, Rüstung und Waffen, Kräuter, Tränke.
+- [ ] **U3 Oberwelt:** Portal, Stufenzonen, PvP, Kopfgeld.
+- [ ] **Roblox-Regeln zu PvP** lesen (Gewaltdarstellung, Altersfreigabe), bevor die Oberwelt gebaut wird.
+- [ ] **Alte Begriffe im Code** (Schacht, Schaufel, Auktionshaus) werden mit den Umbau-Schritten umbenannt; bis dahin gelten sie weiter.
+
 ## Spielmechanik
 
-- [x] **Schaufel-Reichweite:** Entschieden und umgesetzt: Reichweite = wie weit der Spieler vom Schacht stehen darf (`rangeBonus` je Schaufelstufe in `Config/Shovel`, 0 bis 5 Studs auf Basis `digRange`). Mehrere Blöcke pro Aktion gibt es nicht. Siehe `docs/ENTSCHEIDUNGEN.md`.
+- [x] **Schaufel-Reichweite:** (Wird durch den Konzeptumbau abgelöst: Hieb-Fläche und Spielbereich der Höhle statt Abstand zum Schacht.) Entschieden und umgesetzt: Reichweite = wie weit der Spieler vom Schacht stehen darf (`rangeBonus` je Schaufelstufe in `Config/Shovel`, 0 bis 5 Studs auf Basis `digRange`). Mehrere Blöcke pro Aktion gibt es nicht. Siehe `docs/ENTSCHEIDUNGEN.md`.
 - [x] **Eindeutige IDs für seltene Funde:** Profil-Version 2, `Find.id` und `nextFindId` (siehe `docs/ENTSCHEIDUNGEN.md`). In Studio prüfen: ein bestehendes Profil lädt als „migrated“, neue Funde bekommen fortlaufende IDs.
 - [ ] **Balancing:** `metersPerBlock = 0.02` und `digRange = 12` (Config/Dig) sind Startwerte. Alle Preise, Kapazitäten, Cooldowns, Erzwerte, Mutationswerte sind Startwerte (siehe Kommentare in `src/shared/Config/`). In Playtests prüfen.
 - [x] **Offline-Einkommen:** Profil-Version 5 (Lager, Bagger-Stufe, Abwesenheitszeit). Siehe „Offline-Bagger in Studio prüfen“.
@@ -37,5 +49,5 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 
 ## Vor Launch und vor Update 1
 
-- [ ] Roblox-Regeln erneut gegen die aktuelle Dokumentation prüfen (siehe `docs/KONZEPT.md`, Abschnitt Roblox-Regeln).
+- [ ] Roblox-Regeln erneut gegen die aktuelle Dokumentation prüfen (siehe `docs/KONZEPT.md`, Abschnitt Roblox-Regeln), zusätzlich zu PvP und Gewaltdarstellung.
 - [ ] Arbeitstitel auf Roblox und per Markenrecherche prüfen.
