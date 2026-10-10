@@ -122,3 +122,16 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Tiefe | `profile.depth` bleibt als Altwert erhalten und folgt `max(depth, Cave.depth)`, damit Rebirth, Bagger und Schicht-Logik weiterlaufen. | Kleinster sicherer Schritt, bis `depth` mit einer eigenen Migration entfällt. |
 | Zeiten | Die Abklingzeit nutzt die Uhr (`os.clock`), Ernte und Nachwuchs die Serverzeit (`os.time`); gespeichert wird abgerundet. | Wie bisher: Sekundenbruchteile nur für die Abklingzeit. |
 | Speichern | `Cave.flush` schreibt nur Abschnitte, die sich seit dem letzten Flush geändert haben (Markierung `dirty`), und entfernt Abschnitte, die wieder leer sind. Das Ergebnis ist gleich dem von `serialize`. | Ein Hieb darf nicht jedes Mal die ganze Höhle kodieren. |
+
+## Umbau U1c-2a: Höhle in der Welt (reine Geometrie)
+
+`src/shared/CaveView.luau` und `Config/Cave.world`. In Lune getestet; die Teile in Roblox baut später der `CaveService`.
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Ort | Jede Höhle liegt in einem eigenen Platz (Slot) weit unter und südlich der Stadt (Ursprung 3000 / -600 / 1500, Abstand 160 Studs), nebeneinander. Das Gefälle beträgt 25 Grad. Der Eingang der Burg führt per Treppe oder Teleport dorthin. | Die Höhlen fremder Spieler dürfen sich nie berühren, und unter der Stadt wäre kein Platz (Höhle bis 1200 Studs lang). Abstand und Breite sind per Test verbunden. |
+| Zelle zu Welt | Mitte der Zelle = Ursprung des Slots + Vorwärtsrichtung (mit Gefälle) mal Zeile + rechts mal Spalte + oben mal Höhe. `rowAt` ist die Umkehrung (Zeile unter der Spielfigur). | Der Server prüft Reichweite und Fenster aus der Position des Spielers. |
+| Sichtfenster | 12 Zeilen hinter und 24 vor dem Spieler. Gebaut werden nur feste Zellen, die an offenen Raum grenzen, plus eine Hülle aus „Grundgestein“ außerhalb des Gitters (Boden, Decke, Seitenwände, sonst fiele der Spieler durch). | Teilebudget für Handys: Fenster mit Gang 444 Teile, komplett ausgehöhlt 1554 (Obergrenze 3000, per Test geprüft). |
+| Streaming | `diff(gebaut, gewünscht)` liefert, was gebaut und was abgebaut werden muss. Eine Fensterberechnung kostet 15 bis 30 ms; der Dienst rechnet sie nur bei Zeilenwechsel oder nach einem Hieb neu, nie jede Sekunde für jeden Spieler. | Rechenzeit auf dem Server. |
+| Reichweite | Ein Treffer zählt nur, wenn die Zellmitte höchstens 16 Studs von der Spielfigur entfernt ist (`reachStuds`, NaN wird abgelehnt). | Der Client sendet nur Zeile, Spalte und Höhe; der Server glaubt das nicht ohne Abstandsprüfung. |
+| Schalter | `Config/Cave.enabled = false`: Bis die Höhle in Studio getestet wurde, bleibt der Schacht aktiv. | Das laufende, getestete Spiel darf nicht durch ungetesteten Code brechen. |
