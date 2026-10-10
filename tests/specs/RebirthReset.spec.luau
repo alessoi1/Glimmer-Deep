@@ -104,6 +104,20 @@ test("the reset gives a new, untouched cave", function()
 	assertEquals(next(profile.cave.chests), nil)
 end)
 
+test("equipment and the stash stay through a rebirth", function()
+	local profile = playedProfile()
+	profile.gear = {
+		owned = { { id = 1, slot = "weapon", tier = 3, source = "crafted", bound = false } },
+		equipped = { weapon = 1 },
+		nextId = 2,
+	}
+	profile.stash = { ores = { iron = 9 } }
+	RebirthReset.apply(profile, rules, Framework.seededRng(9), NOW)
+	assertEquals(#profile.gear.owned, 1)
+	assertEquals(profile.gear.equipped.weapon, 1)
+	assertEquals(profile.stash.ores.iron, 9)
+end)
+
 test("a reset profile is still valid", function()
 	local profile = playedProfile()
 	RebirthReset.apply(profile, rules, Framework.seededRng(4), NOW)

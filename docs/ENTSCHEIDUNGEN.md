@@ -135,3 +135,19 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Streaming | `diff(gebaut, gewünscht)` liefert, was gebaut und was abgebaut werden muss. Eine Fensterberechnung kostet 15 bis 30 ms; der Dienst rechnet sie nur bei Zeilenwechsel oder nach einem Hieb neu, nie jede Sekunde für jeden Spieler. | Rechenzeit auf dem Server. |
 | Reichweite | Ein Treffer zählt nur, wenn die Zellmitte höchstens 16 Studs von der Spielfigur entfernt ist (`reachStuds`, NaN wird abgelehnt). | Der Client sendet nur Zeile, Spalte und Höhe; der Server glaubt das nicht ohne Abstandsprüfung. |
 | Schalter | `Config/Cave.enabled = false`: Bis die Höhle in Studio getestet wurde, bleibt der Schacht aktiv. | Das laufende, getestete Spiel darf nicht durch ungetesteten Code brechen. |
+
+## Umbau U2a: Ausrüstung und Erzlager (Profilversion 15)
+
+`src/shared/Equipment.luau` und `Config/Equipment.luau`, dazu `gear` und `stash` im Profil. In Lune getestet, noch nicht an das Spiel angeschlossen. Alle Zahlen sind Startwerte.
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Plätze und Stufen | Waffe, Helm, Rüstung, Beinschutz, Stiefel. Fünf Stufen zum Launch (Kupfer, Eisen, Silber, Gold, Kristall), das Erz der Stufe ist das Erz der Schicht. Leben und Schaden stehen in `Config/Equipment` (Werte aus dem Konzept). | Konzept: bessere Erze, bessere Ausrüstung. |
+| Werte | Leben = Grundleben plus die Anteile (Helm 20 %, Rüstung 40 %, Beine 25 %, Stiefel 15 %) des Stufen-Lebens je getragenem Teil. Schaden = Schaden der Waffenstufe. Kampfstärke = Leben mal Schaden (für die Zonen). | Ein Teil trägt auch einzeln bei; die Summe eines kompletten Satzes ist genau der Stufenwert (per Test). |
+| Herstellen | Aus dem **Erzlager** (Stash) und Münzen: 10 bis 20 Erz je Teil, Münzen wachsen mit dem Faktor 3 je Stufe. Das Lager füllt man an der Schmiede mit „Einlagern“ aus dem Rucksack; nur Stufen-Erz wird verschoben, Kohle und Kräuter bleiben zum Verkaufen. | Der Rucksack fasst am Anfang nur 50, ein Teil braucht bis 20 Erz. Ohne Lager müsste man für jede Rüstung mehrmals zurückgehen. |
+| Herkunft und Handel | Jedes Teil hat Quelle (`crafted`, `chest`, `shop`) und `bound`. Teile aus dem Shop sind kontogebunden (nicht handelbar) und höchstens Stufe 3 (`shopMaxTier`) mit denselben Werten wie erspielte Teile gleicher Stufe (per Test). Erspielte und gefundene Teile sind handelbar. | Entscheidung 1 vom 10. Oktober 2026 („gesunder Rahmen“). |
+| Eindeutige Ids | `gear.nextId` zählt hoch, Ids werden nie wiederverwendet (global `userId:id` für den Handel). | Betrugsschutz wie bei den Funden. |
+| Obergrenze | Höchstens 60 Teile je Spieler (`maxOwned`). | Profilgröße und Missbrauch. |
+| Prüfung | `ProfileData` prüft nur die Form (Server-Module laden nur Geschwister); `Equipment.validate` prüft die Regeln (Plätze, Stufen, Quelle, Shop-Grenze, getragene Teile) beim Laden durch den Dienst. | Wie bei der Höhle. |
+| Rebirth | Ausrüstung und Erzlager bleiben (Entscheidung 6). | Das Lager enthält bewusst eingelagertes Erz. |
+| Testfund | Beim Schreiben der Migration überdeckte eine neue Funktion `validateStash` eine gleichnamige bestehende; der bestehende Profil-Test fing es sofort ab. | Zeigt den Wert der Tests; umbenannt in `validateForgeStash`. |

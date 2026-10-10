@@ -79,6 +79,14 @@ export type CaveData = {
 	chests: { [string]: number },
 }
 
+-- Armor and weapons as saved (see Equipment). ProfileData checks the shape; the
+-- Equipment module checks the rules (slots, tiers, shop cap) when it loads them.
+export type GearData = {
+	owned: { { id: number, slot: string, tier: number, source: string, bound: boolean } },
+	equipped: { [string]: number },
+	nextId: number,
+}
+
 export type Profile = {
 	version: number,
 	createdAt: number, -- server time (os.time) when the profile was created
@@ -88,6 +96,8 @@ export type Profile = {
 	depth: number, -- meters
 	layerSeeds: { [string]: number }, -- layer id -> random seed for the hole shape (legacy, replaced by cave)
 	cave: CaveData,
+	gear: GearData,
+	stash: { ores: { [string]: number } }, -- ore kept for crafting (the forge stash)
 	onboarding: Onboarding,
 	house: { level: number, decor: { owned: { [string]: boolean }, placed: { { slot: number, id: string } } } },
 	museum: Museum,
@@ -170,6 +180,8 @@ function ProfileData.new(rules: Rules, rng: () -> number, now: number): Profile
 		depth = rules.startDepth,
 		layerSeeds = layerSeeds,
 		cave = { seed = math.floor(rng() * SEED_RANGE) + 1, deepestRow = 0, preDugRow = 0, slices = {}, chests = {} },
+		gear = { owned = {}, equipped = {}, nextId = 1 },
+		stash = { ores = {} },
 		onboarding = { step = 1, firstFindGiven = false },
 		house = { level = 1, decor = { owned = {}, placed = {} } },
 		depot = { ores = {}, finds = {} },
@@ -287,6 +299,54 @@ local function validateCave(cave: any): (boolean, string?)
 	return true, nil
 end
 
+local function validateGear(gear: any): (boolean, string?)
+	if type(gear) ~= "table" then
+		return false, "gear must be a table"
+	end
+	if not isInteger(gear.nextId) or gear.nextId < 1 then
+		return false, "gear.nextId must be a positive integer"
+	end
+	if type(gear.owned) ~= "table" then
+		return false, "gear.owned must be a table"
+	end
+	for _, piece in gear.owned do
+		if
+			type(piece) ~= "table"
+			or not isInteger(piece.id)
+			or piece.id < 1
+			or piece.id >= gear.nextId
+			or type(piece.slot) ~= "string"
+			or not isInteger(piece.tier)
+			or piece.tier < 1
+			or type(piece.source) ~= "string"
+			or type(piece.bound) ~= "boolean"
+		then
+			return false, "gear.owned has an invalid piece"
+		end
+	end
+	if type(gear.equipped) ~= "table" then
+		return false, "gear.equipped must be a table"
+	end
+	for slot, gearId in gear.equipped do
+		if type(slot) ~= "string" or not isInteger(gearId) then
+			return false, "gear.equipped needs slot names and piece ids"
+		end
+	end
+	return true, nil
+end
+
+local function validateForgeStash(stash: any): (boolean, string?)
+	if type(stash) ~= "table" or type(stash.ores) ~= "table" then
+		return false, "stash.ores must be a table"
+	end
+	for oreId, count in stash.ores do
+		if type(oreId) ~= "string" or not isNonNegativeInteger(count) then
+			return false, "stash.ores." .. tostring(oreId) .. " must be a non-negative integer"
+		end
+	end
+	return true, nil
+end
+
 -- Returns true when `profile` has the current format with sane values,
 -- otherwise false and a reason (for logging).
 function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
@@ -329,6 +389,14 @@ function ProfileData.validate(profile: any, rules: Rules): (boolean, string?)
 	local caveOk, caveReason = validateCave(profile.cave)
 	if not caveOk then
 		return false, caveReason
+	end
+	local gearOk, gearReason = validateGear(profile.gear)
+	if not gearOk then
+		return false, gearReason
+	end
+	local stashOk, stashReason = validateForgeStash(profile.stash)
+	if not stashOk then
+		return false, stashReason
 	end
 
 	local onboarding = profile.onboarding

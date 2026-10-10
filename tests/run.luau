@@ -153,6 +153,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/CaveView.spec")
 	end,
+	function()
+		require("./specs/Equipment.spec")
+	end,
 }
 
 local passed = 0

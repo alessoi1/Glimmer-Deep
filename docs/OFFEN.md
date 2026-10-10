@@ -12,7 +12,8 @@ Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt um
 - [x] **U1b Profil:** Profilversion 14 mit `cave` (Migration, Vorgrab-Gang für bestehende Spieler, Rebirth setzt die Höhle zurück). `depth` und `layerSeeds` bleiben bis U1c.
 - [x] **U1c-1 Grabaktion** (reine Logik, `CaveAction`, `Cave.flush`, Kräuterpreise).
 - [ ] **U1c-2 Spiel:** `CaveService` (Blöcke bauen und streamen, Treffer-Remote mit Prüfungen, Rucksack-Anbindung, Truhen-Loot), Schacht ersetzen, Schichten zu Biomen umbenennen, Handy-Messung in Studio. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
-- [ ] **U2 Ausrüstung:** Schmiede, Rüstung und Waffen, Kräuter, Tränke.
+- [x] **U2a Ausrüstung** (reine Logik, Profilversion 15): `Equipment`, `Config/Equipment`, Erzlager.
+- [ ] **U2b Tränke und Truhen-Loot** (reine Logik), dann **U2c Schmiede im Spiel** (`ForgeService`, Oberfläche; nur in Studio prüfbar).
 - [ ] **U3 Oberwelt:** Portal, Stufenzonen, PvP, Kopfgeld.
 - [ ] **Roblox-Regeln zu PvP** lesen (Gewaltdarstellung, Altersfreigabe), bevor die Oberwelt gebaut wird.
 - [ ] **Alte Begriffe im Code** (Schacht, Schaufel, Auktionshaus) werden mit den Umbau-Schritten umbenannt; bis dahin gelten sie weiter.
