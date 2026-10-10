@@ -10,7 +10,8 @@ Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt um
 - [ ] **Studio-Testphase des bisherigen Spiels** (`docs/TESTLISTE.md`) abschließen, damit der Umbau auf einem geprüften Stand beginnt.
 - [x] **U1a Höhlenmodell** (reine Logik, in Lune getestet): `Cave`, `CaveCodec`, `Config/Cave`: Raster, Inhalt aus dem Seed, Abbau mit Hieb-Fläche, Nachwuchs, Truhen, Speicherformat (Entscheidungen in `docs/ENTSCHEIDUNGEN.md`).
 - [x] **U1b Profil:** Profilversion 14 mit `cave` (Migration, Vorgrab-Gang für bestehende Spieler, Rebirth setzt die Höhle zurück). `depth` und `layerSeeds` bleiben bis U1c.
-- [ ] **U1c Spiel:** `CaveService` (Blöcke bauen und streamen, Treffer-Remote mit Prüfungen, Rucksack-Anbindung, Truhen-Loot), Schacht ersetzen, Schichten zu Biomen umbenennen, Handy-Messung in Studio. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
+- [x] **U1c-1 Grabaktion** (reine Logik, `CaveAction`, `Cave.flush`, Kräuterpreise).
+- [ ] **U1c-2 Spiel:** `CaveService` (Blöcke bauen und streamen, Treffer-Remote mit Prüfungen, Rucksack-Anbindung, Truhen-Loot), Schacht ersetzen, Schichten zu Biomen umbenennen, Handy-Messung in Studio. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
 - [ ] **U2 Ausrüstung:** Schmiede, Rüstung und Waffen, Kräuter, Tränke.
 - [ ] **U3 Oberwelt:** Portal, Stufenzonen, PvP, Kopfgeld.
 - [ ] **Roblox-Regeln zu PvP** lesen (Gewaltdarstellung, Altersfreigabe), bevor die Oberwelt gebaut wird.

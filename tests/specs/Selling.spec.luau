@@ -112,6 +112,25 @@ test("shipped ore prices cover every ore of every layer", function()
 	assertTrue(ok, reason)
 end)
 
+test("every herb of every layer has a price too", function()
+	for _, layer in Layers do
+		for _, herbId in layer.herbs do
+			assertTrue(Ores[herbId] ~= nil, "no price for herb " .. herbId)
+		end
+	end
+	local withoutHerbs = table.clone(Ores)
+	withoutHerbs.moss_fern = nil
+	assertEquals((Selling.validateOreValues(Layers, withoutHerbs)), false)
+end)
+
+test("herbs sell like ore", function()
+	local backpack = Backpack.new(10)
+	backpack.ores.moss_fern = 3
+	local result = Selling.sellAll(backpack, Ores)
+	assertEquals(result.coins, 3 * Ores.moss_fern)
+	assertEquals(next(result.unknownOres), nil)
+end)
+
 test("validateOreValues rejects missing and invalid prices", function()
 	assertEquals((Selling.validateOreValues(Layers, { coal = 1 })), false)
 

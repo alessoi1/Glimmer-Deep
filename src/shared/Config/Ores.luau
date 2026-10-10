@@ -14,4 +14,8 @@ return {
 	-- Layer 3: Kristallschicht
 	gold = 16,
 	crystal = 32,
+	-- Herbs (found on the cave walls; also the base of potions later)
+	moss_fern = 2,
+	shadow_mushroom = 6,
+	glimmer_flower = 20,
 }
