@@ -76,7 +76,7 @@ end
 local function newButton(gui: ScreenGui, text: string, order: number): TextButton
 	local button = Instance.new("TextButton")
 	button.AnchorPoint = Vector2.new(0, 0)
-	button.Position = UDim2.new(0, BUTTON_MARGIN, 0, BUTTON_MARGIN + order * (BUTTON_HEIGHT + 8))
+	button.Position = UDim2.fromOffset(BUTTON_MARGIN, BUTTON_MARGIN + order * (BUTTON_HEIGHT + 8))
 	button.Size = UDim2.fromOffset(BUTTON_WIDTH, BUTTON_HEIGHT)
 	button.BackgroundColor3 = COLOR_BUTTON
 	button.TextColor3 = COLOR_BUTTON_TEXT
