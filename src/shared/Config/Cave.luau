@@ -59,14 +59,19 @@ return {
 		},
 		oreFallback = { r = 140, g = 140, b = 140 },
 	},
+	-- Workspace.FallenPartsDestroyHeight while the cave is on (studs).
+	fallenPartsDestroyHeight = -5000,
 	-- Master switch: while false the game keeps using the old shaft. Switched on
 	-- for the Studio test (docs/TESTLISTE.md, section Höhle); set it back to false
 	-- if the cave breaks the game.
 	enabled = true,
-	-- Where and how the caves stand in the world. Every player's cave lies in
+	-- Where and how the caves stand in the world. The origin is high on purpose:
+	-- the cave descends about 1.7 studs per row and Roblox destroys anything below
+	-- Workspace.FallenPartsDestroyHeight (-500 by default), which killed the player
+	-- at once when the origin was at -600. Every player's cave lies in
 	-- its own slot, side by side, far below and away from the town.
 	world = {
-		origin = { x = 3000, y = -600, z = 1500 },
+		origin = { x = 3000, y = 200, z = 1500 },
 		slotSpacing = 160, -- studs between two caves; more than the cave width
 		slopeDegrees = 25, -- how steeply the cave descends
 		windowAhead = 24, -- rows built in front of the player

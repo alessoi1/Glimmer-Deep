@@ -499,6 +499,16 @@ function CaveService.start()
 	end
 	logFromIndex = rarityIndex[DigConfig.logFromRarity] or math.huge
 
+	-- The cave runs below the default destroy height for a deep cave: lower it so
+	-- nobody is killed for being deep down (may be refused by Roblox; then the
+	-- world origin keeps the cave above it for a while).
+	local okHeight, heightError = pcall(function()
+		Workspace.FallenPartsDestroyHeight = CaveConfig.fallenPartsDestroyHeight
+	end)
+	if not okHeight then
+		log.warn("could not lower FallenPartsDestroyHeight", { error = tostring(heightError) })
+	end
+
 	worldFolder = Instance.new("Folder")
 	worldFolder.Name = WORLD_FOLDER
 	worldFolder.Parent = Workspace
