@@ -20,7 +20,7 @@ Entscheidungen des Entwicklers, die das Konzept vom 7. Oktober ersetzen:
 | Besuch | Besucher bewundern das Museum | Burg ist privat. Nur Roblox-Freunde dürfen auf Einladung kommen. |
 | Neu | – | **Tränke** aus Kräutern der Biome |
 
-Bleibt: Offline-Helfer, Museum und Sets, Haustiere und Eier, Quests und Login-Kette, wöchentliche Events, Saison-Pass, Rebirth, Booster, Passes, Burg-Ausbau (früher Haus-Ausbau), Koop-Expedition als spätere Option. Wo ein Punkt noch nicht entschieden ist, steht er am Ende unter „Zu bestätigen“.
+Bleibt: Offline-Helfer, Museum und Sets, Haustiere und Eier, Quests und Login-Kette, wöchentliche Events, Saison-Pass, Rebirth, Booster, Passes, Burg-Ausbau (früher Haus-Ausbau), Koop-Expedition als spätere Option. Die Entscheidungen dazu stehen am Ende unter „Entscheidungen vom 10. Oktober 2026“.
 
 ## Vision und Hype-Begründung
 
@@ -85,7 +85,7 @@ Alle Zahlen sind Startwerte zum Balancen im Test, keine geprüften Werte.
 - **Aufbau:** Die Höhle besteht aus Würfel-Blöcken (Startwert 4 Studs). Gestein verschwindet beim Abbau ohne Beute, Erze, Kräuter und Truhen geben Beute. Wer Erz erreichen will, muss das Gestein davor abbauen.
 - **Platz zum Graben:** Der Spielbereich hat einen Radius von 6 Blöcken seitlich der Mittellinie (Breite 13) und eine Höhe von 6 Blöcken. Er ist nach den Seiten begrenzt: Die Grenze wächst mit der Spitzhacke bis auf 12 Blöcke (Breite 25). Geradeaus nach unten geht es, solange man gräbt.
 - **Hieb:** Ein Hieb schlägt eine Fläche vor dem Spieler ab. Je besser die Spitzhacke, desto größer die Fläche (Startwerte: Stufe 1 und 2 ein Block, 3 und 4 zwei mal zwei, 5 und 6 drei mal drei, 7 und 8 vier mal vier, 9 und 10 fünf mal fünf) und desto kürzer die Abklingzeit.
-- **Auto-Graben:** Eine kaufbare Funktion, die in Hieb-Takt weiterschlägt, solange der Spieler hält oder vor der Wand steht. Erspielbar mit Münzen (Startwert 5.000), als Komfort auch als Game Pass ab Start (siehe Monetarisierung).
+- **Auto-Graben:** Eine kaufbare Funktion, die im Takt der Abklingzeit weiterschlägt, solange der Spieler vor der Wand steht und der Rucksack nicht voll ist. Erspielbar ab Spitzhacken-Stufe 3 für 5.000 Münzen, als Komfort auch als Game Pass ab Start (siehe Monetarisierung).
 - **Rucksack:** Jedes Erz, Kraut und Fund belegt einen Platz. Ist der Rucksack voll, geht es zur Burg zurück, dort wird verkauft. Der Rucksack füllt sich anfangs in etwa 30 bis 45 Sekunden (Ziel zum Balancen, abhängig von der Erzdichte).
 - **Speicherung:** Die Höhle wird als Seed plus komprimierte Liste der abgebauten Blöcke je Abschnitt gespeichert, mit Obergrenze für die Höhlengröße. Alles andere (Erze, Kräuter, Truhen) wird aus dem Seed berechnet.
 
@@ -181,7 +181,7 @@ Der Handel zwischen Spielern ist auf Roblox möglich, aber an Bedingungen geknü
 
 Möbel und Deko lassen sich mit Münzen kaufen, kosmetische Pakete zusätzlich mit Robux. Zum Launch genügt Stufe 1 bis 2; der volle Ausbau kommt als Update 2.
 
-**13. Freunde und gemeinsames Graben.** Roblox-Freunde des Besitzers dürfen die Burg betreten und in der Höhle mitgraben (bis zu 4 Gäste). Jeder Gast behält sein eigenes Erz, der Gastgeber erhält einen kleinen Bonus. Fremde kommen nie in die Burg. Das ist ohne aufwendigen Koop-Modus eine soziale Ebene und ein Grund, Freunde einzuladen.
+**13. Freunde und gemeinsames Graben.** Roblox-Freunde des Besitzers dürfen die Burg betreten und in der Höhle mitgraben (bis zu 4 Gäste), aber nur in Biomen, die sie selbst schon freigeschaltet haben (größte eigene Tiefe). Jeder Gast behält sein eigenes Erz, der Gastgeber erhält einen kleinen Bonus. Fremde kommen nie in die Burg. Das ist ohne aufwendigen Koop-Modus eine soziale Ebene und ein Grund, Freunde einzuladen.
 
 **14. Rebirth „Neue Bohrung“.** Nach Erreichen des tiefsten Bioms kann der Spieler eine neue Höhle beginnen. Münzen, Spitzhacke, Fähigkeiten, Tiefe und die Höhle werden zurückgesetzt. Burg, Museum, Haustiere, Eier, Ausrüstung und Tränke bleiben. Dafür gibt es Prestige-Punkte für dauerhafte Boni. So bleibt auch nach Wochen ein Ziel.
 
@@ -271,14 +271,14 @@ Geld kommt über Game Passes (einmalig), Developer Products (wiederholbar), eine
 | Glücks-Booster (15 Minuten) | Developer Product | 39 | Höhere Mutationschance | Zählt als bezahltes Zufallsobjekt: Wirkung vor dem Kauf anzeigen, für eingeschränkte Spieler ausblenden und dort erspielbar machen |
 | Tempo-Booster (30 Minuten) | Developer Product | 49 | 2x Grabtempo | Wirkt nur für den Käufer und nur beim Graben, nicht im PvP |
 | Fossil-Ei | Developer Product | 99 | Zufälliges Haustier, nicht handelbar | Wahrscheinlichkeiten sichtbar, Mindestgarantie nach X Eiern, für eingeschränkte Spieler erspielbar statt kaufbar |
-| Ausrüstungspaket (Vorschlag, zu bestätigen) | Developer Product oder Game Pass | offen | Ausrüstung bis zu einer mittleren Stufe | Siehe unten „Gesunder Rahmen“ |
+| Ausrüstungspaket | Developer Product oder Game Pass | offen | Ausrüstung bis zu einer mittleren Stufe | Siehe unten „Gesunder Rahmen“; Preise noch offen |
 
 **Bewusst nicht im Shop:** Münzpakete gegen Robux, handelbare Funde gegen Robux, Tränke gegen Robux (Heil- und Stärketränke gäben im PvP einen Vorteil) und Truhen oder Schlüssel. Außerdem bietet Roblox keinen Handel von Game Passes oder Developer Products an (siehe Abschnitt „Roblox-Regeln zum Handel“).
 
-**Ausrüstung gegen Robux, „in einem gesunden Rahmen“ (Vorschlag, zu bestätigen):**
+**Ausrüstung gegen Robux, „in einem gesunden Rahmen“ (bestätigt am 10. Oktober 2026):**
 
 1. Ausrüstung aus Robux-Paketen ist **kontogebunden und nicht handelbar**. Sonst würde die Handelswelt Robux in Macht verwandeln.
-2. Sie reicht höchstens bis zu einer **mittleren Stufe** (Vorschlag: Silber) und hat dieselben Werte wie erspielbare Ausrüstung dieser Stufe, nie bessere.
+2. Sie reicht höchstens bis zu einer **mittleren Stufe** (Startwert: Silber) und hat dieselben Werte wie erspielbare Ausrüstung dieser Stufe, nie bessere.
 3. Die Stufenzonen im PvP begrenzen den Vorsprung zusätzlich: Wer gekauft hat, kommt nicht weiter nach oben als jemand mit erspielter Ausrüstung gleicher Stärke.
 4. Alles darüber ist nur erspielbar.
 5. Kosmetik (Skins) ist unbegrenzt kaufbar und ändert keine Werte.
@@ -313,7 +313,7 @@ Eine Handelswelt ist auf Roblox möglich, wenn der Handel pro Spieler per Policy
 - Welche Länder beim Handel gesperrt sind, nennen die geöffneten Quellen nicht. Die Abfrage zur Laufzeit per PolicyService ist deshalb Pflicht.
 - Die Bedeutung von IsPaidItemTradingAllowed stammt aus älteren Entwicklerforum-Beiträgen (2020 und 2022, von Community-Mitgliedern) und der Ankündigung vom 26. Mai 2026; die PolicyService-Seite der Creator Docs, die ich öffnen konnte, listete die Eigenschaft nicht.
 - Für eine Handelswelt mit reinen Spielmünzen fand ich keine eigene Regel: Sie wird in den geöffneten Quellen weder verboten noch ausdrücklich erlaubt. Im Zweifel vor dem Bau im Entwicklerforum oder beim Roblox-Support nachfragen.
-- **PvP und Gewaltdarstellung bei jungen Spielern:** nicht geprüft. Vor dem Bau der Oberwelt die Community Standards und die Richtlinien zu Altersfreigaben und Inhaltsbeschreibungen lesen (Darstellung der Kämpfe, Blut, Waffen).
+- **PvP und Gewaltdarstellung bei jungen Spielern:** nicht geprüft. Entscheidung des Entwicklers: normales Roblox-PvP ohne Blut. Vor dem Bau der Oberwelt und vor dem Launch die Community Standards und die Richtlinien zu Altersfreigaben und Inhaltsbeschreibungen lesen.
 
 **Quellen (geöffnet am 7. Oktober 2026):**
 
@@ -396,8 +396,8 @@ Der Launch-Umfang des Konzepts vom 7. Oktober ist schon gebaut (Profilversion 13
 | Offline-Bagger | **bleibt**, wird zu Helfern (Arbeitstitel „Zwerge“) |
 | Museum, Sets, Besucher-Einkommen | **bleibt**; Besuch nur durch Freunde, Bewundern/Wochenliste angepasst |
 | Haus-Ausbau (Stufe 1 und 2), Dekoration | **bleibt**, wird Burg-Ausbau (Wachhaus, Burghof) |
-| Gäste | **bleibt**, nur Roblox-Freunde (Burg ist sonst privat) |
-| Stadt mit 8 Grundstücken, Straßen, Mauer | **offen:** wird zum Burgviertel mit Portalen; Zugang zu fremden Burgen entfällt (siehe „Zu bestätigen“) |
+| Gäste | **bleibt**, nur Roblox-Freunde (Burg ist sonst privat), nur bis zur eigenen größten Tiefe des Gastes |
+| Stadt mit 8 Grundstücken, Straßen, Mauer | **bleibt** als Burgviertel mit Portalen; fremde Burgen sind nicht betretbar |
 | Quests, Login-Kette, Events, Saison | **bleibt**, Inhalte um Truhen, Tränke, Oberwelt-Events ergänzen |
 | Shop, Booster, Belege, Eier und Haustiere | **bleibt**, Pässe um Auto-Graben ergänzen |
 | Rebirth „Neue Bohrung“ | **bleibt**, setzt zusätzlich die Höhle zurück |
@@ -406,7 +406,7 @@ Der Launch-Umfang des Konzepts vom 7. Oktober ist schon gebaut (Profilversion 13
 
 ## Roadmap
 
-Das alte Zeitgerüst (4 Phasen, 12 Wochen) gilt nicht mehr. Eine neue Schätzung gibt es erst nach dem ersten Umbau-Schritt. Eine Phase endet erst, wenn ihr Gate erfüllt ist. Die Reihenfolge ist ein Vorschlag, zu bestätigen.
+Das alte Zeitgerüst (4 Phasen, 12 Wochen) gilt nicht mehr. Eine neue Schätzung gibt es erst nach dem ersten Umbau-Schritt. Eine Phase endet erst, wenn ihr Gate erfüllt ist. Die Reihenfolge ist bestätigt (Launch mit Oberwelt und PvP).
 
 | Phase | Inhalt | Gate |
 | --- | --- | --- |
@@ -456,26 +456,25 @@ Die Handelswelt kommt bewusst erst als Update 1: Sie braucht die meiste Absicher
 
 **Marketing und Clip-Momente:** Das Spiel ist auf teilbare Augenblicke gebaut: der Mutations-Reveal, die wachsende Höhle mit immer neuen Biomen, die Museumstour, der Rüstungs- und Waffenvergleich, Kämpfe in der Oberwelt und später spektakuläre Verkäufe in der Handelswelt. Ein Screenshot-Button im Museum und ein Reveal-Overlay erleichtern TikTok- und YouTube-Material. Kleine Creator können vorab Zugang zum geschlossenen Test erhalten. Roblox-Anzeigen sind nach dem Launch möglich, sobald Retention und Konversion gemessen sind; das Budget ist erst dann sinnvoll zu planen.
 
-## Zu bestätigen
+## Entscheidungen vom 10. Oktober 2026 (bestätigt)
 
-Diese Punkte sind im Konzept als Vorschlag eingetragen und brauchen noch eine Entscheidung:
+Die offenen Punkte der ersten Fassung sind entschieden:
 
-1. **Ausrüstung gegen Robux** („in einem gesunden Rahmen“): Vorschlag siehe Monetarisierung (kontogebunden, nicht handelbar, höchstens mittlere Stufe, nie besser als erspielt). Ist das so gewollt, oder sollen nur Skins gegen Robux gehen?
-2. **Kopfgeld:** Quelle der Münzen (System statt Abzug beim Besiegten), Höhe, Pro-Opfer-Sperre (10 Minuten), Tageslimit.
-3. **Auto-Graben:** Preis in Münzen (5.000) und der Pass „Auto-Graben ab Start“ (249 Robux), ab welcher Spitzhacken-Stufe.
-4. **Freunde in der Höhle:** Dürfen eingeladene Freunde in der Höhle des Gastgebers mitgraben (Vorschlag: ja, wie die bisherigen Gäste)?
-5. **Stadt:** Soll das heutige Stadtlayout mit 8 Grundstücken als Burgviertel bleiben (mit Portalen), oder sieht die Burg-Welt anders aus?
-6. **Rebirth:** Welche Teile der Ausrüstung bleiben (Vorschlag: alles)?
-7. **Reihenfolge der Roadmap:** Oberwelt vor dem Launch (Vorschlag) oder Launch ohne PvP?
-8. **Namen:** Biome, Helfer („Zwerge“), Zonen, Burgstufen, später der Spieltitel.
-9. **Handelbare Ausrüstung:** Gilt „handelbar, wenn erspielt“ auch für Truhenfunde? Vorschlag: ja.
-10. **Roblox-Regeln zu PvP** (Gewaltdarstellung, Altersfreigabe): vor dem Bau der Oberwelt prüfen.
+1. **Ausrüstung gegen Robux:** wie im Abschnitt Monetarisierung beschrieben (kontogebunden, nicht handelbar, höchstens mittlere Stufe, nie besser als erspielt). **Skins** (Aussehen von Waffen, Rüstung, Burg) können zusätzlich kommen.
+2. **Kopfgeld:** wird umgesetzt, wie im Abschnitt Oberwelt beschrieben (Münzen vom System, Sperre pro Opfer, Tageslimit, Stärke-Verhältnis).
+3. **Auto-Graben:** Freischaltung ab Spitzhacken-Stufe 3 für 5.000 Münzen; der Pass „Auto-Graben ab Start“ (249 Robux) schaltet es ohne Münzen frei. Auto-Graben schlägt im Takt der Abklingzeit, solange der Spieler vor der Wand steht und der Rucksack nicht voll ist, und bleibt im Spielbereich. Alle Werte sind Startwerte (Config).
+4. **Freunde in der Höhle:** Eingeladene Roblox-Freunde dürfen in der Höhle des Gastgebers mitgraben, **aber nur in Biomen, die sie selbst schon freigeschaltet haben.** Ein Biom ist für einen Spieler freigeschaltet, wenn er es in seiner eigenen Höhle erreicht hat (größte erreichte Tiefe). Der Gast gelangt nur bis zu dieser Tiefe.
+5. **Stadt:** Das heutige Stadtlayout mit 8 Grundstücken bleibt für den Start als Burgviertel. Fremde Burgen sind nicht betretbar.
+6. **Rebirth:** Die Ausrüstung bleibt erhalten.
+7. **Reihenfolge:** Der Launch enthält die Oberwelt mit PvP.
+8. **Namen:** Biome, Helfer („Zwerge“), Zonen und Burgstufen bleiben wie vorgeschlagen. Der Spieltitel wird später geändert.
+9. **Handelbare Ausrüstung:** Ausrüstung aus Truhen ist handelbar, solange sie erspielt oder gefunden wurde.
+10. **PvP-Darstellung:** normales Roblox-PvP ohne Blut. Die Richtlinien zu Altersfreigabe und Gewaltdarstellung werden vor Launch trotzdem noch einmal gegen die aktuelle Dokumentation gelesen (nicht geprüft).
 
 ## Nächste Schritte
 
-- [ ] Offene Punkte oben bestätigen
 - [ ] Umbau U1 planen: Höhle statt Schacht (Datenformat, Profil-Migration, Handy-Messung) und eigene Dateiliste dazu
 - [ ] Arbeitstitel festlegen und auf Roblox und per Markenrecherche prüfen
 - [ ] Studio-Testphase des bestehenden Spiels abschließen (`docs/TESTLISTE.md`), damit der Umbau auf einem geprüften Stand beginnt
-- [ ] Regeln zu PvP und Altersfreigabe lesen
+- [ ] Regeln zu PvP und Altersfreigabe lesen (vor dem Bau der Oberwelt)
 - [ ] Vor Launch und vor Update 1 Handels- und Zufallsregeln erneut prüfen

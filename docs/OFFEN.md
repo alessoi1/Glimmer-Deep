@@ -6,7 +6,7 @@ Von Hand pflegen. Hier stehen Dinge, die bewusst verschoben wurden und nicht ver
 
 Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt umgestellt (`docs/KONZEPT.md`). Die Umbau-Schritte U1 bis U3 stehen dort in der Roadmap.
 
-- [ ] **Zu bestätigen:** zehn Punkte am Ende von `docs/KONZEPT.md` (Robux-Ausrüstung, Kopfgeld, Auto-Graben, Freunde in der Höhle, Stadtlayout, Rebirth, Reihenfolge, Namen, handelbare Truhen-Ausrüstung, Roblox-Regeln zu PvP).
+- [x] **Entscheidungen:** alle zehn Punkte sind am 10. Oktober 2026 entschieden (siehe `docs/KONZEPT.md`, Abschnitt „Entscheidungen“).
 - [ ] **Studio-Testphase des bisherigen Spiels** (`docs/TESTLISTE.md`) abschließen, damit der Umbau auf einem geprüften Stand beginnt.
 - [ ] **U1 Höhle:** Datenformat (Seed plus abgebaute Blöcke), Profil-Migration, Schacht ersetzen, Handy-Messung. Betrifft `PlotService`, `DigService`, `ProfileData`, `Config/Layers` (werden Biome), `Config/Shovel` (wird Spitzhacke mit Hieb-Fläche).
 - [ ] **U2 Ausrüstung:** Schmiede, Rüstung und Waffen, Kräuter, Tränke.
