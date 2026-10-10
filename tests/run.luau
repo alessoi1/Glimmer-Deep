@@ -165,6 +165,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/Combat.spec")
 	end,
+	function()
+		require("./specs/CaveSession.spec")
+	end,
 }
 
 local passed = 0

@@ -12,6 +12,7 @@ local Remotes = require(Shared:WaitForChild("Remotes"))
 local DigAction = require(Shared:WaitForChild("DigAction"))
 local Quests = require(Shared:WaitForChild("Quests"))
 local Config = Shared:WaitForChild("Config")
+local CaveConfig = require(Config:WaitForChild("Cave"))
 local DigConfig = require(Config:WaitForChild("Dig"))
 local BackpackConfig = require(Config:WaitForChild("Backpack"))
 local OnboardingConfig = require(Config:WaitForChild("Onboarding"))
@@ -56,6 +57,12 @@ end
 local function handleDig(player: Player, ...: any)
 	if select("#", ...) > 0 then
 		warnRejected(player, "unexpected_arguments")
+		return
+	end
+
+	-- With the cave switched on, digging happens there (CaveService), not at the shaft.
+	if CaveConfig.enabled then
+		warnRejected(player, "cave_active")
 		return
 	end
 

@@ -40,6 +40,25 @@ return {
 	chestMinRow = 6,
 	-- A chest comes back this many seconds after it was opened.
 	chestRespawnSeconds = 21600,
+	-- Seconds between two checks for regrown ore while a player is in the cave.
+	refreshSeconds = 30,
+	-- Look of the blocks (not a game value).
+	look = {
+		rock = { r = 96, g = 90, b = 84 },
+		bedrock = { r = 52, g = 48, b = 46 },
+		chest = { r = 176, g = 120, b = 40 },
+		find_spot = { r = 90, g = 200, b = 230 },
+		herb = { r = 70, g = 150, b = 70 },
+		ore = {
+			coal = { r = 30, g = 30, b = 34 },
+			copper = { r = 184, g = 110, b = 70 },
+			iron = { r = 170, g = 150, b = 140 },
+			silver = { r = 200, g = 205, b = 215 },
+			gold = { r = 230, g = 190, b = 60 },
+			crystal = { r = 130, g = 90, b = 220 },
+		},
+		oreFallback = { r = 140, g = 140, b = 140 },
+	},
 	-- Master switch: while false the game keeps using the old shaft. Turn it on
 	-- only after the cave was tested in Roblox Studio.
 	enabled = false,

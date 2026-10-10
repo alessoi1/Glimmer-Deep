@@ -152,3 +152,21 @@ Reihenfolge wie in `docs/OFFEN.md` unter den gleichnamigen Punkten. Vorab ein Pr
 - [ ] Alle gefundenen Fehler als Liste mit Punkt-Nummer sammeln und weitergeben.
 - [ ] Abgehakte Punkte in `docs/OFFEN.md` auf `[x]` setzen (oder mir sagen, welche).
 - [ ] Zusätzlich offen aus der Technik: `luau-analyze` lokal ausführen (Typprüfung).
+
+
+## Höhle (nach Einschalten von `Config/Cave.enabled = true`)
+
+Nur in Studio prüfbar. Erst im Studio-Test einschalten, nicht committen.
+
+- [ ] Knopf „In die Höhle“ (oben links) bringt den Spieler in einen Gang nach unten; „Zur Burg“ bringt ihn zurück auf das Grundstück.
+- [ ] Der Gang hat Boden, Decke und Wände (graues Gestein, Erz farbig); man fällt nirgends durch.
+- [ ] Tippen oder Halten auf einen Block baut ihn ab; Erz landet im Rucksack, Anzeige unten links ändert sich; Münzen und Verkauf wie bisher.
+- [ ] Mit höherer Spitzhackenstufe fallen mehrere Blöcke pro Hieb (Fläche wächst).
+- [ ] Während man weitergeht, werden vorne Blöcke gebaut und hinten abgebaut (kein Ruckeln auf dem Handy, Teileanzahl im Log `cave window is over the part budget` darf nicht erscheinen).
+- [ ] Truhe antippen: Meldung „Truhe geöffnet: …“, die Truhe verschwindet, ein zweites Antippen tut nichts.
+- [ ] Nach Neustart des Spiels: abgebaute Blöcke bleiben abgebaut, nach 10 Minuten wachsen Erz und Kräuter an der Wand nach.
+- [ ] Tod oder Zurücksetzen holt den Spieler auf das Grundstück.
+- [ ] Zwei Spieler gleichzeitig: jeder hat seinen eigenen Gang, nichts überlappt.
+- [ ] Mit eingeschaltetem Schalter tut der alte Graben-Knopf nichts (Log `cave_active`).
+- [ ] Logs: `entered the cave`, `left the cave`, `chest opened`, keine `error`-Zeilen.
+- [ ] Bekannte Lücke: Die Höhle ist dunkel (Licht fehlt noch).
