@@ -162,6 +162,9 @@ local specs: { () -> () } = {
 	function()
 		require("./specs/ChestLoot.spec")
 	end,
+	function()
+		require("./specs/Combat.spec")
+	end,
 }
 
 local passed = 0

@@ -165,3 +165,16 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Truhen-Loot | 2 bis 3 Einträge je Truhe: Ausrüstung 25 %, Trank 25 %, Kraut 20 %, Münzen 20 %, Fund 10 %. Ausrüstung hat die Stufe des Bioms, mit 20 % eine Stufe mehr (höchstens beste Stufe). Münzen wachsen mit Faktor 3 je Biom. Die Chancen sind als Prozent abrufbar (`ChestLoot.chances`). | Truhen werden nie mit Robux gekauft, daher keine Zufallsregel für bezahlte Objekte. |
 | Voller Speicher | Passt ein Eintrag nicht mehr (Obergrenze Ausrüstung/Trank), wird er in Münzen ausgezahlt, nichts geht verloren; gezählt in `converted`. | Jede Truhe gibt immer etwas. |
 | Würfe | Reihenfolge der Ziehungen ist dokumentiert und per Test festgelegt; Funde laufen über `DigRoll` im Dienst. | Server-Autorität. |
+
+## Umbau U3a: Kampfrechnung (kein Profilformat)
+
+`src/shared/Combat.luau` und `Config/Combat.luau`. Reine Logik, in Lune getestet, noch nicht an das Spiel angeschlossen (kein CombatService, keine Oberwelt). Alle Zahlen sind Startwerte. Die Richtlinien zu PvP und Altersfreigabe sind weiterhin **nicht gelesen**; vor dem Bau der Oberwelt nachholen.
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Zonen | Drei Zonen nach Kampfstärke: Vorland 0 bis 4.000, Hochland bis 10.500, Gipfel darüber. Ein kompletter Satz Kupfer oder Eisen liegt im Vorland, Silber und Gold im Hochland, Kristall auf dem Gipfel (per Test). | Stärkebänder passend zu den Stufen der Ausrüstung. |
+| Zutritt | Ab der Untergrenze der Zone bis zur Obergrenze plus 10 % Spielraum. Wer stärker ist, kommt nicht mehr hinein; wer schwächer ist als die Untergrenze, auch nicht in höhere Zonen. | Neulingsschutz in beide Richtungen; wer gerade herauswächst, wird nicht sofort ausgesperrt. |
+| Portal | Nur nach dem Onboarding, mit Waffe und mindestens einem Rüstungsteil. | Konzept (Neulingsschutz). |
+| Treffer | Der Server prüft Eigenbeschuss, tot, Spawnschutz, Takt (0,6 s) und Reichweite (8 Studs, NaN und negativ werden abgelehnt). Schaden = Waffe mal Stärketrank, aufgerundet. Ein Treffer beendet den eigenen Spawnschutz (kein Verstecken dahinter). | Server-Autorität. Der Dienst misst später Abstand und Position selbst. |
+| Tod | Kein Verlust; Wiederbelebung mit vollem Leben und 4 s Spawnschutz. | Konzept. |
+| Kopfgeld | Münzen aus dem System je Zone (50 / 150 / 450). Nichts bei Spawnschutz des Besiegten oder wenn er schwächer als die Hälfte des Siegers ist. Pro Besiegtem alle 10 Minuten eine Belohnung, Tageslimit 1.500 Münzen (die letzte Belohnung wird gekürzt). Bei Misserfolg ändert sich das Hauptbuch nicht. | Konzept: Schutz gegen Zweitkonten und Absprachen. Das Hauptbuch liegt nur im Speicher; der Dienst entscheidet, ob es gespeichert wird. |
