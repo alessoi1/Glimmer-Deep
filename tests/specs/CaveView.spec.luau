@@ -54,7 +54,7 @@ test("validateWorld rejects broken values", function()
 		return not ok
 	end
 	assertTrue(bad(function(w)
-		w.slopeDegrees = 0
+		w.slopeDegrees = -1
 	end))
 	assertTrue(bad(function(w)
 		w.slopeDegrees = 80
@@ -73,14 +73,15 @@ test("validateWorld rejects broken values", function()
 	end))
 end)
 
-test("the cave axes are unit length and at right angles, and the cave goes down", function()
+test("the cave axes are unit length and at right angles, and the cave never rises", function()
 	local axes = CaveView.axes(world)
 	assertNear(dot(axes.forward, axes.forward), 1, 1e-9)
 	assertNear(dot(axes.up, axes.up), 1, 1e-9)
 	assertNear(dot(axes.right, axes.right), 1, 1e-9)
 	assertNear(dot(axes.forward, axes.up), 0, 1e-9)
 	assertNear(dot(axes.forward, axes.right), 0, 1e-9)
-	assertTrue(axes.forward.y < 0, "forward must descend")
+	assertTrue(axes.forward.y <= 0, "forward must not rise")
+	assertTrue(axes.forward.z > 0, "forward must lead away from the entrance")
 	assertTrue(axes.up.y > 0, "up must point up")
 end)
 
@@ -94,10 +95,39 @@ test("neighboring cells are exactly one block apart", function()
 	assertNear(CaveView.distance(a, nextY), blockSize, 1e-9)
 end)
 
-test("each deeper row is lower in the world", function()
+test("each deeper row is further along and never higher in the world", function()
 	local top = CaveView.cellCenter(world, blockSize, 1, 0, 0, 0)
 	local deep = CaveView.cellCenter(world, blockSize, 1, 100, 0, 0)
+	assertTrue(deep.z > top.z)
+	assertTrue(deep.y <= top.y)
+end)
+
+test("the shipped cave runs level, and a sloped world still works", function()
+	assertEquals(world.slopeDegrees, 0)
+	local steep: CaveView.World = table.clone(world)
+	steep.slopeDegrees = 25
+	local ok, reason = CaveView.validateWorld(steep, blockSize, caveConfig)
+	assertTrue(ok, reason)
+	local top = CaveView.cellCenter(steep, blockSize, 1, 0, 0, 0)
+	local deep = CaveView.cellCenter(steep, blockSize, 1, 100, 0, 0)
 	assertTrue(deep.y < top.y)
+end)
+
+test("the entrance hall is closed at the back by a bedrock wall", function()
+	local state = Cave.new(SEED)
+	local visible = CaveView.visibleCells(state, caveConfig, 0, 5, NOW)
+	local back = 0
+	for _, cell in visible do
+		if cell.row == -1 then
+			back += 1
+			assertEquals(cell.kind, "bedrock")
+		end
+	end
+	assertTrue(back > 0, "the back wall must be built")
+	-- Later windows do not need it.
+	for _, cell in CaveView.visibleCells(state, caveConfig, 3, 5, NOW) do
+		assertTrue(cell.row >= 3)
+	end
 end)
 
 test("caves of different slots do not touch each other", function()
@@ -129,7 +159,7 @@ end)
 
 local function bruteForceVisible(state: Cave.State, fromRow: number, toRow: number): { [string]: boolean }
 	local set: { [string]: boolean } = {}
-	for row = fromRow, toRow do
+	for row = if fromRow <= 0 then -1 else fromRow, toRow do
 		for x = -caveConfig.maxRadius - 1, caveConfig.maxRadius + 1 do
 			for y = -1, caveConfig.height do
 				if

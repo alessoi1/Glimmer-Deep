@@ -159,7 +159,9 @@ function CaveUI.start()
 		if folder == nil or camera == nil then
 			return nil, nil, nil, nil, nil
 		end
-		local ray = camera:ViewportPointToRay(pointer.X, pointer.Y)
+		-- input.Position leaves out the top bar, so it needs ScreenPointToRay
+		-- (ViewportPointToRay would aim about 36 px too high).
+		local ray = camera:ScreenPointToRay(pointer.X, pointer.Y)
 		local params = RaycastParams.new()
 		params.FilterType = Enum.RaycastFilterType.Include
 		params.FilterDescendantsInstances = { folder }
@@ -181,6 +183,7 @@ function CaveUI.start()
 			return
 		end
 		if kind == "bedrock" then
+			showMessage(Strings.cave.unbreakable)
 			return
 		end
 		if kind == "chest" then

@@ -93,14 +93,16 @@ function CaveView.visibleCells(
 ): { VisibleCell }
 	local cells: { VisibleCell } = {}
 	local sideLimit = config.maxRadius + 1
-	for row = math.max(0, fromRow), toRow do
+	-- Row -1 is the closed back wall of the entrance hall (bedrock).
+	local firstRow = if fromRow <= 0 then -1 else fromRow
+	for row = firstRow, toRow do
 		for x = -sideLimit, sideLimit do
 			for y = -1, config.height do
 				if
 					not Cave.isOpen(state, config, row, x, y, time)
 					and Cave.isExposed(state, config, row, x, y, time)
 				then
-					local inside = math.abs(x) <= config.maxRadius and y >= 0 and y < config.height
+					local inside = row >= 0 and math.abs(x) <= config.maxRadius and y >= 0 and y < config.height
 					if inside then
 						local cell = Cave.cellKind(state, config, row, x, y, time)
 						table.insert(cells, { row = row, x = x, y = y, kind = cell.kind, itemId = cell.itemId })
@@ -155,8 +157,8 @@ end
 
 -- Returns true when the world config is usable, otherwise false and a reason.
 function CaveView.validateWorld(world: World, blockSize: number, config: Cave.Config): (boolean, string?)
-	if not (world.slopeDegrees > 0 and world.slopeDegrees <= MAX_SLOPE) then
-		return false, "slopeDegrees must be from above 0 to " .. MAX_SLOPE
+	if not (world.slopeDegrees >= 0 and world.slopeDegrees <= MAX_SLOPE) then
+		return false, "slopeDegrees must be from 0 to " .. MAX_SLOPE
 	end
 	local width = (config.maxRadius * 2 + 1) * blockSize
 	if not (world.slotSpacing > width + blockSize) then

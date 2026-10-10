@@ -95,6 +95,7 @@ return {
 		leave = "Zur Burg",
 		minedOre = "+%d Erz",
 		backpackFull = "Rucksack voll",
+		unbreakable = "Nicht abbaubar",
 		tooFar = "Zu weit weg",
 		chestOpened = "Truhe geöffnet: %d Münzen, %d Teile, %d Tränke, %d Kräuter, %d Funde",
 		unavailable = "Die Höhle ist gerade nicht erreichbar",
