@@ -15,6 +15,8 @@ local config: Cave.Config = {
 	sliceRows = CaveConfig.sliceRows,
 	metersPerRow = CaveConfig.metersPerRow,
 	entranceRows = CaveConfig.entranceRows,
+	corridorHalfWidth = CaveConfig.corridorHalfWidth,
+	corridorHeight = CaveConfig.corridorHeight,
 	startRadius = CaveConfig.startRadius,
 	maxRadius = CaveConfig.maxRadius,
 	radiusByLevel = CaveConfig.radiusByLevel,
@@ -147,6 +149,18 @@ test("validateConfig rejects broken values", function()
 	assertEquals(
 		with(function(c)
 			c.chestMinRow = 1
+		end),
+		false
+	)
+	assertEquals(
+		with(function(c)
+			c.corridorHalfWidth = 13
+		end),
+		false
+	)
+	assertEquals(
+		with(function(c)
+			c.corridorHeight = 0
 		end),
 		false
 	)
@@ -401,6 +415,70 @@ test("mineArea clips at the structure and the play area", function()
 	local summary = Cave.mineArea(state, config, 1, cells, NOW)
 	assertEquals(#summary.mined, 4)
 	assertEquals(#summary.rejected, 5)
+end)
+
+-- Pre-dug corridor (existing players keep their depth) -----------------------------------
+
+test("a pre-dug corridor is open from the hall to its row, inside its shape only", function()
+	local state = Cave.new(SEED)
+	state.preDugRow = 40
+	state.deepestRow = 40
+	for row = config.entranceRows, 40 do
+		for x = -config.corridorHalfWidth, config.corridorHalfWidth do
+			for y = 0, config.corridorHeight - 1 do
+				assertEquals(Cave.cellKind(state, config, row, x, y, NOW).kind, "air", row .. "," .. x .. "," .. y)
+			end
+		end
+	end
+	-- Outside the corridor shape and behind its end the rock is still there.
+	assertTrue(Cave.cellKind(state, config, 20, config.corridorHalfWidth + 1, 0, NOW).kind ~= "air")
+	assertTrue(Cave.cellKind(state, config, 20, 0, config.corridorHeight, NOW).kind ~= "air")
+	assertTrue(Cave.cellKind(state, config, 41, 0, 0, NOW).kind ~= "air")
+end)
+
+test("the cell behind the end of the corridor is exposed and can be mined", function()
+	local state = Cave.new(SEED)
+	state.preDugRow = 40
+	state.deepestRow = 40
+	assertEquals(Cave.isExposed(state, config, 41, 0, 0, NOW), true)
+	assertTrue(Cave.mine(state, config, 10, 41, 0, 0, NOW).ok)
+	assertEquals(state.deepestRow, 41)
+	assertEquals(Cave.depth(state, config), 41 * config.metersPerRow)
+end)
+
+test("walls of the pre-dug corridor can be mined from inside", function()
+	local state = Cave.new(SEED)
+	state.preDugRow = 40
+	assertEquals(Cave.mine(state, config, 10, 20, config.corridorHalfWidth + 1, 0, NOW).reason ~= "not_exposed", true)
+end)
+
+test("the pre-dug row survives saving and loading and defaults to 0", function()
+	local state = Cave.new(SEED)
+	state.preDugRow = 120
+	state.deepestRow = 120
+	local data = Cave.serialize(state, config)
+	assertEquals(data.preDugRow, 120)
+	local restored = Cave.deserialize(data, config)
+	assertTrue(restored ~= nil)
+	assertEquals((restored :: Cave.State).preDugRow, 120)
+	assertEquals(Cave.isOpen(restored :: Cave.State, config, 100, 0, 0, NOW), true)
+
+	local old: any = Cave.serialize(Cave.new(SEED), config)
+	old.preDugRow = nil
+	local oldRestored = Cave.deserialize(old, config)
+	assertTrue(oldRestored ~= nil)
+	assertEquals((oldRestored :: Cave.State).preDugRow, 0)
+end)
+
+test("deserialize rejects a bad pre-dug row", function()
+	local function bad(value: any): boolean
+		local data: any = Cave.serialize(Cave.new(SEED), config)
+		data.preDugRow = value
+		return Cave.deserialize(data, config) == nil
+	end
+	assertTrue(bad(-1))
+	assertTrue(bad(1.5))
+	assertTrue(bad("40"))
 end)
 
 -- Regrowth -----------------------------------------------------------------------------

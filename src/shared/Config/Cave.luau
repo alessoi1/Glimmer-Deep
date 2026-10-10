@@ -15,6 +15,11 @@ return {
 	metersPerRow = 1,
 	-- The first rows are an open hall (always air) so the player never starts walled in.
 	entranceRows = 3,
+	-- Pre-dug corridor for players who already had depth before the cave existed
+	-- (sideways radius and height in blocks); it leads from the hall down to the
+	-- depth they had reached.
+	corridorHalfWidth = 1,
+	corridorHeight = 3,
 	-- Sideways radius of the hall and the structure limit in blocks (the play
 	-- area grows from the first to the last entry of radiusByLevel).
 	startRadius = 6,
