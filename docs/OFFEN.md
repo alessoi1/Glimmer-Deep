@@ -15,6 +15,7 @@ Das Konzept wurde auf Burg, Höhle, Ausrüstung, Oberwelt-PvP und Handelswelt um
 - [x] **U2a Ausrüstung** (reine Logik, Profilversion 15): `Equipment`, `Config/Equipment`, Erzlager.
 - [x] **U2b Tränke und Truhen-Loot** (reine Logik, Profilversion 16, in Lune getestet).
 - [ ] **U2c Schmiede im Spiel** (`ForgeService`, Oberfläche; nur in Studio prüfbar).
+- [x] **U3a Kampfrechnung** (reine Logik: Zonen, Treffer, Spawnschutz, Kopfgeld; in Lune getestet).
 - [ ] **U3 Oberwelt:** Portal, Stufenzonen, PvP, Kopfgeld.
 - [ ] **Roblox-Regeln zu PvP** lesen (Gewaltdarstellung, Altersfreigabe), bevor die Oberwelt gebaut wird.
 - [ ] **Alte Begriffe im Code** (Schacht, Schaufel, Auktionshaus) werden mit den Umbau-Schritten umbenannt; bis dahin gelten sie weiter.
