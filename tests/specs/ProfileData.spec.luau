@@ -921,6 +921,82 @@ test("migrating to the cave format is deterministic and keeps a fresh player at 
 	assertEquals(start.cave.preDugRow, 0)
 end)
 
+test("a new profile owns no equipment and has an empty stash", function()
+	local profile = fresh()
+	assertEquals(#profile.gear.owned, 0)
+	assertEquals(next(profile.gear.equipped), nil)
+	assertEquals(profile.gear.nextId, 1)
+	assertEquals(next(profile.stash.ores), nil)
+end)
+
+test("validate accepts equipment and a stash with ore", function()
+	local profile: any = fresh()
+	profile.gear = {
+		owned = {
+			{ id = 1, slot = "weapon", tier = 2, source = "crafted", bound = false },
+			{ id = 2, slot = "helmet", tier = 1, source = "shop", bound = true },
+		},
+		equipped = { weapon = 1 },
+		nextId = 3,
+	}
+	profile.stash = { ores = { copper = 12, iron = 3 } }
+	local ok, reason = ProfileData.validate(profile, rules)
+	assertTrue(ok, reason)
+end)
+
+test("validate rejects bad equipment and stash data", function()
+	expectInvalid(function(p)
+		p.gear = nil
+	end, "gear")
+	expectInvalid(function(p)
+		p.gear.nextId = 0
+	end, "gear.nextId")
+	expectInvalid(function(p)
+		p.gear.owned = { { id = 1, slot = "weapon", tier = 1, source = "crafted" } }
+		p.gear.nextId = 2
+	end, "gear.owned")
+	expectInvalid(function(p)
+		p.gear.owned = { { id = 1, slot = "weapon", tier = 1.5, source = "crafted", bound = false } }
+		p.gear.nextId = 2
+	end, "gear.owned")
+	expectInvalid(function(p)
+		p.gear.owned = { { id = 5, slot = "weapon", tier = 1, source = "crafted", bound = false } }
+		p.gear.nextId = 2
+	end, "gear.owned")
+	expectInvalid(function(p)
+		p.gear.equipped = { weapon = "one" }
+	end, "gear.equipped")
+	expectInvalid(function(p)
+		p.stash = nil
+	end, "stash")
+	expectInvalid(function(p)
+		p.stash.ores = { copper = -1 }
+	end, "stash.ores")
+	expectInvalid(function(p)
+		p.stash.ores = { copper = 1.5 }
+	end, "stash.ores")
+end)
+
+test("a version 14 profile migrates to version 15 with empty equipment and stash", function()
+	local profile: any = fresh()
+	profile.version = 14
+	profile.gear = nil
+	profile.stash = nil
+	profile.coins = 321
+	local migrated, reason = ProfileData.migrate(profile, Migrations)
+	assertTrue(migrated ~= nil, reason)
+	if migrated == nil then
+		return
+	end
+	assertEquals(migrated.version, rules.version)
+	assertEquals(migrated.coins, 321)
+	assertEquals(#migrated.gear.owned, 0)
+	assertEquals(migrated.gear.nextId, 1)
+	assertEquals(next(migrated.stash.ores), nil)
+	local ok, why = ProfileData.validate(migrated :: any, rules)
+	assertTrue(ok, why)
+end)
+
 test("a new profile starts the find ids at 1", function()
 	assertEquals(fresh().nextFindId, 1)
 end)

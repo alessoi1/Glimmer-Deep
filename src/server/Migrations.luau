@@ -23,6 +23,7 @@
 --   13 -> 14: the cave. Players keep their depth as a pre-dug corridor (one row
 --             per meter, frozen at this version); depth and layerSeeds stay until
 --             the dig service works on the cave.
+--   14 -> 15: equipment (nothing owned or worn) and the forge stash (empty).
 
 local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 	function(data)
@@ -124,6 +125,11 @@ local migrations: { (data: { [string]: any }) -> { [string]: any } } = {
 			end
 		end
 		data.cave = { seed = seed, deepestRow = rows, preDugRow = rows, slices = {}, chests = {} }
+		return data
+	end,
+	function(data)
+		data.gear = { owned = {}, equipped = {}, nextId = 1 }
+		data.stash = { ores = {} }
 		return data
 	end,
 }
