@@ -45,6 +45,8 @@ local WORLD_FOLDER = "Caves"
 local ARRIVAL_LIFT = 3 -- studs above the floor spot where the player is put
 local RETURN_LIFT = 4 -- studs above the respawn point when going back up
 local VALID_AXES: { [string]: boolean } = { row = true, x = true, y = true }
+local PARTS_PER_STEP = 250 -- parts built per frame; the rest follows on the next frames
+local FOLLOW_SECONDS = 0.25 -- how often the view follows a walking player
 
 local settings: CaveSession.Settings
 local caveConfig: Cave.Config
@@ -62,6 +64,7 @@ local inCave: { [Player]: boolean } = {}
 local folders: { [Player]: Folder } = {}
 local parts: { [Player]: { [string]: BasePart } } = {}
 local radii: { [Player]: number } = {} -- sideways reach of the pickaxe the view was built for
+local lastRow: { [Player]: number } = {} -- row the view was last built around
 
 local function warnRejected(player: Player, remote: string, reason: string)
 	rejects.reject(player.UserId, remote, reason)
@@ -125,6 +128,11 @@ local function buildPart(player: Player, session: CaveSession.Session, cell: Cav
 	parts[player][part.Name] = part
 end
 
+-- Takes down what is not wanted any more at once and builds the new parts
+-- nearest first, PARTS_PER_STEP per frame (thousands of parts in one frame
+-- stall the server and the client). Returns after the first step; the rest
+-- follows in a task that stops when the cave view is gone or the cell was
+-- taken down again in the meantime.
 local function applyDiff(player: Player, session: CaveSession.Session, refresh: CaveSession.Refresh)
 	local folder = folders[player]
 	local built = parts[player]
@@ -138,12 +146,41 @@ local function applyDiff(player: Player, session: CaveSession.Session, refresh: 
 			built[key] = nil
 		end
 	end
-	for _, cell in refresh.diff.add do
-		buildPart(player, session, cell, folder)
-	end
 	if refresh.overBudget then
 		log.warn("cave window is over the part budget", { userId = player.UserId, count = refresh.count })
 	end
+
+	local pending = refresh.diff.add
+	local centerRow = refresh.row
+	table.sort(pending, function(a: CaveView.VisibleCell, b: CaveView.VisibleCell)
+		return math.abs(a.row - centerRow) < math.abs(b.row - centerRow)
+	end)
+
+	local nextIndex = 1
+	local function buildStep()
+		local stop = math.min(nextIndex + PARTS_PER_STEP - 1, #pending)
+		for index = nextIndex, stop do
+			local cell = pending[index]
+			if session.built[CaveView.key(cell.row, cell.x, cell.y)] then
+				buildPart(player, session, cell, folder)
+			end
+		end
+		nextIndex = stop + 1
+	end
+
+	buildStep()
+	if nextIndex > #pending then
+		return
+	end
+	task.spawn(function()
+		while nextIndex <= #pending do
+			task.wait()
+			if folders[player] ~= folder or parts[player] ~= built then
+				return
+			end
+			buildStep()
+		end
+	end)
 end
 
 local function pickaxeRadius(profile: DataService.Profile): number
@@ -174,6 +211,7 @@ local function updateView(player: Player, session: CaveSession.Session)
 		clearParts(player, session)
 	end
 	local refresh = CaveSession.refresh(session, toVec(root.Position), os.time())
+	lastRow[player] = refresh.row
 	applyDiff(player, session, refresh)
 	log.debug("cave view updated", {
 		userId = player.UserId,
@@ -191,6 +229,7 @@ local function removeView(player: Player)
 	folders[player] = nil
 	parts[player] = nil
 	radii[player] = nil
+	lastRow[player] = nil
 	local session = sessions[player]
 	if session ~= nil then
 		CaveSession.clearBuilt(session)
@@ -269,6 +308,7 @@ local function handleEnter(player: Player, ...: any)
 		local axes = CaveView.axes(session.world)
 		local position = toVec3(entry) + Vector3.new(0, ARRIVAL_LIFT, 0)
 		local refresh = CaveSession.refresh(session, entry, os.time())
+		lastRow[player] = refresh.row
 		applyDiff(player, session, refresh)
 		root.CFrame = CFrame.lookAt(position, position + toVec3(axes.forward))
 	end)
@@ -497,6 +537,25 @@ local function refreshLoop()
 	end
 end
 
+-- Builds the cave ahead while a player walks (not only after a swing).
+local function followLoop()
+	while true do
+		task.wait(FOLLOW_SECONDS)
+		for player, session in sessions do
+			local root = if inCave[player] then rootPart(player) else nil
+			if root ~= nil then
+				local row = CaveView.rowAt(session.world, session.blockSize, session.slot, toVec(root.Position))
+				if math.max(row, 0) ~= lastRow[player] then
+					local ok, err = pcall(updateView, player, session)
+					if not ok then
+						log.error("cave follow failed", { userId = player.UserId, error = tostring(err) })
+					end
+				end
+			end
+		end
+	end
+end
+
 function CaveService.isInCave(player: Player): boolean
 	return inCave[player] == true
 end
@@ -588,6 +647,7 @@ function CaveService.start()
 	end
 
 	task.spawn(refreshLoop)
+	task.spawn(followLoop)
 	log.info("started", { slots = PlotService.getSlotCount() })
 end
 
