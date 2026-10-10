@@ -2,6 +2,7 @@
 -- Client entry point. Starts the interface; the client holds no game values.
 
 local DigUI = require(script.Parent:WaitForChild("DigUI"))
+local CaveUI = require(script.Parent:WaitForChild("CaveUI"))
 local SellUI = require(script.Parent:WaitForChild("SellUI"))
 local ShopUI = require(script.Parent:WaitForChild("ShopUI"))
 local PetUI = require(script.Parent:WaitForChild("PetUI"))
@@ -15,6 +16,7 @@ local MuseumUI = require(script.Parent:WaitForChild("MuseumUI"))
 local UpgradeUI = require(script.Parent:WaitForChild("UpgradeUI"))
 
 DigUI.start()
+CaveUI.start()
 SellUI.start()
 UpgradeUI.start()
 MuseumUI.start()

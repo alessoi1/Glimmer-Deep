@@ -178,3 +178,19 @@ Reine Logik für die Höhle des neuen Konzepts (`src/shared/Cave.luau`, `CaveCod
 | Treffer | Der Server prüft Eigenbeschuss, tot, Spawnschutz, Takt (0,6 s) und Reichweite (8 Studs, NaN und negativ werden abgelehnt). Schaden = Waffe mal Stärketrank, aufgerundet. Ein Treffer beendet den eigenen Spawnschutz (kein Verstecken dahinter). | Server-Autorität. Der Dienst misst später Abstand und Position selbst. |
 | Tod | Kein Verlust; Wiederbelebung mit vollem Leben und 4 s Spawnschutz. | Konzept. |
 | Kopfgeld | Münzen aus dem System je Zone (50 / 150 / 450). Nichts bei Spawnschutz des Besiegten oder wenn er schwächer als die Hälfte des Siegers ist. Pro Besiegtem alle 10 Minuten eine Belohnung, Tageslimit 1.500 Münzen (die letzte Belohnung wird gekürzt). Bei Misserfolg ändert sich das Hauptbuch nicht. | Konzept: Schutz gegen Zweitkonten und Absprachen. Das Hauptbuch liegt nur im Speicher; der Dienst entscheidet, ob es gespeichert wird. |
+
+## Umbau U1c-2b: Höhle in der Welt (CaveService, hinter dem Schalter)
+
+`CaveSession` (reine Logik, in Lune getestet), `CaveService` (Server), `CaveUI` (Client) und fünf Remotes (`CaveEnter`, `CaveLeave`, `CaveSwing`, `CaveChest`, `CaveResult`). Standardmäßig **aus** (`Config/Cave.enabled = false`): Dann startet der Dienst nicht, die Oberfläche erscheint nicht und der alte Schacht läuft wie bisher.
+
+| Thema | Entscheidung | Grund |
+| --- | --- | --- |
+| Trennung | Alle Regeln (Reichweite, Abklingzeit, Abbau, Truhen, Speichern, sichtbare Blöcke) stehen in `CaveSession` ohne Roblox-Dienste; der Dienst baut nur Teile, nimmt Remotes an und loggt. | Nur so ist das Wichtige ohne Studio testbar (13 neue Tests). |
+| Welt | Je Spieler ein Ordner `Workspace/Caves/Cave_<UserId>` mit einem Teil je sichtbarem Block (Name = `Zeile,x,y`, Attribut `Kind` nur für die Anzeige). Beim Verlassen wird der Ordner gelöscht. | Teilebudget und Streaming; fremde Höhlen liegen weit weg im eigenen Slot. |
+| Eingabe | Der Client schickt nur Zeile, x, y und die Richtung (aus der Flächennormale). Der Server prüft Typ, ganze Zahlen, Reichweite zur Zellmitte, Abklingzeit, Aufdeckung und Spitzhackenstufe und ignoriert das Attribut. | Server-Autorität. |
+| Rückkehr | Respawn (Tod, Reset) beendet den Höhlenbesuch und setzt den Spieler zurück auf das Grundstück. | Kein Spieler steckt in der Höhle fest. |
+| Speichern | Nach jedem Hieb und jeder Truhe schreibt `Cave.flush` die geänderten Abschnitte ins Profil; beim Verlassen und vor dem Speichern des Profils nochmals. | Nichts geht bei Absturz verloren, nur geänderte Abschnitte werden kodiert. |
+| Nachwuchs | Alle 30 Sekunden (`refreshSeconds`) prüft der Dienst für Spieler in der Höhle, ob Erz und Kräuter nachgewachsen sind. | Keine Hintergrund-Timer pro Zelle. |
+| Truhen | Öffnen über `CaveChest`; Beute wird im Server gewürfelt und direkt ins Profil gelegt (Ausrüstung, Tränke, Kräuter ins Lager, Münzen, Funde ins Lager). | Truhen sind nie für Robux. |
+| Altes Graben | Solange die Höhle an ist, lehnt `DigService` das alte `Dig` ab (Log `cave_active`). | Zwei Wege ins gleiche Profil verhindern. |
+| Noch nicht | Gäste in der Höhle, Burg-Modell und Portal, Licht in der Höhle (Fackeln, Nachtsicht), Auto-Graben, Umbenennen der Schichten zu Biomen, Entfernen von `depth`/`layerSeeds`. | Kommen in eigenen Schritten. |

@@ -58,6 +58,11 @@ local Remotes = {
 		seasonClaim = "SeasonClaim", -- client -> server event: (track "free" | "premium", level number)
 		seasonResult = "SeasonResult", -- server -> client event: outcome, new snapshot, or a level-up notice
 		quickTravel = "QuickTravel", -- client -> server event: (target "sell" | "shaft")
+		caveEnter = "CaveEnter", -- client -> server event: go down into the cave (no arguments)
+		caveLeave = "CaveLeave", -- client -> server event: go back up to the castle (no arguments)
+		caveSwing = "CaveSwing", -- client -> server event: (row, x, y, axis) swing at a block
+		caveChest = "CaveChest", -- client -> server event: (row, x, y) open a chest
+		caveResult = "CaveResult", -- server -> client event: outcome, new state, chest loot
 		getOfflineReport = "GetOfflineReport", -- client -> server function: { ready, report?, maxSeconds? }, nil while loading
 	},
 }

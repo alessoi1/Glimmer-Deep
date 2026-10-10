@@ -16,6 +16,7 @@ local SellMessages = require(Shared:WaitForChild("SellMessages"))
 local Log = require(Shared:WaitForChild("Log"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local CaveConfig = require(Shared:WaitForChild("Config"):WaitForChild("Cave"))
 
 local log = Log.new("DigUI")
 
@@ -248,7 +249,12 @@ function DigUI.start()
 
 	-- A sale, an upgrade or a museum action changes coins, backpack and cooldown; the sell and
 	-- upgrade UIs show their own messages.
-	for _, remote in { sellResult, upgradeResult, museumResult, questResult, shopResult } do
+	local stateRemotes = { sellResult, upgradeResult, museumResult, questResult, shopResult }
+	if CaveConfig.enabled then
+		-- Mining in the cave changes the backpack and coins like a dig does.
+		table.insert(stateRemotes, Remotes.event(Remotes.names.caveResult))
+	end
+	for _, remote in stateRemotes do
 		remote.OnClientEvent:Connect(function(payload: { state: DigAction.State? })
 			if type(payload) == "table" and type(payload.state) == "table" then
 				applyState(payload.state)

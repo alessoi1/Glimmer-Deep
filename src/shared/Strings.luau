@@ -90,6 +90,16 @@ return {
 		tooFar = "Geh näher an deinen Schacht",
 		unknown = "Das hat nicht geklappt",
 	},
+	cave = {
+		enter = "In die Höhle",
+		leave = "Zur Burg",
+		minedOre = "+%d Erz",
+		backpackFull = "Rucksack voll",
+		tooFar = "Zu weit weg",
+		chestOpened = "Truhe geöffnet: %d Münzen, %d Teile, %d Tränke, %d Kräuter, %d Funde",
+		unavailable = "Die Höhle ist gerade nicht erreichbar",
+		unknown = "Das hat nicht geklappt",
+	},
 	shop = {
 		open = "Shop",
 		note = "Alles lässt sich auch erspielen, nur langsamer.",
