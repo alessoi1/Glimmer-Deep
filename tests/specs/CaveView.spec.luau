@@ -310,6 +310,22 @@ test("diff removes cells that left the window", function()
 	assertEquals(#change.add, #late)
 end)
 
+test("cap walls close both ends of the window and never share a key with a real cell", function()
+	local caps = CaveView.capCells(caveConfig, 10, 30)
+	local perRow = (caveConfig.maxRadius * 2 + 3) * (caveConfig.height + 2)
+	assertEquals(#caps, perRow * 2)
+	local rows: { [number]: boolean } = {}
+	for _, cap in caps do
+		rows[cap.row] = true
+		assertEquals(cap.kind, "bedrock")
+		assertTrue(string.sub(CaveView.cellKey(cap), 1, 4) == "cap:", "cap keys are marked")
+	end
+	assertTrue(rows[9] and rows[31], "one wall before and one after the window")
+
+	-- At the start of the cave the closed back wall is already there: only the far end gets a cap.
+	assertEquals(#CaveView.capCells(caveConfig, 0, 30), perRow)
+end)
+
 -- Reach ------------------------------------------------------------------------------------------
 
 test("a cell within reach of the player's position can be hit, a far one cannot", function()

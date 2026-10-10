@@ -113,7 +113,7 @@ local function buildPart(player: Player, session: CaveSession.Session, cell: Cav
 	local up = toVec3(axes.up)
 	local right = toVec3(axes.right)
 	local part = Instance.new("Part")
-	part.Name = CaveView.key(cell.row, cell.x, cell.y)
+	part.Name = CaveView.cellKey(cell)
 	part.Size = Vector3.one * session.blockSize
 	part.CFrame = CFrame.fromMatrix(toVec3(center), right, up)
 	part.Anchored = true
@@ -161,7 +161,7 @@ local function applyDiff(player: Player, session: CaveSession.Session, refresh: 
 		local stop = math.min(nextIndex + PARTS_PER_STEP - 1, #pending)
 		for index = nextIndex, stop do
 			local cell = pending[index]
-			if session.built[CaveView.key(cell.row, cell.x, cell.y)] then
+			if session.built[CaveView.cellKey(cell)] then
 				buildPart(player, session, cell, folder)
 			end
 		end
