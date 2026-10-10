@@ -220,7 +220,7 @@ local function loadSession(player: Player): CaveSession.Session?
 	local slot = PlotService.getSlotOf(player)
 	if profile == nil or slot == nil then
 		warnRejected(player, Remotes.names.caveEnter, "profile_or_plot_missing")
-		return nil
+		return nil -- handleEnter answers the client with "unavailable"
 	end
 	local session, reason = CaveSession.new(profile.cave, caveConfig, settings.world, settings.blockSize, slot)
 	if session == nil then
@@ -244,29 +244,42 @@ local function handleEnter(player: Player, ...: any)
 	local root = rootPart(player)
 	if root == nil then
 		warnRejected(player, Remotes.names.caveEnter, "no_character")
+		caveResult:FireClient(player, { ok = false, reason = "unavailable" })
 		return
 	end
 	local session = loadSession(player)
 	if session == nil then
+		-- Profile or plot not ready yet, or the saved cave is unusable: tell the
+		-- client so the player can try again instead of seeing nothing.
 		caveResult:FireClient(player, { ok = false, reason = "unavailable" })
 		return
 	end
 
 	inCave[player] = true
-	local folder = Instance.new("Folder")
-	folder.Name = "Cave_" .. player.UserId
-	folder.Parent = worldFolder
-	folders[player] = folder
-	parts[player] = {}
-	local profile = DataService.getData(player)
-	radii[player] = if profile ~= nil then pickaxeRadius(profile) else caveConfig.startRadius
+	local ok, err = pcall(function()
+		local folder = Instance.new("Folder")
+		folder.Name = "Cave_" .. player.UserId
+		folder.Parent = worldFolder
+		folders[player] = folder
+		parts[player] = {}
+		local profile = DataService.getData(player)
+		radii[player] = if profile ~= nil then pickaxeRadius(profile) else caveConfig.startRadius
 
-	local entry = CaveSession.entryPoint(session)
-	local axes = CaveView.axes(session.world)
-	local position = toVec3(entry) + Vector3.new(0, ARRIVAL_LIFT, 0)
-	local refresh = CaveSession.refresh(session, entry, os.time())
-	applyDiff(player, session, refresh)
-	root.CFrame = CFrame.lookAt(position, position + toVec3(axes.forward))
+		local entry = CaveSession.entryPoint(session)
+		local axes = CaveView.axes(session.world)
+		local position = toVec3(entry) + Vector3.new(0, ARRIVAL_LIFT, 0)
+		local refresh = CaveSession.refresh(session, entry, os.time())
+		applyDiff(player, session, refresh)
+		root.CFrame = CFrame.lookAt(position, position + toVec3(axes.forward))
+	end)
+	if not ok then
+		-- Never stay half inside: otherwise every later try ends in "already_in_cave".
+		log.error("entering the cave failed", { userId = player.UserId, error = tostring(err) })
+		inCave[player] = nil
+		removeView(player)
+		caveResult:FireClient(player, { ok = false, reason = "unavailable" })
+		return
+	end
 	log.info("entered the cave", { userId = player.UserId, slot = session.slot })
 	caveResult:FireClient(player, { ok = true, entered = true, state = DigService.getState(player) })
 end
